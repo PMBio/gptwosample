@@ -17,10 +17,13 @@ import scipy as SP
 class GPTwoSampleMLII(GPTwoSample):
     """
     This class provides comparison of two Timeline Groups to wach other.
+
+    see :py:class:`GPTwoSample.src.GPTwoSample` for detailed description of provided methods.
+
     """
     def __init__(self, *args, **kwargs):
         """
-        see :py:class:`GPTwoSample`
+        see :py:class:`GPTwoSample.src.GPTwoSample`
         """
         GPTwoSample.__init__(self, *args, **kwargs)
 

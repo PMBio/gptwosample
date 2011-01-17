@@ -13,6 +13,7 @@
 
 import sys, os
 sys.path.insert(0, os.path.abspath('./../../../'))
+sys.path.insert(0, os.path.abspath('./../../'))
 #sys.path.insert(0, os.path.abspath('/kyb/agbs/maxz/Documents/MPG/GP/lib/'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -42,8 +43,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PythonGPRegression'
-copyright = u'2010, Oliver Stegle, Max Zwießele'
+project = u'GPTwoSample'
+copyright = u'2011, Oliver Stegle, Max Zwießele'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -168,7 +169,7 @@ html_show_sourcelink = False
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'GPRdoc'
+htmlhelp_basename = 'GPTwoSampleDoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -182,7 +183,7 @@ htmlhelp_basename = 'GPRdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'PYGPdoc.tex', u'PYGP Documentation',
+  ('index', 'GPTwoSample.tex', u'GPTwoSample Documentation',
    u'Oliver Stegle, Max Zwießele', 'manual'),
 ]
 
@@ -215,6 +216,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pygp', u'PYGP Documentation',
+    ('index', 'GPTwoSample', u'GPTwoSample Documentation',
      [u'Oliver Stegle, Max Zwießele'], 1)
 ]

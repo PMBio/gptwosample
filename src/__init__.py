@@ -70,18 +70,23 @@ class GPTwoSample(object):
     def predict_model_likelihoods(self, training_data, *args, **kwargs):
         """
         Predict the probabilities of the models (individual and common) to describe the data
+        
         **Parameters**:
         
-            training_data : {'input' : {'group 1':[double] ... 'group n':[double]},'output' : {'group 1':[double] ... 'group n':[double]}}
-                the training data to learn from. The input are the time-values and
-                the output the expression-values of e.g. a timeseries.
-                Note: Only implemented for comparing two timeseries!
+            training_data : dict traning_data
+                The training data to learn from. Input are time-values and
+                output are expression-values of e.g. a timeseries.
+
+                Training data training_data has following structure::
+
+                    {'input' : {'group 1':[double] ... 'group n':[double]},
+                    'output' : {'group 1':[double] ... 'group n':[double]}}
 
             args : [..]
-                see :py:class:`pygp.GP`
+                see :py:class:`pygp.gpr.GP`
 
             kwargs : {..}
-                see :py:class:`pygp.GP`
+                see :py:class:`pygp.gpr.GP`
         
         """
         X = training_data['input'].values()
@@ -106,8 +111,8 @@ class GPTwoSample(object):
         Predicts the mean and variance of both models.
         Returns::
 
-            {'individual':{'mean':[predicted pointwise mean], 'var':[predicted pointwise variance]},
-                 'common':{'mean':[pointwise mean],'var':[pointwise variance]}}
+            {'individual':{'mean':[pointwise mean], 'var':[pointwise variance]},
+                 'common':{'mean':[pointwise mean], 'var':[pointwise variance]}}
 
         **Parameters:**
 
@@ -159,14 +164,14 @@ class GPTwoSample(object):
         Plot the results given by last prediction.
 
         Two Instance Plots of comparing two groups to each other:
-
+        
         **Differential Groups:**
-
+        
         .. image:: ../images/plotGPTwoSampleDifferential.png
             :height: 8cm
-
+            
         **Non-Differential Groups:**
-
+        
         .. image:: ../images/plotGPTwoSampleSame.png
             :height: 8cm
         
