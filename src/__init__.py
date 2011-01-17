@@ -157,7 +157,20 @@ class GPTwoSample(object):
 
     def plot_results(self, x_label="input", y_label="ouput", title=None):
         """
-        Plot the result given by last prediction.
+        Plot the results given by last prediction.
+
+        Two Instance Plots of comparing two groups to each other:
+
+        **Differential Groups:**
+
+        .. image:: ../images/plotGPTwoSampleDifferential.png
+            :height: 8cm
+
+        **Non-Differential Groups:**
+
+        .. image:: ../images/plotGPTwoSampleSame.png
+            :height: 8cm
+        
         """
         if self._predicted_mean_variance is None:
             print "Not yet predicted"
