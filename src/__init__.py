@@ -8,6 +8,7 @@ It compares two timeseries against each other, depicting whether these two times
 """
 
 import sys
+sys.path.append("./../../")
 sys.path.append("./../")
 
 from pygp import gpr as GPR, gpr_plot as PLOT
@@ -165,7 +166,15 @@ class GPTwoSample(object):
             title = r"Prediction result: $ \frac{P(individual)} {P(common)} = %.2f $" % (self.bayes_factor())
 
         import pylab as PL
-        
+        plparams = {'axes.labelsize': 20,
+            'text.fontsize': 20,
+            'legend.fontsize': 18,
+            'title.fontsize': 22,
+            'xtick.labelsize': 20,
+            'ytick.labelsize': 20,
+            'text.usetex': True}
+        PL.rcParams.update(plparams)
+
         legend_plots = []
         legend_names = []
 
@@ -175,7 +184,7 @@ class GPTwoSample(object):
             if len(mean.shape)>1:
                 number_of_groups = mean.shape[0]
                 for i in range(number_of_groups):
-                    col = (i/number_of_groups,i/number_of_groups,.8)
+                    col = (.1,.1,.8)#(i/number_of_groups,i/number_of_groups,.8)
                     legend_names.append("%s: %i" % (name,i))
                     data = self._models[name].getData()                    
                     PLOT.plot_training_data(
@@ -183,10 +192,12 @@ class GPTwoSample(object):
                         format_data={'alpha':.4,
                                      'marker':'.',
                                      'linestyle':'',
-                                     'markersize':12,
+                                     'markersize':13,
                                      'color':col})
                     plots = PLOT.plot_sausage(self._interpolation_interval_cache, mean[i], var[i],
-                        format_fill={'alpha':0.2,'facecolor':col},format_line={'alpha':1,'color':col})[0]
+                        format_fill={'alpha':0.1,'facecolor':col},
+                        format_line={'alpha':1,'color':col}
+                                              )[0]
                     legend_plots.append(plots[0])
             else:
                 legend_names.append("%s" % (name))
@@ -195,10 +206,10 @@ class GPTwoSample(object):
                                           format_fill={'alpha':0.2,'facecolor':col},
                                           format_line={'alpha':1,'color':col})[0]
                 legend_plots.append(plots[0])
-        PL.legend(legend_plots,legend_names)
+        PL.legend(legend_plots,legend_names,loc=0)
         PL.xlabel(x_label)
         PL.ylabel(y_label)
-        PL.suptitle(title)
+        PL.suptitle(title, fontsize=22)
         
     ####### private #########
 
@@ -219,88 +230,3 @@ class GPTwoSample(object):
         #self._training_data_cache = {'input': {'group_1':None,'group_2':None},
         #                             'output': {'group_1':None,'group_2':None}}
 
-
-
-if __name__ == '__main__':
-    import numpy.random as random
-
-    #0. generate Toy-Data; just samples from a superposition of a sin + linear trend
-    xmin = 1
-    xmax = 2.5*SP.pi
-    x1 = SP.arange(xmin,xmax,.7)
-    x2 = SP.arange(xmin,xmax,.4)
-
-    C = 2       #offset
-    b = 0.5
-    sigma1 = 0.1
-    sigma2 = 0.1
-    n_noises = 1
-
-    b = 0
-
-    y1  = b*x1 + C + 1*SP.sin(x1)
-    dy1 = b   +     1*SP.cos(x1)
-    y1 += sigma1*random.randn(y1.shape[0])
-    y1-= y1.mean()
-
-    y2  = b*x2 + C + 1*SP.sin(x2)
-    y2 *= -1*SP.cos(x2)
-    dy2 = b   +     1*SP.cos(x2)
-    y2 += sigma2*random.randn(y2.shape[0])
-    y2-= y2.mean()
-
-    x1 = x1[:,SP.newaxis]
-    x2 = x2[:,SP.newaxis]
-
-    #predictions:
-    X = SP.linspace(0,10,100)[:,SP.newaxis]
-
-    #hyperparamters
-    dim = 1
-
-    logthetaCOVAR = SP.log([1,1,sigma1])#,sigma2])
-    hyperparams = {'covar':logthetaCOVAR}
-
-    from pygp.covar import se, combinators, noise
-
-    SECF = se.SEARDCF(dim)
-    noiseCF = noise.NoiseISOCF()
-
-    CovFun = combinators.SumCF((SECF,noiseCF))
-    CovFun_same = combinators.SumCF((SECF,noiseCF))
-
-    import GPTwoSample.pygp.lnpriors as lnpriors
-
-    covar_priors = []
-    #scale
-    covar_priors.append([lnpriors.lngammapdf,[1,2]])
-    for i in range(dim):
-        covar_priors.append([lnpriors.lngammapdf,[1,1]])
-    #noise
-    for i in range(n_noises):
-        covar_priors.append([lnpriors.lngammapdf,[1,1]])
-
-    priors = {'covar':SP.array(covar_priors)}
-
-    import src.twosample as TS
-
-    twosample_initial_priors = TS.GPTwoSampleMLII(CovFun, priors = priors)
-    twosample_initial_priors_same = TS.GPTwoSampleMLII(CovFun_same, priors = priors)
-    
-    training_data_differential={'input':{'group_1':x1, 'group_2':x2},
-                                'output':{'group_1':y1, 'group_2':y2}}
-    training_data_same={'input':{'group_1':x1, 'group_2':x1},
-                        'output':{'group_1':y1, 'group_2':y1+sigma1*random.randn(y1.shape[0])}}
-
-    model_likelihoods_init_priors_differential=twosample_initial_priors.predict_model_likelihoods(training_data_differential)
-    model_likelihoods_init_priors_same=twosample_initial_priors_same.predict_model_likelihoods(training_data_same)
-
-    import pylab as PL
-    
-    twosample_initial_priors.predict_mean_variance(X)    
-    twosample_initial_priors.plot_results()
-
-    PL.figure()
-
-    twosample_initial_priors_same.predict_mean_variance(X)    
-    twosample_initial_priors_same.plot_results()
