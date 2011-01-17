@@ -72,7 +72,7 @@ class GPTwoSample(object):
         Predict the probabilities of the models (individual and common) to describe the data
         **Parameters**:
         
-            training_data : dict {'input' : {'group 1':[double] ... 'group n':[double]},'output' : {'group 1':[double] ... 'group n':[double]}}
+            training_data : {'input' : {'group 1':[double] ... 'group n':[double]},'output' : {'group 1':[double] ... 'group n':[double]}}
                 the training data to learn from. The input are the time-values and
                 the output the expression-values of e.g. a timeseries.
                 Note: Only implemented for comparing two timeseries!
@@ -104,9 +104,9 @@ class GPTwoSample(object):
     def predict_mean_variance(self,interpolation_interval,hyperparams=None,*args,**kwargs):
         """
         Predicts the mean and variance of both models.
-        Returns {'individual':{'mean':[[1st pointwise mean],'var':[1st pointwise variance],
-                                       [2nd pointwise mean],'var':[2nd pointwise variance], ... ,
-                                       [nth pointwise mean],'var':[nth pointwise variance]]},
+        Returns::
+
+            {'individual':{'mean':[predicted pointwise mean], 'var':[predicted pointwise variance]},
                  'common':{'mean':[pointwise mean],'var':[pointwise variance]}}
 
         **Parameters:**
