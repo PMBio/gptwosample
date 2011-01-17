@@ -3,8 +3,6 @@ Different implementations for using GPTwoSample
 ===============================================
 
 Some implementations of GPTwoSample, to detect differential expression between two timelines.
-
-
 """
 
 import sys
@@ -17,7 +15,9 @@ from pygp import gpr as GPR, composite as COMP
 import scipy as SP
 
 class GPTwoSampleMLII(GPTwoSample):
-
+    """
+    This class provides comparison of two Timeline Groups to wach other.
+    """
     def __init__(self, *args, **kwargs):
         """
         see :py:class:`GPTwoSample`

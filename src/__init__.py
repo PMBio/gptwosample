@@ -4,7 +4,10 @@ Package for using GPTwoSample
 
 This module allows the user to compare two timelines with respect to diffferential expression.
 
-It compares two timeseries against each other, depicting whether these two timeseries were more likely drawn from the same function, or from different ones. This prediction is defined by which covariance function :py:class:`pygp.covar` you use.
+It compares two timeseries against each other, depicting whether these two
+timeseries were more likely drawn from the same function, or from
+different ones. This prediction is defined by which covariance function :py:class:`pygp.covar` you use.
+
 """
 
 import sys
@@ -16,13 +19,10 @@ from pygp import gpr as GPR, gpr_plot as PLOT
 import scipy as SP
 import copy
 
-__all__ = ["twosample","data_collection"]
-
 class GPTwoSample(object):
     """
     Perform GPTwoSample with the given covariance function covar.
     """
-    
     def __init__(self, covar,
                  learn_hyperparameters=True,
                  priors = None,
@@ -33,16 +33,15 @@ class GPTwoSample(object):
         **Parameters**:
 
             covar : :py:class:`pygp.covar.CovarianceFunction`
-
                 The covariance function this GPTwoSample class works with.
 
             learn_hyperparameters : bool
-
                 Specifies whether or not to optimize the hyperparameters for the given data
 
             priors : {'covar': priors for covar, ...}
-
                 Default: None; The prior beliefs you provide for the hyperparamaters of the covariance function.
+
+                
         """
 
         self._learn_hyperparameters = learn_hyperparameters
@@ -73,8 +72,7 @@ class GPTwoSample(object):
         Predict the probabilities of the models (individual and common) to describe the data
         **Parameters**:
         
-            training_data : dict {'input' : {'group 1':[double] ... 'group n':[double]},
-                                  'output' : {'group 1':[double] ... 'group n':[double]}}
+            training_data : dict {'input' : {'group 1':[double] ... 'group n':[double]},'output' : {'group 1':[double] ... 'group n':[double]}}
                 the training data to learn from. The input are the time-values and
                 the output the expression-values of e.g. a timeseries.
                 Note: Only implemented for comparing two timeseries!
@@ -142,6 +140,7 @@ class GPTwoSample(object):
             The likelihoods calculated by
             predict_model_likelihoods(training_data)
             for given training data training_data.
+            
         """
         if(model_likelihoods is None):
             model_likelihoods = self._model_likelihoods
