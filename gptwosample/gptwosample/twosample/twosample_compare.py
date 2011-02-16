@@ -5,14 +5,11 @@ Different implementations for using GPTwoSample
 Some implementations of GPTwoSample, to detect differential expression between two timelines.
 """
 
-import sys
-sys.path.append("./../")
 
-from GPTwoSample.src import GPTwoSample
+from pygp.gp.basic_gp import GP
+from pygp.gp.composite import GroupGP
 
-from pygp import gpr as GPR, composite as COMP
-
-import scipy as SP
+from basic import GPTwoSample
 
 class GPTwoSampleMLII(GPTwoSample):
     """
@@ -25,13 +22,13 @@ class GPTwoSampleMLII(GPTwoSample):
         """
         see :py:class:`GPTwoSample.src.GPTwoSample`
         """
-        GPTwoSample.__init__(self, *args, **kwargs)
+        super(GPTwoSampleMLII, self).__init__(*args, **kwargs)
 
 
     def _init_twosample_model(self, covar):
-        gpr1 = GPR.GP(covar)
-        gpr2 = GPR.GP(covar)
-        individual_model = COMP.GroupGP([gpr1,gpr2])
-        common_model = GPR.GP(covar)
+        gpr1 = GP(covar)
+        gpr2 = GP(covar)
+        individual_model = GroupGP([gpr1,gpr2])
+        common_model = GP(covar)
         # set models for this GPTwoSample Test
         self._models = {'individual':individual_model,'common':common_model}
