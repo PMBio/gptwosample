@@ -6,18 +6,18 @@ Created on Feb 16, 2011
 
 import scipy as SP
 
-from pygp.covar import se, noise, combinators
+from pygp.covar import se, combinators, noise
 import pygp.priors.lnpriors as lnpriors
 
 import gptwosample.twosample.twosample_compare as TS
 
-def get_toy_data(xmin=1, xmax=2.5*SP.pi,
+def get_toy_data(xmin=1, xmax=2.5*SP.pi, step1=.7, step2=.4,
                  fy1 = lambda x,b,C:b*x +C+ 1*SP.sin(x),
                  fy2 = lambda x,b,C:(b*x +C+ 1*SP.sin(x))*b+1*SP.cos(x),
                  sigma1 = 0.1, sigma2=0.1,b=0,C=2):
 
-    x1 = SP.arange(xmin, xmax, .7)
-    x2 = SP.arange(xmin, xmax, .4)    
+    x1 = SP.arange(xmin, xmax, step1)
+    x2 = SP.arange(xmin, xmax, step2)    
 
     y1 = fy1(x1,b,C)
     y1 += sigma1 * SP.randn(y1.shape[0])

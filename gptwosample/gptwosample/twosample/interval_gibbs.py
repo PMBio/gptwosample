@@ -111,30 +111,45 @@ class GPTwoSampleInterval(object):
             
         return [bayes_factor, self.PZ]
         
-    def plot_predicted_results(self, PZ=None, *args, **kwargs):
+    def plot_predicted_results(self, PZ=None, title="", *args, **kwargs):
         if PZ is None:
             PZ=self.PZ
+        self.gptwosample_object.predict_mean_variance(SP.linspace(self._unique_x_intervals.min(), self._unique_x_intervals.max(), 100).reshape(-1,1),*args,**kwargs)
+        
+        labelSize = 15
+        tickSize  = 12
         
         #1. plot the gp predictions
         ax1 = PL.axes([0.1,0.1,0.8,0.7])
-        plot_results(self.gptwosample_object, *args, **kwargs)
+        PL.xlim([self._unique_x_intervals.min(),self._unique_x_intervals.max()])
+        
+        plot_results(self.gptwosample_object, title=title, *args, **kwargs)
         
         #remove last ytick to avoid overlap
-        yticks = ax1.get_yticks()[0:-2]
-        ax1.set_yticks(yticks)
-
+        #yticks = ax1.get_yticks()[0:-2]
+        #ax1.set_yticks(yticks)
 #        Ymax = MJ[1].max()
 #        Ymin = MJ[1].min()
 #        DY   = Ymax-Ymin
 #        PL.ylim([Ymin-0.1*DY,Ymax+0.1*DY])
 
         #now plot hinton diagram with responsibilities on top
-        ax2=PL.axes([0.1,0.715,0.8,0.2],sharex=ax1)
-        hinton((PZ[::-1]),X=self._unique_x_intervals)
+        ax2=PL.axes([0.1,0.83,.8,0.1], sharex=ax1)
+        
+        PL.axes(ax2)
+#        Z_= SP.ones_like(Z)
+#        Z_[1,:] = Z[0,:]
+#        Z_[0,:] = Z[1,:]
+        PZ_= SP.ones_like(PZ)
+        PZ_[1,:] = PZ[0,:]
+        PZ_[0,:] = PZ[1,:]
+        hinton(PZ_,X=self._unique_x_intervals)
         PL.ylabel('diff.')
         #hide axis labels
         PL.setp( ax2.get_xticklabels(), visible=False)
-        
+        #PL.setp( ax1.get_xticklabels(), fontsize=tickSize)
+        #PL.setp( ax1.get_yticklabels(), fontsize=tickSize)
+        #PL.setp( ax2.get_xticklabels(), fontsize=tickSize)
 ############## PRIVATE ############
 
 
@@ -162,8 +177,8 @@ class GPTwoSampleInterval(object):
         interval_expert_groups &= ~interval_indices
         interval_expert_common &= ~interval_indices 
         
-        interval_expert_group_0 = interval_expert_groups[original_common[0] == original_group_0[0]] 
-        interval_expert_group_1 = interval_expert_groups[original_common[0] == original_group_1[0]] 
+        #interval_expert_group_0 = interval_expert_groups[original_common[0] == original_group_0[0]] 
+        #interval_expert_group_1 = interval_expert_groups[original_common[0] == original_group_1[0]] 
         
         PZ = SP.zeros([2,number_of_xs])
 
