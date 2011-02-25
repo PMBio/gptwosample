@@ -64,10 +64,10 @@ def hinton(W,X,maxWeight=None):
     if P.isinteractive():
         P.ioff()
     #P.clf()
-    height, width = W.shape
+    height,  = W.shape
     width = P.xlim()[1]
     x0    = P.xlim()[0]
-    x0    = 0
+    #x0    = 0
     
     if not maxWeight:
         maxWeight = 2**N.ceil(N.log(N.max(N.abs(W)))/N.log(2))

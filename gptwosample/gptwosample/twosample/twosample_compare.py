@@ -9,7 +9,7 @@ Some implementations of GPTwoSample, to detect differential expression between t
 from pygp.gp.basic_gp import GP
 from pygp.gp.composite import GroupGP
 
-from basic import GPTwoSample
+from gptwosample.twosample.basic_twosample import GPTwoSample
 
 class GPTwoSampleMLII(GPTwoSample):
     """

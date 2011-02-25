@@ -31,7 +31,7 @@ def get_toy_data(xmin=1, xmax=2.5*SP.pi, step1=.7, step2=.4,
     
     return x1, x2, y1, y2
 
-def get_twosample_objects(dim=1):
+def get_twosample_object(dim=1):
     SECF = se.SEARDCF(dim)
     noiseCF = noise.NoiseISOCF()
 
@@ -50,6 +50,6 @@ def get_twosample_objects(dim=1):
     return twosample_object
 
 def get_training_data_structure(x1,x2,y1,y2):
-    return {'input':{'group_1':x1.reshape(-1,1), 'group_2':x2.reshape(-1,1)},
+    return {'input':{'group_1':x1, 'group_2':x2},
             'output':{'group_1':y1, 'group_2':y2}}
     

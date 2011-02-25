@@ -11,10 +11,10 @@ class TestGPTwoSampleMLII(unittest.TestCase):
         x1, x2, y1, y2 = toy.get_toy_data()
         self.X = SP.linspace(-2, 10, 100).reshape(-1,1)
 
-        self.twosample_object = toy.get_twosample_objects()
+        self.twosample_object = toy.get_twosample_object()
 
-        self.training_data_differential=toy.get_training_data_structure(x1, x2, y1, y2)
-        self.training_data_same=toy.get_training_data_structure(x1, x1, y1, y1+.1*random.randn(y1.shape[0]))
+        self.training_data_differential=toy.get_training_data_structure(x1.reshape(-1,1), x2.reshape(-1,1), y1, y2)
+        self.training_data_same=toy.get_training_data_structure(x1.reshape(-1,1), x1.reshape(-1,1), y1, y1+.1*random.randn(y1.shape[0]))
         
     def test_bayes_factor(self):
         self.twosample_object.predict_model_likelihoods(self.training_data_differential)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     else:
         import pylab as PL
         
-        twosample_object = toy.get_twosample_objects()
+        twosample_object = toy.get_twosample_object()
         
         sigma1=.1
         x1,x2,y1,y2 = toy.get_toy_data(sigma1=sigma1)

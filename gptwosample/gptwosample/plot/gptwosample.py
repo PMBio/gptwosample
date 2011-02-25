@@ -4,7 +4,9 @@ Created on Feb 10, 2011
 @author: maxz
 '''
 
+import pylab as PL
 import scipy as SP
+
 import pygp.plot.gpr_plot as PLOT
 
 def plot_results(twosample_object, ax=None, x_label="input", y_label="ouput", title=None):
@@ -34,20 +36,15 @@ def plot_results(twosample_object, ax=None, x_label="input", y_label="ouput", ti
             return
         
         if title is None:
-            title = r'Prediction result: $\log \frac{p(\text{"individual"})} {p(\text{"common"})} $%.2f $' % (twosample_object.bayes_factor())
+            title = r'Prediction result: $\log \frac{p(individual)}{p(common)} = %.2f $' % (twosample_object.bayes_factor())
 
-        import pylab as PL
 #        plparams = {'axes.labelsize': 20,
 #            'text.fontsize': 20,
 #            'legend.fontsize': 18,
 #            'title.fontsize': 22,
 #            'xtick.labelsize': 20,
-#            'ytick.labelsize': 20}
-#        from matplotlib import rc
-#        rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-#        ## for Palatino and other serif fonts use:
-#        #rc('font',**{'family':'serif','serif':['Palatino']})
-#        rc('text', usetex=True)
+#            'ytick.labelsize': 20,
+#            'usetex': True }
 
         legend_plots = []
         legend_names = []

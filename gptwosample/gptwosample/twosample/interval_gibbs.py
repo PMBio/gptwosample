@@ -7,8 +7,8 @@ This version uses proper gibbs resampling of the indicator variables.
 """
 
 #path for pygp, stats
-from gptwosample.plot.hinton import hinton
 from gptwosample.plot.gptwosample import plot_results
+from gptwosample.plot.hinton import hinton
 
 import scipy as SP
 import pylab as PL
@@ -121,7 +121,7 @@ class GPTwoSampleInterval(object):
         
         #1. plot the gp predictions
         ax1 = PL.axes([0.1,0.1,0.8,0.7])
-        PL.xlim([self._unique_x_intervals.min(),self._unique_x_intervals.max()])
+        ax1.xlim([self._unique_x_intervals.min(),self._unique_x_intervals.max()])
         
         plot_results(self.gptwosample_object, title=title, *args, **kwargs)
         
@@ -134,7 +134,7 @@ class GPTwoSampleInterval(object):
 #        PL.ylim([Ymin-0.1*DY,Ymax+0.1*DY])
 
         #now plot hinton diagram with responsibilities on top
-        ax2=PL.axes([0.1,0.83,.8,0.1], sharex=ax1)
+        ax2=PL.axes([0.1,0.83,0.8,0.1], sharex=ax1)
         
         PL.axes(ax2)
 #        Z_= SP.ones_like(Z)
@@ -202,21 +202,25 @@ class GPTwoSampleInterval(object):
         
         #robust likelihood
         c =0.9
-        D0  = c*SP.exp(-0.5*(original_group_0[1][interval_expert_groups]-mean_group_0)**2/var_group_0)        
+        
+        #import pdb;pdb.set_trace()
+        import pdb;pdb.set_trace()
+        
+        D0  = c*SP.exp(-0.5*(original_group_0[1].transpose()[interval_expert_groups].transpose()-mean_group_0)**2/var_group_0)        
         D0 *= 1/SP.sqrt(2*SP.pi*var_group_0)
-        D0 += (1-c)* SP.exp(-0.5*(original_group_0[1][interval_expert_groups]-mean_group_0)**2/1E8)
+        D0 += (1-c)* SP.exp(-0.5*(original_group_0[1].transpose()[interval_expert_groups].transpose()-mean_group_0)**2/1E8)
         D0 /= SP.sqrt(2*SP.pi*SP.sqrt(1E8))
         D0 = SP.log(D0)
         
-        D1  = c*SP.exp(-0.5*(original_group_1[1][interval_expert_groups]-mean_group_1)**2/var_group_1)
+        D1  = c*SP.exp(-0.5*(original_group_1[1].transpose()[interval_expert_groups].transpose()-mean_group_1)**2/var_group_1)
         D1 *= 1/SP.sqrt(2*SP.pi*var_group_1)
-        D1 += (1-c)* SP.exp(-0.5*(original_group_1[1][interval_expert_groups]-mean_group_1)**2/1E8)
+        D1 += (1-c)* SP.exp(-0.5*(original_group_1[1].transpose()[interval_expert_groups].transpose()-mean_group_1)**2/1E8)
         D1 /= SP.sqrt(2*SP.pi*SP.sqrt(1E8))
         D1 = SP.log(D1)
         
-        DJ  = c*SP.exp(-0.5*(original_common[1][interval_expert_common]-mean_common)**2/var_common)
+        DJ  = c*SP.exp(-0.5*(original_common[1].transpose()[interval_expert_common].transpose()-mean_common)**2/var_common)
         DJ *= 1/SP.sqrt(2*SP.pi*var_common)
-        DJ += (1-c)* SP.exp(-0.5*(original_group_1[1][interval_expert_common]-mean_common)**2/1E8)
+        DJ += (1-c)* SP.exp(-0.5*(original_common[1].transpose()[interval_expert_common].transpose()-mean_common)**2/1E8)
         DJ /= SP.sqrt(2*SP.pi*SP.sqrt(1E8))
         DJ = SP.log(DJ)
         
