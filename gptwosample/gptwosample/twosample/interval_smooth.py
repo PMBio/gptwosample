@@ -11,7 +11,6 @@ import logging
 import pygp.gp.gpcEP as gpcEP
 import pylab as PL
 import scipy as SP
-from gptwosample import toy_data_generator
 
 #import pygp.gp.basic_gp as GPR
 
@@ -105,7 +104,7 @@ class GPTwoSampleInterval(object):
             B = SP.zeros([Z.shape[0],Xp.shape[0]])
             for i in range(Z.shape[0]):
                 #set data to GPC
-                self.gpZ.setData(XTR,Z[i],process=False)
+                self.gpZ.setData(XTR,Z[i])
                 #predict
                 B[i] = self.gpZ.predict(self.gpZ.logtheta,Xp)[0]
             return B
@@ -196,11 +195,9 @@ class GPTwoSampleInterval(object):
 #            Ypj = self.gpr_join.predict(self.gpr_0.logtheta,XT[I],mean=False)
 
             prediction = self._twosample_object.predict_mean_variance(XT, interval_indices=I)
-            Yp0 = [prediction['individual']['mean'][0],prediction['individual']['var'][0]]
-            Yp1 = [prediction['individual']['mean'][1],prediction['individual']['var'][1]]
-            Ypj = [prediction['common']['mean'],prediction['individual']['var']]
-            
-            import pdb;pdb.set_trace()
+            Yp0 = [prediction['individual']['mean'][0][I],prediction['individual']['var'][0][I]]
+            Yp1 = [prediction['individual']['mean'][1][I],prediction['individual']['var'][1][I]]
+            Ypj = [prediction['common']['mean'][I],prediction['common']['var'][I]]
             
             #prdict binary variable
             Zp  = self.gpZ.predict(self.gpZ.logtheta,XT[I])[0]
@@ -222,10 +219,10 @@ class GPTwoSampleInterval(object):
             DS  = D0.sum(axis=0) + D1.sum(axis=0)
             DJ  = DJ.sum(axis=0)
             #calc posterior 
-            PZ[0,:] = (1-Zp)*SP.exp(DJ)*self.prior_Z[0]
-            PZ[1,:] = Zp    *SP.exp(DS)*self.prior_Z[1]
+            PZ[0,:] = (1-Zp)*SP.exp(DJ)*self.prior_Z['covar'][0]
+            PZ[1,:] = Zp    *SP.exp(DS)*self.prior_Z['covar'][1]
             PZ      /= PZ.sum(axis=0)
-            Z_       = SP.rand(I.sum())<=PZ[1,:]        
+            Z_       = SP.rand(I.sum())<=PZ[1,:]
             #sample indicators
             if(IS.sum()==1):
                 Z_ = True
@@ -343,7 +340,7 @@ class GPTwoSampleInterval(object):
         Zp  = SP.zeros([2,XT.shape[0]])
         Zp[1,:] = Q['Z'].mean(axis=0)
         Zp[0,:] = 1-Zp[1,:]
-        if verbose:
+        if 0:
             Xp = SP.linspace(0,XT[:,0].max()+2,100).reshape([-1,1])
             verbose_plot(Q['Z'][n_::],Xp)
 
@@ -353,6 +350,8 @@ class GPTwoSampleInterval(object):
             XPz = XT
         #obtain predictions
         Zpr = predictIndicator(Q['Z'][n_::],XPz).mean(axis=0)
+
+        print Zpr
 
         return [ratio,Zpr]
         pass
