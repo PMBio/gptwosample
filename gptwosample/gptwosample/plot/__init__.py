@@ -1,9 +1,9 @@
 from matplotlib import rc
 
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+#rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
-rc('text', usetex=True)
+#rc('text', usetex=True)
 
 
 try:
