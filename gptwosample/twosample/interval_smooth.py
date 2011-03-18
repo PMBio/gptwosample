@@ -3,7 +3,6 @@
 """
 
 #from pygp.gpcEP import *
-from gptwosample import toy_data_generator
 from gptwosample.data.data_base import get_training_data_structure
 from pygp.covar.combinators import SumCF
 from pygp.covar.noise import NoiseCFISO
