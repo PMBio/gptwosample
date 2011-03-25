@@ -3,14 +3,9 @@ Created on Mar 18, 2011
 
 @author: maxz
 '''
-
-
-
+from gptwosample.data import DataStructureError, get_model_structure
 from pygp.optimize import opt_hyper
-import copy
-import gptwosample.plot.gptwosample as plot
 import scipy as SP
-from gptwosample.data.data_base import DataStructureError
     
 class GPTwoSample(object):
     """
@@ -130,7 +125,7 @@ class GPTwoSample(object):
 
     def predict_mean_variance(self, interpolation_interval,
                               hyperparams=None,
-                              interval_indices=None,
+                              interval_indices=get_model_structure(),
                               *args, **kwargs):
         """
         Predicts the mean and variance of both models.
@@ -151,9 +146,7 @@ class GPTwoSample(object):
             Indices in which to predict, for each group, respectively.
         """
         if(hyperparams is None):
-            hyperparams = self._learned_hyperparameters            
-        if(interval_indices is None):
-            interval_indices = dict([[name, None] for name in self._models.keys()])
+            hyperparams = self._learned_hyperparameters
         
         self._predicted_mean_variance = dict([[name, None] for name in self._models.keys()])
         for name, model in self._models.iteritems():
@@ -195,11 +188,15 @@ class GPTwoSample(object):
         """
         return self._predicted_mean_variance
 
-    def plot_results(self, *args, **kwargs):
+    def get_data(self, model='common', index=None, interval_indices=get_model_structure()):
         """
-        See :py:class:`gptwosample.plot.plot_gptwosample`
+        get inputs of model `model` with replicate index `index`.
+        If index is None, the whole model group will be returned.
         """
-        plot.plot_results(self, *args, **kwargs)
+        if(index is None):
+            return self._models[model].getData()[:,interval_indices[model]].squeeze()
+        else:
+            return self._models[model].getData()[index][:,interval_indices[model]].squeeze()
         
 ######### PRIVATE ##############
     def _init_twosample_model(self, covar):
@@ -212,19 +209,10 @@ class GPTwoSample(object):
 
     def _invalidate_cache(self):
         # self._learned_hyperparameters = dict([name,None for name in self._models.keys()])
-        self._model_likelihoods = dict([[name, None] for name in self._models.keys()])
-        self._learned_hyperparameters = copy.deepcopy(self._model_likelihoods)
+        self._model_likelihoods = get_model_structure()
+        self._learned_hyperparameters = get_model_structure()
         self._interpolation_interval_cache = None
         self._predicted_mean_variance = None
         #self._training_data_cache = {'input': {'group_1':None,'group_2':None},
         #                             'output': {'group_1':None,'group_2':None}}
 
-    def get_data(self, model='common', index=None):
-        """
-        get inputs of model `model` with index `index`.
-        If index is None, the whole model group will be returned.
-        """
-        if(index is None):
-            return self._models[model].getData()
-        else:
-            return self._models[model].getData()[index]

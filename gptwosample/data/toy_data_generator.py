@@ -21,13 +21,11 @@ def get_toy_data(xmin=1, xmax=2.5 * SP.pi, step1=.7, step2=.4,
 
     y1 = fy1(x1, b, C)
     y1 += sigma1 * SP.randn(y1.shape[0])
-    y1 -= y1.mean()
     
     y2 = fy2(x2, b, C) 
     y2 *= 1 * SP.cos(x2)
 
     y2 += sigma2 * SP.randn(y2.shape[0])
-    y2 -= y2.mean()
     
     return x1, x2, y1, y2
 
