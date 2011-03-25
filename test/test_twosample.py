@@ -1,17 +1,26 @@
+from gptwosample.data import get_training_data_structure
+from gptwosample.plot import plot_results
 import gptwosample.data.toy_data_generator as toy
-
-import unittest
-import scipy as SP
 import numpy.random as random
 import pylab as PL
+import scipy as SP
+import unittest
+from gptwosample.data.data_base import get_model_structure
+
         
-from gptwosample.data.data_base import get_training_data_structure
 
 class TestGPTwoSampleMLII(unittest.TestCase):
     
     def setUp(self):
         #0. generate Toy-Data; just samples from a superposition of a sin + linear trend
         x1, x2, y1, y2 = toy.get_toy_data(step2=.7)
+        intervals = SP.ones_like(x1)
+        intervals = SP.array(intervals, dtype='bool')
+        intervals[5:8] = False # for common only
+        intervals[0:2] = False # for common only
+        
+        self.interval_indices = get_model_structure(common=~intervals, individual=intervals)
+        
         self.X = SP.linspace(-2, 10, 100).reshape(-1, 1)
 
         self.twosample_object = toy.get_twosample_object()
@@ -35,32 +44,28 @@ class TestGPTwoSampleMLII(unittest.TestCase):
         
         self.twosample_object.predict_model_likelihoods(self.training_data_differential)
         self.twosample_object.predict_mean_variance(self.X)
-        self.twosample_object.plot_results()
+        plot_results(self.twosample_object)
 
         #non-differential plot
         PL.figure()
         
         self.twosample_object.predict_model_likelihoods(self.training_data_same)
         self.twosample_object.predict_mean_variance(self.X)
-        self.twosample_object.plot_results()
+
+        plot_results(self.twosample_object)
         
         PL.show()
         
     def test_interval(self):
         self.twosample_object.predict_model_likelihoods(self.training_data_differential)
-        for i in self.X:
-            PL.clf()
-            intervals = SP.ones_like(self.X)
-            intervals[i] = False
-            intervals = SP.array(intervals, dtype='bool')
-            self.twosample_object.predict_mean_variance(self.X[~intervals],
-                                                        interval_indices={'individual':intervals, 'common':intervals})            
-            self.twosample_object.plot_results()
-            
-            raw_input("Enter to continue")
-        
+        PL.clf()
+        self.twosample_object.predict_mean_variance(self.X,
+            interval_indices=self.interval_indices)            
+        plot_results(self.twosample_object,
+            interval_indices=self.interval_indices)
+                    
 if __name__ == '__main__':
-    if(0):
+    if(1):
         unittest.main()
     else:
         x1, x2, y1, y2 = toy.get_toy_data(step2=.7)
@@ -75,7 +80,7 @@ if __name__ == '__main__':
         intervals[1:3] = False
         intervals[-2:-1] = False
         twosample_object.predict_mean_variance(X.reshape(-1, 1),
-               interval_indices={'individual':intervals, 'common':intervals})            
-        twosample_object.plot_results()
+               interval_indices=self.interval_indices)            
+        plot_results(twosample_object, interval_indices = self.interval_indices)
             
         PL.show()
