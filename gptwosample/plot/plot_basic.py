@@ -79,11 +79,11 @@ def plot_results(twosample_object,
                     format_line={'alpha':1,'color':col})[0]
                 if(first):
                     legend_plots.append(plots[0])
-                    legend_names.append("%ss" % (name))
+                    legend_names.append("%s %i" % (name,i+1))
                     #first=False
         else:
             col = (.8,.1,.1)
-            data=twosample_object.get_data(name).reshape(2,number_of_groups,-1)[:,:,interval_indices[name]]   
+            data=twosample_object.get_data(name, interval_indices=interval_indices)   
             PLOT.plot_training_data(
                     data[0],data[1],
                     format_data={'alpha':.4,
@@ -100,7 +100,9 @@ def plot_results(twosample_object,
             
     PL.legend(legend_plots,legend_names,
               bbox_to_anchor=(0., 0., 1., 0.), loc=3,
-              ncol=2, mode="expand", borderaxespad=0.,
+              ncol=2, 
+              mode="expand", 
+              borderaxespad=0.,
               fancybox=False, frameon=True)
 
     PL.xlabel(x_label)

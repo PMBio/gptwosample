@@ -19,7 +19,9 @@ class TestGPTwoSampleMLII(unittest.TestCase):
         intervals[5:8] = False # for common only
         intervals[0:2] = False # for common only
         
-        self.interval_indices = get_model_structure(common=~intervals, individual=intervals)
+        self.interval_indices = get_model_structure(
+                common=SP.concatenate((~intervals,~intervals)), 
+                individual=intervals)
         
         self.X = SP.linspace(-2, 10, 100).reshape(-1, 1)
 
