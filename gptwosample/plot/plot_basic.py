@@ -84,7 +84,6 @@ def plot_results(twosample_object,
         else:
             col = (.8,.1,.1)
             data=twosample_object.get_data(name).reshape(2,number_of_groups,-1)[:,:,interval_indices[name]]   
-            import pdb;pdb.set_trace()         
             PLOT.plot_training_data(
                     data[0],data[1],
                     format_data={'alpha':.4,
