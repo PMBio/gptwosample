@@ -14,21 +14,30 @@ class TestGPTwoSampleMLII(unittest.TestCase):
     def setUp(self):
         #0. generate Toy-Data; just samples from a superposition of a sin + linear trend
         x1, x2, y1, y2 = toy.get_toy_data(step2=.7)
-        intervals = SP.ones_like(x1)
+        x1 = SP.concatenate((x1, x1)).reshape(-1, 1)
+        x2 = SP.concatenate((x2, x2)).reshape(-1, 1)
+        y1 = SP.concatenate((y1, y1 - .3 * random.randn(y1.shape[0]))).reshape(-1)
+        y2 = SP.concatenate((y2, y2 - .3 * random.randn(y2.shape[0]))).reshape(-1)
+        
+        intervals = SP.ones(x1.shape[0])
         intervals = SP.array(intervals, dtype='bool')
         intervals[5:8] = False # for common only
         intervals[0:2] = False # for common only
         
         self.interval_indices = get_model_structure(
-                common=SP.concatenate((~intervals,~intervals)), 
+                common=SP.concatenate((~intervals, ~intervals)),
                 individual=intervals)
         
         self.X = SP.linspace(-2, 10, 100).reshape(-1, 1)
 
         self.twosample_object = toy.get_twosample_object()
 
-        self.training_data_differential = get_training_data_structure(x1.reshape(-1, 1), x2.reshape(-1, 1), y1, y2)
-        self.training_data_same = get_training_data_structure(x1.reshape(-1, 1), x1.reshape(-1, 1), y1, y1 + .1 * random.randn(y1.shape[0]))
+        self.training_data_differential = get_training_data_structure(
+                x1, x2,
+                y1, y2)
+        self.training_data_same = get_training_data_structure(
+                x1, x1, 
+                y1, y1)
         
     def test_bayes_factor(self):
         self.twosample_object.predict_model_likelihoods(self.training_data_differential)
@@ -60,29 +69,11 @@ class TestGPTwoSampleMLII(unittest.TestCase):
         
     def test_interval(self):
         self.twosample_object.predict_model_likelihoods(self.training_data_differential)
-        PL.clf()
+        import pdb;pdb.set_trace()
         self.twosample_object.predict_mean_variance(self.X,
-            interval_indices=self.interval_indices)            
+                                interval_indices=self.interval_indices)            
         plot_results(self.twosample_object,
-            interval_indices=self.interval_indices)
+                                interval_indices=self.interval_indices)
                     
 if __name__ == '__main__':
-    if(1):
-        unittest.main()
-    else:
-        x1, x2, y1, y2 = toy.get_toy_data(step2=.7)
-        X = SP.linspace(-2, 10, 100).reshape(-1, 1)
-        twosample_object = toy.get_twosample_object()
-        training_data_differential = get_training_data_structure(x1.reshape(-1, 1), x2.reshape(-1, 1), y1, y2)
-        
-        twosample_object.predict_model_likelihoods(training_data_differential)
-        
-        intervals = SP.ones_like(x1)
-        intervals = SP.array(intervals, dtype='bool')
-        intervals[1:3] = False
-        intervals[-2:-1] = False
-        twosample_object.predict_mean_variance(X.reshape(-1, 1),
-               interval_indices=self.interval_indices)            
-        plot_results(twosample_object, interval_indices = self.interval_indices)
-            
-        PL.show()
+    unittest.main()
