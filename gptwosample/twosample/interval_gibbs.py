@@ -7,7 +7,7 @@ This version uses proper gibbs resampling of the indicator variables.
 """
 
 #path for pygp, stats
-from gptwosample.plot.gptwosample import plot_results
+from gptwosample.plot import plot_results
 from gptwosample.plot.hinton import hinton
 
 import scipy as SP

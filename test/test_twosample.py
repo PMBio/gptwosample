@@ -16,6 +16,7 @@ class TestGPTwoSampleMLII(unittest.TestCase):
         x1, x2, y1, y2 = toy.get_toy_data(step2=.7)
         x1 = SP.concatenate((x1, x1)).reshape(-1, 1)
         x2 = SP.concatenate((x2, x2)).reshape(-1, 1)
+        
         y1 = SP.concatenate((y1, y1 - .3 * random.randn(y1.shape[0]))).reshape(-1)
         y2 = SP.concatenate((y2, y2 - .3 * random.randn(y2.shape[0]))).reshape(-1)
         
