@@ -12,6 +12,8 @@ import logging
 import pygp.gp.gpcEP as gpcEP
 import pylab as PL
 import scipy as SP
+from gptwosample.plot.plot_basic import plot_results
+from pygp.optimize.optimize_base import opt_hyper
 
 #import pygp.gp.basic_gp as GPR
 
@@ -77,6 +79,7 @@ class GPTwoSampleInterval(object):
             """copy implementation of input rescaling
             - this version rescales in a dum way assuming everything is float
             """
+            return X
             X_ = (X - minX) * scaleX - 5
             return X_
 
@@ -143,9 +146,9 @@ class GPTwoSampleInterval(object):
             #self.plotGPpredict_gradient(self.gpr_join,M0,Xp,(1-Bm),{'alpha':alpha,'facecolor':'b'},{'linewidth':2,'color':'b'})             
             likelihoods = self._twosample_object.predict_model_likelihoods()
             mean_var = self._twosample_object.predict_mean_variance(Xp)
-            plots = self._twosample_object.plot_results()
+            plots = plot_results(self._twosample_object, alpha=Bm)
             
-            import pdb;pdb.set_trace()
+            #import pdb;pdb.set_trace()
             
             #PL.plot(M0[0].T,M0[1].T,'b.--')
             #PL.plot(M1[0].T,M1[1].T,'b.--')
@@ -279,15 +282,15 @@ class GPTwoSampleInterval(object):
         M1R[0] = rescaleInputs(M1[0],
                                min(data_1[0]),
                                (max(data_1[0]) - min(data_1[0])) / len(data_1[0]))
-        MJR[1] -= data_join[1].mean()
-        M0R[1] -= data_0[1].mean()
-        M1R[1] -= data_1[1].mean()
+        #MJR[1] -= data_join[1].mean()
+        #M0R[1] -= data_0[1].mean()
+        #M1R[1] -= data_1[1].mean()
 
         #TODO !!!!
-        self._twosample_object.set_data(get_training_data_structure(M0R[0],
-                                                       M1R[0],
-                                                       M0R[1],
-                                                       M1R[1]))
+        #self._twosample_object.set_data(get_training_data_structure(M0R[0],
+        #                                               M1R[0],
+        #                                               M0R[1],
+        #                                               M1R[1]))
 
         #3. sample all indicators conditioned on current GP approximation
         Z = SP.random.rand(XT.shape[0]) > 0.5
@@ -308,7 +311,9 @@ class GPTwoSampleInterval(object):
         self.gpZ = gpcEP.GPCEP(covar_func=covar)
         self.gpZ.logtheta = logtheta
         self.gpZ.setData(XT, Z)
-
+        
+        #self.gpZ.logtheta = opt_hyper(self.gpZ, logthetaZ)
+        
         logtheta0 = SP.log([0.5, 1, 0.4])
         if 0:
             #HACK
@@ -334,8 +339,8 @@ class GPTwoSampleInterval(object):
 
         #sample indicators one by one
         for n in range(Ngibbs_iterations):
-            perm = SP.random.permutation(XT.shape[0])
-            perm = SP.arange(1, XT.shape[0])
+            #perm = SP.random.permutation(XT.shape[0])
+            perm = SP.arange(0, XT.shape[0])
             for i in perm:
                 #resample a single indicator
                 I = SP.zeros([XT.shape[0]], dtype='bool')
@@ -349,7 +354,8 @@ class GPTwoSampleInterval(object):
             #save in Q
             Q['Z'][n, :] = Z
             logging.debug("Gibbs iteration:%d" % (n))
-            logging.debug(Z)
+            logging.debug("Interval_smooth: current indicator: %s" % (Q['Z'].mean(0)))
+            #import pdb;pdb.set_trace()
         n_ = round(Ngibbs_iterations) / 2
         Zp = SP.zeros([2, XT.shape[0]])
         Zp[1, :] = Q['Z'].mean(axis=0)

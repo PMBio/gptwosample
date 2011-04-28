@@ -70,7 +70,6 @@ class TestGPTwoSampleMLII(unittest.TestCase):
         
     def test_interval(self):
         self.twosample_object.predict_model_likelihoods(self.training_data_differential)
-        import pdb;pdb.set_trace()
         self.twosample_object.predict_mean_variance(self.X,
                                 interval_indices=self.interval_indices)            
         plot_results(self.twosample_object,

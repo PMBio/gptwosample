@@ -13,11 +13,12 @@ import pylab as PL
 #log level control
 import logging as LG
 #two_sample: smooth model implements standard test and time dependent model. 
-from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
+from gptwosample.twosample.interval_smooth_new import GPTwoSampleInterval
 from gptwosample.data import toy_data_generator
 from gptwosample.data.data_base import get_training_data_structure
 
 #expr. levels IN
+
 expr_file = './demo.csv'
 
 
@@ -80,6 +81,8 @@ if __name__ == '__main__':
     if verbose:
         #if verbose activate interactive plotting
         PL.ion()
+        
+    lik = SP.log([2, 2])
     #loop through genes
     for g in xrange(Ngenes):
         i0 = g * Nrepl * 2
@@ -87,29 +90,33 @@ if __name__ == '__main__':
         #expression levels: replicates x #time points
         Y0 = Yc[i0:i0 + Nrepl, :]
         Y1 = Yc[i1:i1 + Nrepl, :]
-        #create data structure for GPTwoSample:
+        #create data structure for GPTwwoSample:
         #note; there is no need for the time points to be aligned for all replicates
         M0 = [T, Y0]
         M1 = [T, Y1]
         if intervals:
             #creates score and time local predictions
             twosample_object = toy_data_generator.get_twosample_object()
-            twosample_object.set_data(get_training_data_structure(T,
-                                                                  T,
-                                                                  Y0,
-                                                                  Y1))
-            gptest = GPTwoSampleInterval(twosample_object,
-                                         logtheta0={'covar':logtheta0},
-                                         maxiter=maxiter,
-                                         prior_Z={'covar':prior_Z})
+            twosample_object.set_data(get_training_data_structure(T.reshape(-1, 1),
+                                                                  T.reshape(-1, 1),
+                                                                  Y0.reshape(-1),
+                                                                  Y1.reshape(-1)))
+#            gptest = GPTwoSampleInterval(twosample_object,
+#                                         logtheta0={'covar':logtheta0,'lik':lik},
+#                                         maxiter=maxiter,
+#                                         prior_Z={'covar':prior_Z,'lik':lik})
+#            
+#            [score, Z] = gptest.test_interval(M0, M1,
+#                                              verbose=verbose,
+#                                              #opt=opt,
+#                                              Ngibbs_iterations=Ngibbs_iterations,
+#                                              #XPz=Tpredict,
+#                                              logthetaZ={'covar':logthetaZ,'lik':lik})
+#            #fix_Z=fix_Z)
+            gptest = GPTwoSampleInterval(twosample_object)
             
-            [score, Z] = gptest.test_interval(M0, M1,
-                                              verbose=verbose,
-                                              #opt=opt,
-                                              Ngibbs_iterations=Ngibbs_iterations,
-                                              #XPz=Tpredict,
-                                              logthetaZ={'covar':logthetaZ})
-            #fix_Z=fix_Z)
+            Z,interval = gptest.predict_interval_probabilities({'covar':logthetaZ, 'lik':lik}, 30)
+            PL.plot(interval,Z)
         else:
             #only score
             score = twosample_object.bayes_factor()
@@ -118,6 +125,5 @@ if __name__ == '__main__':
             PL.savefig(os.path.join(figures_out, '%s.png' % gene_names[g]))
         print "press enter for next gene or CTR+C to quite"
         #wait for enter
-        PL.draw()
-        raw_input()
+        PL.show()
         pass
