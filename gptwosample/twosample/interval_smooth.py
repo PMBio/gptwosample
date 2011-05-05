@@ -135,7 +135,8 @@ class GPTwoSampleInterval(object):
             #self.gpr_join.set_data(SP.concatenate((MJR[0][:,IJ]),axis=0).reshape([-1,1]),SP.concatenate((MJR[1][:,IJ]),axis=1),process=False)
             
             
-
+            IS=SP.tile(~IS,4)
+            IJ=SP.tile(~IJ,8)
             #now plot stuff
             PL.clf()
             ax1 = PL.axes([0.15, 0.1, 0.8, 0.7])
@@ -144,9 +145,11 @@ class GPTwoSampleInterval(object):
             #self.plotGPpredict_gradient(self.gpr_0,M0,Xp,Bm,{'alpha':alpha,'facecolor':'r'},{'linewidth':2,'color':'r'})
             #self.plotGPpredict_gradient(self.gpr_1,M0,Xp,Bm,{'alpha':alpha,'facecolor':'g'},{'linewidth':2,'color':'g'})
             #self.plotGPpredict_gradient(self.gpr_join,M0,Xp,(1-Bm),{'alpha':alpha,'facecolor':'b'},{'linewidth':2,'color':'b'})             
-            likelihoods = self._twosample_object.predict_model_likelihoods()
-            mean_var = self._twosample_object.predict_mean_variance(Xp)
-            plots = plot_results(self._twosample_object, alpha=Bm)
+            likelihoods = self._twosample_object.predict_model_likelihoods(interval_indices={'individual':IS, 'common':IJ})
+            mean_var = self._twosample_object.predict_mean_variance(Xp,interval_indices={'individual':IS, 'common':IJ})
+            plots = plot_results(self._twosample_object, 
+                                 alpha=Bm, 
+                                 legend=False,interval_indices={'individual':IS, 'common':IJ})
             
             #import pdb;pdb.set_trace()
             
@@ -197,7 +200,8 @@ class GPTwoSampleInterval(object):
 #            self.gpr_join.set_data(SP.concatenate((MJR[0][:,IJ]),axis=0).reshape([-1,1]),SP.concatenate((MJR[1][:,IJ]),axis=1),process=False)
             self.gpZ.setData(XTR[IZ], Z[IZ])
             
-            
+            IS=SP.tile(~IS,4)
+            IJ=SP.tile(~IJ,8)
 
             #GP predictions
 #            Yp0 = self.gpr_0.predict(self.gpr_0.logtheta,XT[I],mean=False)

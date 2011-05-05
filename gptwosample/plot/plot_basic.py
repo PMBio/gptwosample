@@ -11,8 +11,8 @@ from gptwosample.data.data_base import get_model_structure
 from matplotlib import cm
 
 def plot_results(twosample_object,
-                 ax=None, x_label="input", y_label="ouput", title=None,
-                 interval_indices=None, alpha=None):
+                 ax=None, xlabel="input", ylabel="ouput", title=None,
+                 interval_indices=None, alpha=None, legend=True):
     """
     Plot the results given by last prediction.
 
@@ -56,6 +56,10 @@ def plot_results(twosample_object,
     legend_plots = []
     legend_names = []
 
+    alpha_groups = alpha
+    if alpha is not None:
+        alpha_groups = 1-alpha
+
     for name, value in twosample_object._predicted_mean_variance.iteritems():
         mean = value['mean']
         var = SP.sqrt(value['var'])
@@ -64,52 +68,50 @@ def plot_results(twosample_object,
             first = True
             for i in range(number_of_groups):
                 col = cm.jet(1. * i / (2 * number_of_groups))#(i/number_of_groups,i/number_of_groups,.8)
-                data = twosample_object.get_data(name, i, interval_indices=interval_indices)
+                data = twosample_object.get_data(name, i)
                 PLOT.plot_training_data(
                     data[0], data[1],
-                    format_data={'alpha':.4,
+                    format_data={'alpha':.5,
                                  'marker':'.',
                                  'linestyle':'',
-                                 'markersize':13,
+                                 'markersize':10,
                                  'color':col})
                 plots = PLOT.plot_sausage(
                     twosample_object._interpolation_interval_cache,
                     mean[i], var[i],
                     format_fill={'alpha':0.2, 'facecolor':col},
-                    format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=1-alpha)[0]
+                    format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
                 if(first):
                     legend_plots.append(PL.Rectangle((0, 0), 1, 1, alpha=.2, fill=True, facecolor=col))
                     legend_names.append("%s %i" % (name, i + 1))
                     #first=False
         else:
             col = (.8, .1, .1)
-            data = twosample_object.get_data(name, interval_indices=interval_indices)   
-            PLOT.plot_training_data(
-                    data[0], data[1],
-                    format_data={'alpha':.2,
-                                 'marker':'.',
-                                 'linestyle':'',
-                                 'markersize':13,
-                                 'color':col})
+            #data = twosample_object.get_data(name, interval_indices=interval_indices)   
+            #PLOT.plot_training_data(
+            #        data[0], data[1],
+            #        format_data={'alpha':.2,
+#                                 'marker':'.',
+#                                 'linestyle':'',
+#                                 'markersize':10,
+#                                 'color':col})
             legend_names.append("%s" % (name))
             plots = PLOT.plot_sausage(
                 twosample_object._interpolation_interval_cache, mean, var,
                 format_fill={'alpha':0.2, 'facecolor':col},
                 format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha)[0]
             legend_plots.append(PL.Rectangle((0, 0), 1, 1, alpha=.2, fc=col, fill=True))
-            
-    PL.legend(legend_plots, legend_names,
-              bbox_to_anchor=(0., 0., 1., 0.), loc=3,
-              ncol=2,
-              mode="expand",
-              borderaxespad=0.,
-              fancybox=False, frameon=True)
-
-    PL.xlabel(x_label)
-    PL.ylabel(y_label)
-
-#        PL.subplot_ajust(
+    if legend:
+        PL.legend(legend_plots, legend_names,
+                  bbox_to_anchor=(0., 0., 1., 0.), loc=3,
+                  ncol=2,
+                  mode="expand",
+                  borderaxespad=0.,
+                  fancybox=False, frameon=True)
     
+    PL.xlabel(xlabel)
+    PL.ylabel(ylabel)
+
     PL.subplots_adjust(top=.88)
     PL.suptitle(title, fontsize=22)
 

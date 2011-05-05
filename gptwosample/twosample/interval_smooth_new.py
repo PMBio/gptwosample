@@ -9,6 +9,7 @@ from pygp.covar.se import SqexpCFARD
 from scipy.stats.distributions import norm
 import scipy as SP
 from pygp.gp.gpcEP import GPCEP
+import logging
 
 class GPTwoSampleInterval(object):
     '''
@@ -33,7 +34,25 @@ class GPTwoSampleInterval(object):
         # save static objects and values:
         self._twosample_object = twosample_object
         self.outlier_probability = outlier_probability
-        self._input = SP.unique(twosample_object.get_data('common')[0]).reshape(-1,1)
+        
+        # All x-values, which are given by twosample_object
+        self._input_comm = twosample_object.get_data('common')[0]
+        self._input_ind1 = twosample_object.get_data('individual',0)[0]
+        self._input_ind2 = twosample_object.get_data('individual',1)[0]
+
+        # Unique x-values:
+        self._input = SP.unique(self._input_comm).reshape(-1,1)
+
+        # All target-values, which are given by twosample_object
+        self._target_comm = twosample_object.get_data('common')[1]
+        self._target_ind1 = twosample_object.get_data('individual',0)[1]
+        self._target_ind2 = twosample_object.get_data('individual',1)[1]
+
+        # Count replicates:
+        self._n_replicates_comm = (self._input_comm == self._input_comm[0]).sum()
+        # Individual replicates are common replicates over 2
+        #self._n_replicates_ind1 = (self._input_ind1 == self._input_ind1[0]).sum()
+        #self._n_replicates_ind2 = (self._input_ind2 == self._input_ind2[0]).sum()
 
         # set everything up to begin with resampling:
         self.reset()
@@ -41,7 +60,9 @@ class GPTwoSampleInterval(object):
         secf = SqexpCFARD()
         noise = NoiseCFISO()
         covar = SumCF([secf, noise])
-        self._indicator_regressor = GPCEP(covar_func=covar, x=self._input, y=self._indicators)
+        self._indicator_regressor = GPCEP(covar_func=covar, 
+                                          x=self._input.reshape(-1,1), 
+                                          y=self._indicators)
         self._indicator_prior = indicator_prior
         
         
@@ -62,9 +83,13 @@ class GPTwoSampleInterval(object):
         probabilities = []
         for iteration in xrange(number_of_gibbs_iterations):
             for interval_index in xrange(self._input.shape[0]):
-                self._resample_interval_index(interval_index, hyperparams)
+                self._indicators[interval_index] = self._resample_interval_index(interval_index, hyperparams)
             probabilities.append(self._indicators)
+            logging.info("Gibbs Iteration: %i"%(iteration))
+            logging.info("Current Indicator: %s"% (self._indicators))
+            
         probabilities = SP.array(probabilities)
+        logging.info("End: Indicators %s"% (probabilities.mean(0)))
         
         return self._calculate_indicator_mean(probabilities, hyperparams)
         
@@ -91,27 +116,38 @@ class GPTwoSampleInterval(object):
         interval_index : int
             Index of input value, which shall be resampled            
         """
-        interval_indicator = SP.zeros(self._input.shape[0])
+        interval_indicator = SP.zeros_like(self._indicators)
         interval_indicator[interval_index] = 1
         interval_indicator = SP.array(interval_indicator,dtype='bool')
         
-        # predict index
-        output_prediction = self._twosample_object.predict_mean_variance(\
+        # make sure to predict on all data given (including all replicates)
+        ind_interval_indicator = self._indicators & ~interval_indicator
+        comm_interval_indicator = ~self._indicators & ~interval_indicator
+
+        # predict output at interval_indicator
+        target_prediction = self._twosample_object.predict_mean_variance(\
                       self._input[interval_indicator],\
-                      interval_indices={'individual':self._indicators & ~interval_indicator,\
-                                        'common':   ~self._indicators & ~interval_indicator})
+                      interval_indices={'individual': SP.tile(ind_interval_indicator,self._n_replicates_comm/2),\
+                                        'common':   SP.tile(comm_interval_indicator, self._n_replicates_comm)})
         
-        ind1 = [output_prediction['individual']['mean'][0], output_prediction['individual']['var'][0]]
-        ind2 = [output_prediction['individual']['mean'][1], output_prediction['individual']['var'][1]]
-        comm = [output_prediction['common']['mean'], output_prediction['common']['var']]
+        ind1 = [target_prediction['individual']['mean'][0], target_prediction['individual']['var'][0]]
+        ind2 = [target_prediction['individual']['mean'][1], target_prediction['individual']['var'][1]]
+        comm = [target_prediction['common']['mean'], target_prediction['common']['var']]
         
         # predict binary indicator
+        binary_interval_indicator = SP.ones_like(self._indicators)
+        binary_interval_indicator &= interval_indicator
+        self._indicator_regressor.setData(self._input[binary_interval_indicator], self._indicators[binary_interval_indicator])
         indicator_prediction = self._indicator_regressor.predict(hyperparams, self._input[interval_indicator])[0]
         
+        # Make sure to get all targets of all replicates (Assumption: whole input array is tiled for replicates):
+        ind_data_interval_indicator = SP.tile(interval_indicator, self._n_replicates_comm/2)
+        comm_data_interval_indicator = SP.tile(interval_indicator, self._n_replicates_comm)
+        
         # calculate robust likelihood
-        ind1_likelihood = self._robust_likelihood(self._twosample_object.get_data('individual',0)[1][:, interval_indicator], ind1[0], ind1[1]) 
-        ind2_likelihood = self._robust_likelihood(self._twosample_object.get_data('individual',1)[1][:, interval_indicator], ind2[0], ind2[1]) 
-        comm_likelihood = self._robust_likelihood(self._twosample_object.get_data('common')[1][:, interval_indicator], comm[0], comm[1])
+        ind1_likelihood = self._robust_likelihood(self._target_ind1[ind_data_interval_indicator], ind1[0], ind1[1]) 
+        ind2_likelihood = self._robust_likelihood(self._target_ind2[ind_data_interval_indicator], ind2[0], ind2[1]) 
+        comm_likelihood = self._robust_likelihood(self._target_comm[comm_data_interval_indicator], comm[0], comm[1])
         
         ind_likelihood = SP.log(ind1_likelihood).sum(axis=0) + SP.log(ind2_likelihood).sum(axis=0)
         comm_likelihood = SP.log(comm_likelihood).sum(axis=0)
@@ -120,8 +156,13 @@ class GPTwoSampleInterval(object):
         ind_posterior = indicator_prediction * SP.exp(ind_likelihood) * self._indicator_prior
         comm_posterior = (1 - indicator_prediction) * SP.exp(comm_likelihood) * (1 - self._indicator_prior)
 
-        posterior = comm_posterior / (ind_posterior + comm_posterior)
-        
+#        posterior = SP.zeros([2, 1])
+#        posterior[1, :] = indicator_prediction * SP.exp(ind_likelihood) * self._indicator_prior
+#        posterior[0, :] = (1 - indicator_prediction) * SP.exp(comm_likelihood) * (1 - self._indicator_prior)
+#        posterior /= posterior.sum(axis=0)
+#        
+        posterior = ind_posterior / (ind_posterior + comm_posterior)
+
         return SP.rand() <= posterior
         
     def _calculate_indicator_mean(self, probabilities, hyperparams):

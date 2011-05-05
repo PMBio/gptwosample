@@ -13,9 +13,10 @@ import pylab as PL
 #log level control
 import logging as LG
 #two_sample: smooth model implements standard test and time dependent model. 
-from gptwosample.twosample.interval_smooth_new import GPTwoSampleInterval
+from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
 from gptwosample.data import toy_data_generator
 from gptwosample.data.data_base import get_training_data_structure
+from gptwosample.plot.plot_basic import plot_results
 
 #expr. levels IN
 
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     logtheta0 = SP.log([0.5, 1, 0.4])
     #similarly: hyperparameters of the smooth process for time intervalSP.
     #this GP is not optimised by default and settings should be adapted;noise level is basically 0 (logistic GP).
-    logthetaZ = SP.log([0.7, 2, 1E-5])
+    logthetaZ = SP.log([.5, 2, .001])
     #if we now that there is a transtion from non differential to differential genes it is helpful to fix the first few observations as not differntially expressed (initially). This paremter allows to set say the first 2 observations to not differentially expressed
     fix_Z = SP.array([0, 1])
     #optimisation of hyperparmeters; should be on
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     maxiter = 20
     #prior belief in differential expression. it make sense to set that a number < 0.5 if we blief that less than half of the genes differentially expressed.
     #only the interval test makes use of this setting/prior probability ; the base factor is the raw value without this prior counted in.
-    prior_Z = 0.3
+    prior_Z = 0.7
     #Ngibbs_iteratons: number of gibbs sweeps through all indicatorSP. form 30 on this should be (depending on the data) be converged).
     Ngibbs_iterations = 30
 
@@ -99,24 +100,34 @@ if __name__ == '__main__':
             twosample_object = toy_data_generator.get_twosample_object()
             twosample_object.set_data(get_training_data_structure(T.reshape(-1, 1),
                                                                   T.reshape(-1, 1),
-                                                                  Y0.reshape(-1),
-                                                                  Y1.reshape(-1)))
-#            gptest = GPTwoSampleInterval(twosample_object,
-#                                         logtheta0={'covar':logtheta0,'lik':lik},
-#                                         maxiter=maxiter,
-#                                         prior_Z={'covar':prior_Z,'lik':lik})
-#            
-#            [score, Z] = gptest.test_interval(M0, M1,
-#                                              verbose=verbose,
-#                                              #opt=opt,
-#                                              Ngibbs_iterations=Ngibbs_iterations,
-#                                              #XPz=Tpredict,
-#                                              logthetaZ={'covar':logthetaZ,'lik':lik})
-#            #fix_Z=fix_Z)
-            gptest = GPTwoSampleInterval(twosample_object)
+                                                                  Y0.reshape(-1, 1),
+                                                                  Y1.reshape(-1, 1)))
+
+            gptest = GPTwoSampleInterval(twosample_object,
+                                         logtheta0={'covar':logtheta0,'lik':lik},
+                                         maxiter=maxiter,
+                                         prior_Z={'covar':prior_Z,'lik':lik})
             
-            Z,interval = gptest.predict_interval_probabilities({'covar':logthetaZ, 'lik':lik}, 30)
-            PL.plot(interval,Z)
+            [score, Z] = gptest.test_interval(M0, M1,
+                                              verbose=verbose,
+                                              #opt=opt,
+                                              Ngibbs_iterations=Ngibbs_iterations,
+                                              #XPz=Tpredict,
+                                              logthetaZ={'covar':logthetaZ,'lik':lik})
+            #fix_Z=fix_Z)
+#            gptest = GPTwoSampleInterval(twosample_object)
+#            
+#            Z, interval = gptest.predict_interval_probabilities({'covar':logthetaZ, 'lik':lik}, 30)
+#            PL.plot(interval, Z)
+#            PL.figure()
+#            
+#            twosample_object.predict_model_likelihoods()
+#            twosample_object.predict_mean_variance(Tpredict)
+#            plot_results(twosample_object, 
+#                         xlabel="Time/h", ylabel='Expression level', 
+#                         title='%s : %f.5'%(gene_names[g],twosample_object.bayes_factor()),
+#                         legend=False)
+##            
         else:
             #only score
             score = twosample_object.bayes_factor()

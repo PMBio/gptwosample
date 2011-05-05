@@ -85,7 +85,7 @@ class GPTwoSample(object):
                 'output' : {'group 1':[double] ... 'group n':[double]}}"""
             raise DataStructureError("Training Data must confirm printed structure")
 
-    def predict_model_likelihoods(self, training_data=None, *args, **kwargs):
+    def predict_model_likelihoods(self, training_data=None, interval_indices=get_model_structure(), *args, **kwargs):
         """
         Predict the probabilities of the models (individual and common) to describe the data
         It will optimize hyperparameters respectively, if option was chosen at creating this object.
@@ -114,10 +114,12 @@ class GPTwoSample(object):
             self.set_data(training_data)
 
         for name, model in self._models.iteritems():
+            model.set_interval_indices(interval_indices[name])
             if(self._learn_hyperparameters):
                 self._learned_hyperparameters[name] = opt_hyper(model,
                                                                 self._initial_hyperparameters,
-                                                                priors=self._priors, *args, **kwargs)[0]
+                                                                priors=self._priors,
+                                                                *args, **kwargs)[0]
             self._model_likelihoods[name] = model.LML(self._learned_hyperparameters[name],
                                                       priors=self._priors, *args, **kwargs)
 
@@ -147,10 +149,10 @@ class GPTwoSample(object):
         """
         if(hyperparams is None):
             hyperparams = self._learned_hyperparameters
-        
         self._predicted_mean_variance = dict([[name, None] for name in self._models.keys()])
         for name, model in self._models.iteritems():
-            prediction = model.predict(hyperparams[name], interpolation_interval, var=True, interval_indices=interval_indices[name], *args, **kwargs)
+            model.set_interval_indices(interval_indices[name])
+            prediction = model.predict(hyperparams[name], interpolation_interval, var=True, *args, **kwargs)
             self._predicted_mean_variance[name] = {'mean':prediction[0], 'var':prediction[1]}
 
         self._interpolation_interval_cache = interpolation_interval
