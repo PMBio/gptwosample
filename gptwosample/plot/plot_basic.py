@@ -19,6 +19,7 @@ import pylab as PL
 import scipy as SP
 from gptwosample.data.data_base import get_model_structure
 from matplotlib import cm
+from numpy.ma.core import ceil
 
 def plot_results(twosample_object,
                  ax=None, xlabel="input", ylabel="ouput", title=None,
@@ -77,7 +78,9 @@ def plot_results(twosample_object,
             number_of_groups = mean.shape[0]
             first = True
             for i in range(number_of_groups):
-                col = cm.jet(1. * i / (2 * number_of_groups))#(i/number_of_groups,i/number_of_groups,.8)
+                col_num=(i / (1.* number_of_groups))
+                import pdb;pdb.set_trace()
+                col = cm.jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
                 data = twosample_object.get_data(name, i)
                 PLOT.plot_training_data(
                     data[0], data[1],
@@ -96,7 +99,7 @@ def plot_results(twosample_object,
                     legend_names.append("%s %i" % (name, i + 1))
                     #first=False
         else:
-            col = (.8, .1, .1)
+            col = cm.jet(1.)
             #data = twosample_object.get_data(name, interval_indices=interval_indices)   
             #PLOT.plot_training_data(
             #        data[0], data[1],

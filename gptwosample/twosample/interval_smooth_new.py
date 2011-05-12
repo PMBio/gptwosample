@@ -96,9 +96,9 @@ class GPTwoSampleInterval(object):
         #get rid of training runs (first half)
         probabilities = probabilities[SP.ceil(number_of_gibbs_iterations/2)::]
         logging.info("End: Indicators %s"% (probabilities.mean(0)))
-        self._predicted_indicators = SP.array(probabilities, dtype='bool')
         
         self._predicted_model_distribution = self._calculate_indicator_mean(probabilities, hyperparams)
+        self._predicted_indicators = probabilities.mean(0) > .5
         return self._predicted_model_distribution
         
     def reset(self):
