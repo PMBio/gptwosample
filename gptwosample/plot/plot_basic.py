@@ -78,8 +78,7 @@ def plot_results(twosample_object,
             number_of_groups = mean.shape[0]
             first = True
             for i in range(number_of_groups):
-                col_num=(i / (1.* number_of_groups))
-                import pdb;pdb.set_trace()
+                col_num=(i / (2.* number_of_groups))
                 col = cm.jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
                 data = twosample_object.get_data(name, i)
                 PLOT.plot_training_data(
