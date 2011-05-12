@@ -1,4 +1,14 @@
 '''
+Plot GPTwoSample predictions
+============================
+
+Module for easy plotting of GPTwoSample results.
+
+:py:class:`gptwosample.plot.plot_basic.plot_results` plots
+training data, as well as sausage_plots for a GPTwoSample
+experiment. You can give interval indices for plotting, if u chose
+
+
 Created on Feb 10, 2011
 
 @author: maxz

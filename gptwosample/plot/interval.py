@@ -5,40 +5,60 @@ Created on Feb 18, 2011
 '''
 import pylab as PL
 import scipy as SP
-import copy as CP
+from gptwosample.plot.plot_basic import plot_results
 
-def plot_results_gradient(self,GP,M,X,RX,format_fill,format_line):
+def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level'):
         """
-        Plot results of resampling of a :py:class:`gptwosample.twosample
+        Plot results of resampling of a (subclass of) 
+        :py:class:`gptwosample.twosample.twosample_interval`.
+        This method will predict some data new, for plotting purpose.
+        
+        **Parameters:**
+        
+        twosample_interval_object: :py:class:`gptwosample.twosample.twosample_interval`
+            The GPTwosample resample object, from which to take the results.
         """
-        def fill_between(X,Y1,Y2,P=1,**format):
-            """fill between Y1 and Y2"""
-            _format = CP.copy(format)
-            _format['alpha']*=P
-            X[0]+=0
-            Xp = SP.concatenate((X,X[::-1]))
-            Yp = SP.concatenate(((Y1),(Y2)[::-1]))
-            PL.fill(Xp,Yp,**_format)
         
-        #vectorized version of X for G if needed
-        if len(X.shape)<2:
-            Xv = X.reshape(X.size,1)
-        else:
-            Xv = X
-        #regression:
-        [p_mean,p_std] = self.regress(GP,M,X=Xv)
+        predicted_indicators = twosample_interval_object.get_predicted_indicators()
+        model_dist,Xp = twosample_interval_object.get_predicted_model_distribution()
         
-        #plot std errorbars where alpha-value is modulated by RX (a bit of a hack)
-        Y1 = p_mean+2*p_std
-        Y2 = p_mean-2*p_std
-        #set line width to 0 (no boundaries
-        format_fill['linewidth']=0
-        for i in xrange(X.shape[0]-2):
-            fill_between(X[i:i+2],Y1[i:i+2],Y2[i:i+2],P=RX[i],**format_fill)
-        #plot contours
-        PL.plot(X,Y1,format_fill['facecolor'],linewidth=1,alpha=format_fill['alpha'])
-        PL.plot(X,Y2,format_fill['facecolor'],linewidth=1,alpha=format_fill['alpha'])
-#        Xp = concatenate((X,X[::-1]))
-#        Yp = concatenate(((p_mean+2*p_std),(p_mean-2*p_std)[::-1]))
-#        PL.fill(Xp,Yp,**format_fill)
-        PL.plot(X,p_mean,**format_line)
+        IS = predicted_indicators
+        IJ = ~predicted_indicators
+        IS = SP.tile(~IS, twosample_interval_object._n_replicates_comm/2)
+        IJ = SP.tile(~IJ, twosample_interval_object._n_replicates_comm)
+
+        # predict GPTwoSample object with indicators as interval_indices
+        twosample_interval_object._twosample_object.predict_model_likelihoods(\
+                                            interval_indices={'individual':IS, 'common':IJ})
+        twosample_interval_object._twosample_object.predict_mean_variance(Xp,\
+                                            interval_indices={'individual':IS, 'common':IJ})
+                    
+        #now plot stuff
+        ax1 = PL.axes([0.15, 0.1, 0.8, 0.7])
+
+        plot_results(twosample_interval_object._twosample_object, 
+                     alpha=model_dist, 
+                     legend=False,interval_indices={'individual':IS, 'common':IJ},
+                     xlabel=xlabel,
+                     ylabel=ylabel)
+        
+        PL.xlim([Xp.min(), Xp.max()])
+        yticks = ax1.get_yticks()[0:-2]
+        ax1.set_yticks(yticks)
+        
+        data = twosample_interval_object._twosample_object.get_data('common')
+        Ymax = data[1].max()
+        Ymin = data[1].min()
+        
+        DY = Ymax - Ymin
+        PL.ylim([Ymin - 0.1 * DY, Ymax + 0.1 * DY])
+        #2nd. plot prob. of diff
+        ax2 = PL.axes([0.15, 0.8, 0.8, 0.10], sharex=ax1)
+        PL.plot(Xp, model_dist, 'k-', linewidth=2)
+        PL.ylabel('$P(z(t)=1)$')
+#            PL.yticks([0.0,0.5,1.0])
+        PL.yticks([0.5])           
+        #horizontal bar
+        PL.axhline(linewidth=0.5, color='#aaaaaa', y=0.5)
+        PL.ylim([0, 1])
+        PL.setp(ax2.get_xticklabels(), visible=False)

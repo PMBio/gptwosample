@@ -73,10 +73,13 @@ class GPTwoSample(object):
 
         """
         try:                
-            X = training_data['input'].values()
-            Y = training_data['output'].values() # set individual model's data
-            
-            self._models['individual'].setData(X, Y) # set common model's data
+            #X = training_data['input'].values()#
+            X = [training_data['input']['group_1'],training_data['input']['group_2']]
+            #Y = training_data['output'].values()
+            Y = [training_data['output']['group_1'],training_data['output']['group_2']]
+            # set individual model's data
+            self._models['individual'].setData(X, Y)
+            # set common model's data
             self._models['common'].setData(SP.concatenate(X), SP.concatenate(Y))
         except KeyError:
             print """Please validate training data given. \n
@@ -87,8 +90,8 @@ class GPTwoSample(object):
 
     def predict_model_likelihoods(self, training_data=None, interval_indices=get_model_structure(), *args, **kwargs):
         """
-        Predict the probabilities of the models (individual and common) to describe the data
-        It will optimize hyperparameters respectively, if option was chosen at creating this object.
+        Predict the probabilities of the models (individual and common) to describe the data.
+        It will optimize hyperparameters respectively.
         
         **Parameters**:
         
@@ -102,6 +105,10 @@ class GPTwoSample(object):
 
                 {'input' : {'group 1':[double] ... 'group n':[double]},
                 'output' : {'group 1':[double] ... 'group n':[double]}}
+
+        interval_indices: :py:class:`gptwosample.data.get_model_structure()`
+            interval indices, which assign data to individual or common model,
+            respectively.
 
         args : [..]
             see :py:class:`pygp.gpr.GP`
