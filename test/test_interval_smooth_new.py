@@ -92,10 +92,13 @@ if __name__ == '__main__':
         #expression levels: replicates x #time points
         Y0 = Yc[i0:i0 + Nrepl, :]
         Y1 = Yc[i1:i1 + Nrepl, :]
+        
+        mean = SP.mean((SP.mean(Y0),SP.mean(Y1)))
+        
+        Y0 -= mean
+        Y1 -= mean
         #create data structure for GPTwwoSample:
         #note; there is no need for the time points to be aligned for all replicates
-        M0 = [T, Y0]
-        M1 = [T, Y1]
         if intervals:
             #creates score and time local predictions
             twosample_object = toy_data_generator.get_twosample_object()
@@ -104,7 +107,7 @@ if __name__ == '__main__':
                                                                   Y0.reshape(-1, 1),
                                                                   Y1.reshape(-1, 1)))
 
-            gptest = GPTwoSampleInterval(twosample_object, outlier_probability=.3)
+            gptest = GPTwoSampleInterval(twosample_object, outlier_probability=.1)
             
             Z = gptest.predict_interval_probabilities(hyperparams={'covar':logthetaZ, 'lik':lik},
                                                       number_of_gibbs_iterations=Ngibbs_iterations)
