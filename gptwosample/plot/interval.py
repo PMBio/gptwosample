@@ -23,10 +23,8 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
         predicted_indicators = twosample_interval_object.get_predicted_indicators()
         model_dist,Xp = twosample_interval_object.get_predicted_model_distribution()
         
-        IS = predicted_indicators
-        IJ = ~predicted_indicators
-        IS = SP.tile(~IS, twosample_interval_object._n_replicates_comm/2)
-        IJ = SP.tile(~IJ, twosample_interval_object._n_replicates_comm)
+        IS = SP.tile(~predicted_indicators, twosample_interval_object._n_replicates_ind)
+        IJ = SP.tile(predicted_indicators, twosample_interval_object._n_replicates_comm)
 
         # predict GPTwoSample object with indicators as interval_indices
         twosample_interval_object._twosample_object.predict_model_likelihoods(\
@@ -39,12 +37,12 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
 
         plot_results(twosample_interval_object._twosample_object, 
                      alpha=model_dist, 
-                     legend=False,interval_indices={individual_id:IS, common_id:IJ},
+                     legend=False,#interval_indices={individual_id:IS, common_id:IJ},
                      xlabel=xlabel,
                      ylabel=ylabel)
         
         PL.xlim([Xp.min(), Xp.max()])
-        yticks = ax1.get_yticks()[0:-2]
+        yticks = ax1.get_yticks()[0:-1]
         ax1.set_yticks(yticks)
         
         data = twosample_interval_object._twosample_object.get_data(common_id)

@@ -24,7 +24,8 @@ from numpy.ma.core import ceil
 
 def plot_results(twosample_object,
                  ax=None, xlabel="input", ylabel="ouput", title=None,
-                 interval_indices=None, alpha=None, legend=True):
+                 interval_indices=None, alpha=None, legend=True,
+                 replicate_indices=None):
     """
     Plot the results given by last prediction.
 
@@ -82,13 +83,19 @@ def plot_results(twosample_object,
                 col_num=(i / (2.* number_of_groups))
                 col = cm.jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
                 data = twosample_object.get_data(name, i)
-                PLOT.plot_training_data(
-                    data[0], data[1],
-                    format_data={'alpha':.5,
-                                 'marker':'.',
-                                 'linestyle':'',
-                                 'markersize':10,
-                                 'color':col})
+                if replicate_indices is None:
+                    # Assume replicates are appended one after another
+                    replicate_length = len(SP.unique(data[0]))
+                    number_of_replicates = len(data[0])/replicate_length
+                    replicate_indices = SP.concatenate([SP.repeat(rep, replicate_length) for rep in range(number_of_replicates)])
+                for rep in range(number_of_replicates):
+                    PLOT.plot_training_data(
+                        data[0][replicate_indices==rep], data[1][replicate_indices==rep],
+                        format_data={'alpha':.5,
+                                     'marker':'.',
+                                     'linestyle':'--',
+                                     'markersize':10,
+                                     'color':col})
                 plots = PLOT.plot_sausage(
                     twosample_object._interpolation_interval_cache,
                     mean[i], var[i],

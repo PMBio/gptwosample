@@ -93,10 +93,10 @@ if __name__ == '__main__':
         Y0 = Yc[i0:i0 + Nrepl, :]
         Y1 = Yc[i1:i1 + Nrepl, :]
         
-        mean = SP.mean((SP.mean(Y0),SP.mean(Y1)))
-        
-        Y0 -= mean
-        Y1 -= mean
+#        mean = SP.mean((SP.mean(Y0),SP.mean(Y1)))
+#        
+#        Y0 -= mean
+#        Y1 -= mean
         #create data structure for GPTwwoSample:
         #note; there is no need for the time points to be aligned for all replicates
         if intervals:

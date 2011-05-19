@@ -5,6 +5,7 @@ Created on Mar 18, 2011
 
 This Class is for easy access to data structures gptwosample works with.
 '''
+import scipy
 
 replicate_indices_id = 'rep'
 individual_id = 'ind'
@@ -27,7 +28,7 @@ def get_model_structure(individual=None, common=None):
     Make sure to use this method if you want to use the model structure in this package!
     """
     return {individual_id:individual, common_id:common}
-
+    
 class DataStructureError(TypeError):
     """
     Thrown, if DataStructure given does not fit.
