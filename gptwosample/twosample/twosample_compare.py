@@ -10,6 +10,7 @@ from pygp.gp import GP
 from pygp.gp.composite import GroupGP
 
 from gptwosample.twosample import GPTwoSample
+from gptwosample.data.data_base import individual_id, common_id
 
 class GPTwoSampleMLII(GPTwoSample):
     """
@@ -31,4 +32,4 @@ class GPTwoSampleMLII(GPTwoSample):
         individual_model = GroupGP([gpr1,gpr2])
         common_model = GP(covar)
         # set models for this GPTwoSample Test
-        self._models = {'individual':individual_model,'common':common_model}
+        self._models = {individual_id:individual_model,common_id:common_model}

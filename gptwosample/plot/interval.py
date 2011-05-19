@@ -6,6 +6,7 @@ Created on Feb 18, 2011
 import pylab as PL
 import scipy as SP
 from gptwosample.plot.plot_basic import plot_results
+from gptwosample.data.data_base import individual_id, common_id
 
 def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level'):
         """
@@ -29,16 +30,16 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
 
         # predict GPTwoSample object with indicators as interval_indices
         twosample_interval_object._twosample_object.predict_model_likelihoods(\
-                                            interval_indices={'individual':IS, 'common':IJ})
+                                            interval_indices={individual_id:IS, common_id:IJ})
         twosample_interval_object._twosample_object.predict_mean_variance(Xp,\
-                                            interval_indices={'individual':IS, 'common':IJ})
+                                            interval_indices={individual_id:IS, common_id:IJ})
                     
         #now plot stuff
         ax1 = PL.axes([0.15, 0.1, 0.8, 0.7])
 
         plot_results(twosample_interval_object._twosample_object, 
                      alpha=model_dist, 
-                     legend=False,interval_indices={'individual':IS, 'common':IJ},
+                     legend=False,interval_indices={individual_id:IS, common_id:IJ},
                      xlabel=xlabel,
                      ylabel=ylabel)
         
@@ -46,7 +47,7 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
         yticks = ax1.get_yticks()[0:-2]
         ax1.set_yticks(yticks)
         
-        data = twosample_interval_object._twosample_object.get_data('common')
+        data = twosample_interval_object._twosample_object.get_data(common_id)
         Ymax = data[1].max()
         Ymin = data[1].min()
         

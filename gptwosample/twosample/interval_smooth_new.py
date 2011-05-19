@@ -10,6 +10,7 @@ import scipy as SP
 from pygp.gp.gpcEP import GPCEP
 import logging
 import copy
+from gptwosample.data.data_base import common_id, individual_id
 
 class GPTwoSampleInterval(object):
     '''
@@ -38,20 +39,22 @@ class GPTwoSampleInterval(object):
         self.outlier_probability = outlier_probability
         
         # All x-values, which are given by twosample_object
-        self._input_comm = twosample_object.get_data('common')[0]
-        self._input_ind2 = twosample_object.get_data('individual',0)[0]
-        self._input_ind1 = twosample_object.get_data('individual',1)[0]
+        self._input_comm = twosample_object.get_data(common_id)[0]
+        self._input_ind2 = twosample_object.get_data(individual_id,0)[0]
+        self._input_ind1 = twosample_object.get_data(individual_id,1)[0]
 
         # Unique x-values:
         self._input = SP.unique(self._input_comm).reshape(-1,1)
 
         # All target-values, which are given by twosample_object
-        self._target_comm = twosample_object.get_data('common')[1]
-        self._target_ind2 = twosample_object.get_data('individual',0)[1]
-        self._target_ind1 = twosample_object.get_data('individual',1)[1]
+        self._target_comm = twosample_object.get_data(common_id)[1]
+        self._target_ind2 = twosample_object.get_data(individual_id,0)[1]
+        self._target_ind1 = twosample_object.get_data(individual_id,1)[1]
 
         # Count replicates:
-        self._n_replicates_comm = (self._input_comm == self._input_comm[0]).sum()
+        # if there are not replicate indices given:
+        self._n_replicates_ind = (self._input_ind1 == self._input_ind1[0]).sum()
+        self._n_replicates_comm = self._n_replicates_ind*2
         # Individual replicates are common replicates over 2
         #self._n_replicates_ind1 = (self._input_ind1 == self._input_ind1[0]).sum()
         #self._n_replicates_ind2 = (self._input_ind2 == self._input_ind2[0]).sum()
@@ -156,12 +159,12 @@ class GPTwoSampleInterval(object):
         # predict output at interval_indicator
         target_prediction = self._twosample_object.predict_mean_variance(\
                       self._input[interval_indicator],\
-                      interval_indices={'individual': ~SP.tile(ind_interval_indicator,self._n_replicates_comm/2),\
-                                        'common':   ~SP.tile(comm_interval_indicator, self._n_replicates_comm)})
+                      interval_indices={individual_id: ~SP.tile(ind_interval_indicator,self._n_replicates_ind),\
+                                        common_id:   ~SP.tile(comm_interval_indicator, self._n_replicates_comm)})
         
-        ind1 = [target_prediction['individual']['mean'][0], target_prediction['individual']['var'][0]]
-        ind2 = [target_prediction['individual']['mean'][1], target_prediction['individual']['var'][1]]
-        comm = [target_prediction['common']['mean'], target_prediction['common']['var']]
+        ind1 = [target_prediction[individual_id]['mean'][0], target_prediction[individual_id]['var'][0]]
+        ind2 = [target_prediction[individual_id]['mean'][1], target_prediction[individual_id]['var'][1]]
+        comm = [target_prediction[common_id]['mean'], target_prediction[common_id]['var']]
         
         # predict binary indicator
         binary_interval_indicator = SP.ones(self._indicators.shape[0], dtype='bool') & ~interval_indicator

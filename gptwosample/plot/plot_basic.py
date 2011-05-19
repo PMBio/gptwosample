@@ -17,7 +17,8 @@ Created on Feb 10, 2011
 import pygp.plot.gpr_plot as PLOT
 import pylab as PL
 import scipy as SP
-from gptwosample.data.data_base import get_model_structure
+from gptwosample.data.data_base import get_model_structure, common_id,\
+    individual_id
 from matplotlib import cm
 from numpy.ma.core import ceil
 
@@ -50,8 +51,8 @@ def plot_results(twosample_object,
         return
     if interval_indices is None:
         interval_indices = get_model_structure(
-        common=SP.array(SP.zeros_like(twosample_object.get_data('common')[0]), dtype='bool'),
-        individual=SP.array(SP.ones_like(twosample_object.get_data('individual', 0)[0]), dtype='bool'))
+        common=SP.array(SP.zeros_like(twosample_object.get_data(common_id)[0]), dtype='bool'),
+        individual=SP.array(SP.ones_like(twosample_object.get_data(individual_id, 0)[0]), dtype='bool'))
     
     if title is None:
         title = r'Prediction result: $\log \frac{p(individual)}{p(common)} = %.2f $' % (twosample_object.bayes_factor())

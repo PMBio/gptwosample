@@ -4,6 +4,8 @@ Created on Mar 18, 2011
 @author: maxz
 '''
 from gptwosample.data import DataStructureError, get_model_structure
+from gptwosample.data.data_base import input_id, output_id, individual_id, \
+    common_id, replicate_indices_id
 from pygp.optimize import opt_hyper
 import scipy as SP
     
@@ -74,19 +76,19 @@ class GPTwoSample(object):
         """
         try:                
             #X = training_data['input'].values()#
-            X = [training_data['input']['group_1'],training_data['input']['group_2']]
+            X = [training_data[input_id]['group_1'],training_data[input_id]['group_2']]
             #Y = training_data['output'].values()
-            Y = [training_data['output']['group_1'],training_data['output']['group_2']]
+            Y = [training_data[output_id]['group_1'],training_data[output_id]['group_2']]
             # set individual model's data
-            self._models['individual'].setData(X, Y)
+            self._models[individual_id].setData(X, Y)
             # set common model's data
-            self._models['common'].setData(SP.concatenate(X), SP.concatenate(Y))
+            self._models[common_id].setData(SP.concatenate(X), SP.concatenate(Y))
         except KeyError:
-            print """Please validate training data given. \n
-                training_data must have following structure: \n
-                {'input' : {'group 1':[double] ... 'group n':[double]},
-                'output' : {'group 1':[double] ... 'group n':[double]}}"""
-            raise DataStructureError("Training Data must confirm printed structure")
+            #print """Please validate training data given. \n
+            #    training_data must have following structure: \n
+            #    {'input' : {'group 1':[double] ... 'group n':[double]},
+            #    'output' : {'group 1':[double] ... 'group n':[double]}}"""
+            raise DataStructureError("Please use gptwosample.data.data_base.get_training_data_structure for data passing!")
 
     def predict_model_likelihoods(self, training_data=None, interval_indices=get_model_structure(), *args, **kwargs):
         """
@@ -100,11 +102,6 @@ class GPTwoSample(object):
             output are expression-values of e.g. a timeseries. 
             If not given, training data must be given previously by 
             :py:class:`gptwosample.twosample.basic.set_data`.
-
-            Training data training_data has following structure::
-
-                {'input' : {'group 1':[double] ... 'group n':[double]},
-                'output' : {'group 1':[double] ... 'group n':[double]}}
 
         interval_indices: :py:class:`gptwosample.data.get_model_structure()`
             interval indices, which assign data to individual or common model,
@@ -180,7 +177,7 @@ class GPTwoSample(object):
         """
         if(model_likelihoods is None):
             model_likelihoods = self._model_likelihoods
-        return  model_likelihoods['common'] - model_likelihoods['individual']
+        return  model_likelihoods[common_id] - model_likelihoods[individual_id]
 
     def get_model_likelihoods(self):
         return self._model_likelihood
@@ -196,10 +193,10 @@ class GPTwoSample(object):
         If not yet predicted it will return 'individual' and 'common' empty.
         """
         return self._predicted_mean_variance
-
-    def get_data(self, model='common', index=None, interval_indices=get_model_structure()):
+        
+    def get_data(self, model=common_id, index=None, interval_indices=get_model_structure()):
         """
-        get inputs of model `model` with replicate index `index`.
+        get inputs of model `model` with group index `index`.
         If index is None, the whole model group will be returned.
         """
         if(index is None):
