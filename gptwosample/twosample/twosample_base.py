@@ -5,7 +5,7 @@ Created on Mar 18, 2011
 '''
 from gptwosample.data import DataStructureError, get_model_structure
 from gptwosample.data.data_base import input_id, output_id, individual_id, \
-    common_id, replicate_indices_id
+    common_id, replicate_indices_id, has_model_structure
 from pygp.optimize import opt_hyper
 import scipy as SP
     
@@ -36,25 +36,30 @@ class GPTwoSample(object):
 
         self._learn_hyperparameters = learn_hyperparameters
         self._covar = covar
-        self._priors = priors
+        if has_model_structure(priors):
+            self._priors = priors
+        else:
+            self._priors = get_model_structure(priors, priors)
+            
         
         self._models = dict()
-        self._init_twosample_model(covar)
+        self._init_twosample_model(covar, **kwargs)
         
-        if priors is not None and initial_hyperparameters is None:
-            self._initial_hyperparameters = dict([[name, prior.shape] for name,
-                                                  prior in priors.iteritems()])
-
-            if self._initial_hyperparameters.has_key('covar'):
-                #logarithmize the right hyperparameters for the covariance
-                logtheta = SP.array([p[1][0] * p[1][1] for p in priors['covar']], dtype='float')
-                # out since version 1.0.0
-                # logtheta[covar.get_Iexp(logtheta)] = SP.log(logtheta[covar.get_Iexp(logtheta)])
-                self._initial_hyperparameters['covar'] = logtheta
-        elif initial_hyperparameters is not None:
+        if initial_hyperparameters is None:
+            self._initial_hyperparameters = get_model_structure({}, {});
+            for name, prior in self._priors.iteritems():
+                if prior.has_key('covar'):
+                    #logarithmize the right hyperparameters for the covariance
+                    logtheta = SP.array([p[1][0] * p[1][1] for p in prior['covar']], dtype='float')
+                    # out since version 1.0.0
+                    # logtheta[covar.get_Iexp(logtheta)] = SP.log(logtheta[covar.get_Iexp(logtheta)])
+                    self._initial_hyperparameters[name]['covar'] = logtheta
+        elif has_model_structure(initial_hyperparameters):
             self._initial_hyperparameters = initial_hyperparameters
+        elif initial_hyperparameters is not None:
+            self._initial_hyperparameters = get_model_structure(initial_hyperparameters, initial_hyperparameters)
         else:
-            self._initial_hyperparameters = {'covar':SP.zeros(covar.get_number_of_parameters())}
+            self._initial_hyperparameters = get_model_structure({'covar':SP.zeros(covar.get_number_of_parameters())}, {'covar':SP.zeros(covar.get_number_of_parameters())})
 
         self._invalidate_cache()
         
@@ -76,9 +81,9 @@ class GPTwoSample(object):
         """
         try:                
             #X = training_data['input'].values()#
-            X = [training_data[input_id]['group_1'],training_data[input_id]['group_2']]
+            X = [training_data[input_id]['group_1'], training_data[input_id]['group_2']]
             #Y = training_data['output'].values()
-            Y = [training_data[output_id]['group_1'],training_data[output_id]['group_2']]
+            Y = [training_data[output_id]['group_1'], training_data[output_id]['group_2']]
             # set individual model's data
             self._models[individual_id].setData(X, Y)
             # set common model's data
@@ -121,8 +126,8 @@ class GPTwoSample(object):
             model.set_interval_indices(interval_indices[name])
             if(self._learn_hyperparameters):
                 self._learned_hyperparameters[name] = opt_hyper(model,
-                                                                self._initial_hyperparameters,
-                                                                priors=self._priors,
+                                                                self._initial_hyperparameters[name],
+                                                                priors=self._priors[name],
                                                                 *args, **kwargs)[0]
             self._model_likelihoods[name] = model.LML(self._learned_hyperparameters[name],
                                                       priors=self._priors, *args, **kwargs)
@@ -153,7 +158,7 @@ class GPTwoSample(object):
         """
         if(hyperparams is None):
             hyperparams = self._learned_hyperparameters
-        self._predicted_mean_variance = dict([[name, None] for name in self._models.keys()])
+        self._predicted_mean_variance = get_model_structure()
         for name, model in self._models.iteritems():
             model.set_interval_indices(interval_indices[name])
             prediction = model.predict(hyperparams[name], interpolation_interval, var=True, *args, **kwargs)
@@ -182,7 +187,7 @@ class GPTwoSample(object):
     def get_model_likelihoods(self):
         return self._model_likelihood
     def get_learned_hyperparameters(self):
-        return self._learned_hyperparameter
+        return self._learned_hyperparameters
     def get_predicted_mean_variance(self):
         """
         Get the predicted mean and variance as::
@@ -200,9 +205,9 @@ class GPTwoSample(object):
         If index is None, the whole model group will be returned.
         """
         if(index is None):
-            return self._models[model].getData()[:,interval_indices[model]].squeeze()
+            return self._models[model].getData()[:, interval_indices[model]].squeeze()
         else:
-            return self._models[model].getData()[index][:,interval_indices[model]].squeeze()
+            return self._models[model].getData()[index][:, interval_indices[model]].squeeze()
         
 ######### PRIVATE ##############
     def _init_twosample_model(self, covar):

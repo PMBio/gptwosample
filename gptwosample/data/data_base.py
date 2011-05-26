@@ -28,6 +28,18 @@ def get_model_structure(individual=None, common=None):
     Make sure to use this method if you want to use the model structure in this package!
     """
     return {individual_id:individual, common_id:common}
+
+def has_model_structure(structure):
+    """
+    Returns the valid structure for model dictionaries, used in gptwosample.
+    Make sure to use this method if you want to use the model structure in this package!
+    """
+    if isinstance(structure, dict):
+        ret = True
+        for name in get_model_structure().keys():
+            ret &= structure.has_key(name)
+        return ret
+    return False
     
 class DataStructureError(TypeError):
     """

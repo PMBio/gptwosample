@@ -25,7 +25,7 @@ from numpy.ma.core import ceil
 def plot_results(twosample_object,
                  ax=None, xlabel="input", ylabel="ouput", title=None,
                  interval_indices=None, alpha=None, legend=True,
-                 replicate_indices=None):
+                 replicate_indices=None, shift=None, *args, **kwargs):
     """
     Plot the results given by last prediction.
 
@@ -56,7 +56,7 @@ def plot_results(twosample_object,
         individual=SP.array(SP.ones_like(twosample_object.get_data(individual_id, 0)[0]), dtype='bool'))
     
     if title is None:
-        title = r'Prediction result: $\log \frac{p(individual)}{p(common)} = %.2f $' % (twosample_object.bayes_factor())
+        title = r'Prediction result: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (twosample_object.bayes_factor())
 
 #        plparams = {'axes.labelsize': 20,
 #            'text.fontsize': 20,
@@ -83,19 +83,24 @@ def plot_results(twosample_object,
                 col_num=(i / (2.* number_of_groups))
                 col = cm.jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
                 data = twosample_object.get_data(name, i)
+                replicate_length = len(SP.unique(data[0]))
+                number_of_replicates = len(data[0])/replicate_length
                 if replicate_indices is None:
                     # Assume replicates are appended one after another
-                    replicate_length = len(SP.unique(data[0]))
-                    number_of_replicates = len(data[0])/replicate_length
                     replicate_indices = SP.concatenate([SP.repeat(rep, replicate_length) for rep in range(number_of_replicates)])
-                for rep in range(number_of_replicates):
-                    PLOT.plot_training_data(
-                        data[0][replicate_indices==rep], data[1][replicate_indices==rep],
+                shifti=shift
+                if shifti is not None:
+                    shifti = shift[i*number_of_replicates:(i+1)*number_of_replicates]
+                PLOT.plot_training_data(
+                        SP.array(data[0]), SP.array(data[1]),
                         format_data={'alpha':.5,
                                      'marker':'.',
                                      'linestyle':'--',
                                      'markersize':10,
-                                     'color':col})
+                                     'color':col},
+                        replicate_indices=replicate_indices,
+                        shift=shifti, *args,**kwargs)
+                
                 plots = PLOT.plot_sausage(
                     twosample_object._interpolation_interval_cache,
                     mean[i], var[i],
@@ -133,7 +138,7 @@ def plot_results(twosample_object,
     PL.ylabel(ylabel)
 
     PL.subplots_adjust(top=.88)
-    PL.suptitle(title, fontsize=22)
+    PL.title(title, fontsize=22)
 
     
     
