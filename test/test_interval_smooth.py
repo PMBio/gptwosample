@@ -1,24 +1,26 @@
 """DEMO script running various versions of the two sample test"""
+from gptwosample.data import toy_data_generator
+from gptwosample.data.data_base import get_training_data_structure
+from gptwosample.plot.interval import plot_results_interval
+from gptwosample.plot.plot_basic import plot_results
+from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
+import logging as LG
+
+import csv
+import os
+import pylab as PL
+import scipy as SP
 import sys
 sys.path.append('./..')
 #append directories to path
 #debugger
 #import pdb
 #IO libraries for reading csv files
-import pyio.csvex as pyio, os
 #scientific python
-import scipy as SP
 #pylab - matlab style plotting
-import pylab as PL
 
 #log level control
-import logging as LG
 #two_sample: smooth model implements standard test and time dependent model. 
-from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
-from gptwosample.data import toy_data_generator
-from gptwosample.data.data_base import get_training_data_structure
-from gptwosample.plot.plot_basic import plot_results
-from gptwosample.plot.interval import plot_results_interval
 
 #expr. levels IN
 
@@ -62,7 +64,10 @@ if __name__ == '__main__':
     Ngibbs_iterations = 30
 
     #1. read csv file
-    R = pyio.readCSV('./demo.csv', ',', typeC='str')
+    R = []
+    for line in csv.reader(open('./demo.csv','r'), delimiter=','):
+        R.append(line);
+    R = SP.array(R)
     #1. header versus data
     col_header = R[:, 0]
     #time
