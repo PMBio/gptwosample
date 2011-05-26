@@ -1,10 +1,11 @@
 """DEMO script running various versions of the two sample test"""
-
+import sys
+sys.path.append('./..')
 #append directories to path
 #debugger
 #import pdb
 #IO libraries for reading csv files
-import pyio, os
+import pyio.csvex as pyio, os
 #scientific python
 import scipy as SP
 #pylab - matlab style plotting
