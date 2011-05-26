@@ -1,0 +1,5 @@
+#!/bin/sh
+python setup.py bdist_egg sdist
+echo "removing all binary files..."
+rm -r ./build
+echo "build done and ready to go!"

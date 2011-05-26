@@ -13,7 +13,7 @@ import pylab as PL
 #log level control
 import logging as LG
 #two_sample: smooth model implements standard test and time dependent model. 
-from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
+from gptwosample.twosample.interval_smooth_new import GPTwoSampleInterval
 from gptwosample.data import toy_data_generator
 from gptwosample.data.data_base import get_training_data_structure
 from gptwosample.plot.plot_basic import plot_results
