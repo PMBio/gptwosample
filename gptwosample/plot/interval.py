@@ -8,7 +8,7 @@ import scipy as SP
 from gptwosample.plot.plot_basic import plot_results
 from gptwosample.data.data_base import individual_id, common_id
 
-def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level'):
+def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level', title=""):
         """
         Plot results of resampling of a (subclass of) 
         :py:class:`gptwosample.twosample.twosample_interval`.
@@ -39,7 +39,10 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
                      alpha=model_dist, 
                      legend=False,#interval_indices={individual_id:IS, common_id:IJ},
                      xlabel=xlabel,
-                     ylabel=ylabel)
+                     ylabel=ylabel,
+                     title="")
+        
+        PL.suptitle(title,fontsize=20)
         
         PL.xlim([Xp.min(), Xp.max()])
         yticks = ax1.get_yticks()[0:-1]

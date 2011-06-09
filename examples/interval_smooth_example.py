@@ -1,49 +1,35 @@
-"""DEMO script running various versions of the two sample test"""
+'''
+Small Example application of GPTwoSample
+========================================
+
+Please run script "generateToyExampleFiles.py" to generate Toy Data.
+This Example shows how to apply GPTwoSample to toy data, generated above.
+
+Created on Jun 9, 2011
+
+@author: Max Zwiessele, Oliver Stegle
+'''
+
 from gptwosample.data import toy_data_generator
 from gptwosample.data.data_base import get_training_data_structure
 from gptwosample.plot.interval import plot_results_interval
-from gptwosample.plot.plot_basic import plot_results
 from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
+from gptwosample.data.dataIO import get_data_from_csv
 import logging as LG
+import scipy as SP, pylab as PL
 
-import csv
-import os
-import pylab as PL
-import scipy as SP
-import sys
-sys.path.append('./..')
-#append directories to path
-#debugger
-#import pdb
-#IO libraries for reading csv files
-#scientific python
-#pylab - matlab style plotting
-
-#log level control
-#two_sample: smooth model implements standard test and time dependent model. 
-
-#expr. levels IN
-
-expr_file = './demo.csv'
-
+cond1_file = './ToyCondition1.csv'
+cond2_file = './ToyCondition2.csv'
 
 if __name__ == '__main__':
     #full debug info:
     LG.basicConfig(level=LG.INFO)
-
-    intervals = True
     #if verbose is on the models all create plots visualising the resulting inference resultSP.
     verbose = True
     #if we create the figures we can also save them to disk
-    if verbose:
-        save_fig = True
-    else:
-        save_fig = False
-
     figures_out = './out'
 
     #0. create gptest object
-    #logtheta0: 
     #starting point for parameter optimisation
     #amplitude variation, length scale, noise level
     #note: time series are all rescaled from -5 to 5 internally.
@@ -64,56 +50,43 @@ if __name__ == '__main__':
     Ngibbs_iterations = 30
 
     #1. read csv file
-    R = []
-    for line in csv.reader(open('./demo.csv','r'), delimiter=','):
-        R.append(line);
-    R = SP.array(R)
-    #1. header versus data
-    col_header = R[:, 0]
-    #time
-    Tc = SP.array(R[0, 1::], dtype='float')
-    #expression levels
-    Yc = SP.array(R[1::, 1::], dtype='float')
-    #how many unique labels ? 
-    gene_names = SP.unique(col_header[1::])
-    Ngenes = gene_names.shape[0]
-    Nrepl = Yc.shape[0] / (Ngenes * 2)
-    #structure for time
-    #replicates x #time points
-    T = SP.zeros([Nrepl, Tc.shape[0]])
-    T[:, :] = Tc
+    cond1 = get_data_from_csv(cond1_file, delimiter=',')
+    cond2 = get_data_from_csv(cond2_file, delimiter=",")
+
     #range where to create time local predictions ? 
     #note: this need to be [T x 1] dimensional: (newaxis)
-    Tpredict = SP.linspace(T.min(), T.max(), 100)[:, SP.newaxis]
+    Tpredict = SP.linspace(cond1["input"].min(), cond1["input"].max(), 100)[:, SP.newaxis]
+    T1 = cond1["input"]
+    T2 = cond2["input"]
+    
+    gene_names = sorted(cond1.keys()) 
+    assert gene_names == sorted(cond2.keys())
 
-    if verbose:
-        #if verbose activate interactive plotting
-        PL.ion()
-        
     lik = SP.log([2, 2])
+
+    twosample_object = toy_data_generator.get_twosample_object()
     #loop through genes
-    for g in xrange(Ngenes):
-        i0 = g * Nrepl * 2
-        i1 = i0 + Nrepl
+    for gene_name in gene_names:
+        if gene_name is "input":
+            continue
         #expression levels: replicates x #time points
-        Y0 = Yc[i0:i0 + Nrepl, :]
-        Y1 = Yc[i1:i1 + Nrepl, :]
+        Y0 = cond1[gene_name]
+        Y1 = cond2[gene_name]
         
         #create data structure for GPTwwoSample:
         #note; there is no need for the time points to be aligned for all replicates
-        if intervals:
-            #creates score and time local predictions
-            twosample_object = toy_data_generator.get_twosample_object()
-            twosample_object.set_data(get_training_data_structure(T.reshape(-1, 1),
-                                                                  T.reshape(-1, 1),
-                                                                  Y0.reshape(-1, 1),
-                                                                  Y1.reshape(-1, 1)))
+        #creates score and time local predictions
+        twosample_object.set_data(get_training_data_structure(SP.tile(T1,Y0.shape[0]).reshape(-1, 1),
+                                                              SP.tile(T2,Y1.shape[0]).reshape(-1, 1),
+                                                              Y0.reshape(-1, 1),
+                                                              Y1.reshape(-1, 1)))
 
-            gptest = GPTwoSampleInterval(twosample_object, outlier_probability=.1)
-            
-            Z = gptest.predict_interval_probabilities(hyperparams={'covar':logthetaZ, 'lik':lik},
-                                                      number_of_gibbs_iterations=Ngibbs_iterations)
-        plot_results_interval(gptest)
+        gptest = GPTwoSampleInterval(twosample_object, outlier_probability=.1)
+        Z = gptest.predict_interval_probabilities(Tpredict, hyperparams={'covar':logthetaZ, 'lik':lik},
+                                                  number_of_gibbs_iterations=Ngibbs_iterations)
+        plot_results_interval(gptest,title='%s:'%(gene_name))
+        PL.xlim(T1.min(), T1.max())
         ## wait for window close
         PL.show()
+
         pass
