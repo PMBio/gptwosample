@@ -14,10 +14,10 @@ from gptwosample.data.data_base import individual_id, common_id
 
 class GPTwoSampleMLII(GPTwoSample):
     """
-    This class provides comparison of two Timeline Groups to wach other.
+    This class provides comparison of two Timeline Groups to each other.
 
     see :py:class:`GPTwoSample.src.GPTwoSample` for detailed description of provided methods.
-
+    
     """
     def __init__(self, *args, **kwargs):
         """
@@ -41,7 +41,6 @@ class GPTimeShift(GPTwoSample):
     see :py:class:`GPTwoSample.src.GPTwoSample` for detailed description of provided methods.
     
     Note that this model will need one covariance function for each model, respectively!
-
     """
     def __init__(self, *args, **kwargs):
         """

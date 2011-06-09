@@ -17,10 +17,10 @@ Created on Feb 10, 2011
 import pygp.plot.gpr_plot as PLOT
 import pylab as PL
 import scipy as SP
-from gptwosample.data.data_base import get_model_structure, common_id,\
+from gptwosample.data.data_base import get_model_structure, common_id, \
     individual_id
 from matplotlib import cm
-from numpy.ma.core import ceil
+from copy import deepcopy
 
 def plot_results(twosample_object,
                  ax=None, xlabel="input", ylabel="ouput", title=None,
@@ -71,7 +71,7 @@ def plot_results(twosample_object,
 
     alpha_groups = alpha
     if alpha is not None:
-        alpha_groups = 1-alpha
+        alpha_groups = 1 - alpha
 
     for name, value in twosample_object._predicted_mean_variance.iteritems():
         mean = value['mean']
@@ -80,32 +80,35 @@ def plot_results(twosample_object,
             number_of_groups = mean.shape[0]
             first = True
             for i in range(number_of_groups):
-                col_num=(i / (2.* number_of_groups))
+                col_num = (i / (2. * number_of_groups))
                 col = cm.jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
                 data = twosample_object.get_data(name, i)
                 replicate_length = len(SP.unique(data[0]))
-                number_of_replicates = len(data[0])/replicate_length
+                number_of_replicates = len(data[0]) / replicate_length
                 if replicate_indices is None:
                     # Assume replicates are appended one after another
                     replicate_indices = SP.concatenate([SP.repeat(rep, replicate_length) for rep in range(number_of_replicates)])
-                shifti=shift
+                shifti = deepcopy(shift)
                 if shifti is not None:
-                    shifti = shift[i*number_of_replicates:(i+1)*number_of_replicates]
+                    shifti = shift[i * number_of_replicates:(i + 1) * number_of_replicates]
+                    #import pdb;pdb.set_trace()
+                    PLOT.plot_sausage(twosample_object._interpolation_interval_cache - SP.mean(shifti), mean[i], var[i], format_fill={'alpha':0.2, 'facecolor':col}, format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
+                else:
+                    PLOT.plot_sausage(twosample_object._interpolation_interval_cache,
+                                      mean[i], var[i],
+                                      format_fill={'alpha':0.2, 'facecolor':col},
+                                      format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
+                                          
                 PLOT.plot_training_data(
                         SP.array(data[0]), SP.array(data[1]),
-                        format_data={'alpha':.5,
+                        format_data={'alpha':.8,
                                      'marker':'.',
                                      'linestyle':'--',
-                                     'markersize':10,
+                                     'lw':1,
+                                     'markersize':6,
                                      'color':col},
                         replicate_indices=replicate_indices,
-                        shift=shifti, *args,**kwargs)
-                
-                plots = PLOT.plot_sausage(
-                    twosample_object._interpolation_interval_cache,
-                    mean[i], var[i],
-                    format_fill={'alpha':0.2, 'facecolor':col},
-                    format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
+                        shift=shifti, *args, **kwargs)
                 if(first):
                     legend_plots.append(PL.Rectangle((0, 0), 1, 1, alpha=.2, fill=True, facecolor=col))
                     legend_names.append("%s %i" % (name, i + 1))
@@ -121,7 +124,7 @@ def plot_results(twosample_object,
 #                                 'markersize':10,
 #                                 'color':col})
             legend_names.append("%s" % (name))
-            plots = PLOT.plot_sausage(
+            PLOT.plot_sausage(
                 twosample_object._interpolation_interval_cache, mean, var,
                 format_fill={'alpha':0.2, 'facecolor':col},
                 format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha)[0]
@@ -139,6 +142,3 @@ def plot_results(twosample_object,
 
     PL.subplots_adjust(top=.88)
     PL.title(title, fontsize=22)
-
-    
-    

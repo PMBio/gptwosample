@@ -12,15 +12,11 @@ Created on Apr 28, 2011
 @author: maxz
 """
 
-from Carbon.QuickTime import pdActionActivateSubPanel
 from gptwosample.data.data_base import get_training_data_structure, \
-    get_model_structure, individual_id, common_id
+    get_model_structure, common_id
 from gptwosample.plot.plot_basic import plot_results
 from gptwosample.twosample.twosample_compare import GPTwoSampleMLII, GPTimeShift
 from pygp.covar import se, noise, combinators
-from pygp.gp import GP
-from pygp.optimize import opt_hyper
-from pygp.plot import gpr_plot
 from pygp.priors import lnpriors
 import logging as LG
 import numpy.random as random
@@ -35,7 +31,7 @@ def get_synthetic_data(n_replicates):
     generate synthetic-replicate-data; just samples from a superposition of a sin + linear trend
     """
     xmin = 1
-    xmax = 2.5*SP.pi
+    xmax = 9
     x1 = SP.tile(SP.arange(xmin,xmax,.4), n_replicates)
     x2 = SP.tile(SP.arange(xmin,xmax,.4), n_replicates)
     
@@ -138,7 +134,7 @@ def run_demo():
     gptwosample_object.predict_model_likelihoods(training_data=training_data)
     gptwosample_object.predict_mean_variance(X)
     
-    PL.suptitle("Example for GPTimeShift with simulated data", fontsize=28)
+    #PL.suptitle("Example for GPTimeShift with simulated data", fontsize=24)
 
     PL.subplot(212)
     plot_results(gptwosample_object, 
@@ -157,10 +153,16 @@ def run_demo():
                  xlabel="Time [h]",ylabel="Expression level")
     
     PL.ylim(ylim)
+    xlim = PL.xlim()
     
-    PL.subplots_adjust(left=.1, bottom=.1, 
-    right=.96, top=.8,
-    wspace=.4, hspace=.4)
+    PL.subplot(212)
+    PL.xlim(xlim)
+    
+    PL.subplots_adjust(left=.1, bottom=.085, 
+    right=.98, top=.92,
+    wspace=.4, hspace=.47)
+    
+    PL.savefig("GPTimeShiftExample.pdf",format="pdf")
     PL.show()
     
 if __name__ == "__main__":
