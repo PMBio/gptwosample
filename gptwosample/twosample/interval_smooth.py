@@ -193,10 +193,10 @@ class GPTwoSampleInterval(object):
         posterior = ind_posterior / (ind_posterior + comm_posterior)
         
         prediction = SP.rand() <= posterior
-        if ind_interval_indicator.sum() == 1:
-            prediction = True
-        if comm_interval_indicator.sum() == 1:
-            prediction = False
+        #if ind_interval_indicator.sum() == 1:
+        #    prediction = True
+        #if comm_interval_indicator.sum() == 1:
+        #    prediction = False
         return prediction
         
     def _calculate_indicator_mean(self, probabilities, hyperparams, prediction_interval):
