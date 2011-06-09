@@ -76,11 +76,16 @@ if __name__ == '__main__':
     #replicates x #time points
     T1 = SP.zeros([Nrepl1, Tc1.shape[0]])
     T2 = SP.zeros([Nrepl2, Tc2.shape[0]])
+    
+    T1[:] = Tc1
+    T2[:] = Tc2
     #range where to create time local predictions ? 
     #note: this need to be [T x 1] dimensional: (newaxis)
     Tpredict = SP.linspace(T1.min(), T2.max(), 100)[:, SP.newaxis]
 
     lik = SP.log([2, 2])
+
+    twosample_object = toy_data_generator.get_twosample_object()
     #loop through genes
     for g in xrange(Ngenes1):
         i1 = g * Nrepl1
@@ -92,17 +97,17 @@ if __name__ == '__main__':
         #create data structure for GPTwwoSample:
         #note; there is no need for the time points to be aligned for all replicates
         #creates score and time local predictions
-        import pdb;pdb.set_trace()
-        twosample_object = toy_data_generator.get_twosample_object()
         twosample_object.set_data(get_training_data_structure(T1.reshape(-1, 1),
                                                               T2.reshape(-1, 1),
                                                               Y0.reshape(-1, 1),
                                                               Y1.reshape(-1, 1)))
 
         gptest = GPTwoSampleInterval(twosample_object, outlier_probability=.1)
-        Z = gptest.predict_interval_probabilities(hyperparams={'covar':logthetaZ, 'lik':lik},
+        Z = gptest.predict_interval_probabilities(Tpredict, hyperparams={'covar':logthetaZ, 'lik':lik},
                                                   number_of_gibbs_iterations=Ngibbs_iterations)
         plot_results_interval(gptest)
+        PL.xlim(T1.min(), T1.max())
         ## wait for window close
         PL.show()
+
         pass

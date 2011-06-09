@@ -71,7 +71,7 @@ class GPTwoSampleInterval(object):
         self._indicator_prior = indicator_prior
         
         
-    def predict_interval_probabilities(self, hyperparams, number_of_gibbs_iterations=10):
+    def predict_interval_probabilities(self, prediction_interval, hyperparams, number_of_gibbs_iterations=10):
         """
         Predict propability for each input point whether it 
         is more likely described by common, or individual model, respectively.
@@ -96,11 +96,12 @@ class GPTwoSampleInterval(object):
             logging.info("Current Indicator: %s"% (self._indicators))
         
         probabilities = SP.array(probabilities, dtype='bool')
+        
         #get rid of training runs (first half)
-        probabilities = probabilities[SP.ceil(number_of_gibbs_iterations/2)::]
+        probabilities = probabilities[SP.ceil(number_of_gibbs_iterations/2):]
         logging.info("End: Indicators %s"% (probabilities.mean(0)))
         
-        self._predicted_model_distribution = self._calculate_indicator_mean(probabilities, hyperparams)
+        self._predicted_model_distribution = self._calculate_indicator_mean(probabilities, hyperparams, prediction_interval)
         self._predicted_indicators = probabilities.mean(0) > .5
         return self._predicted_model_distribution
         
@@ -198,15 +199,12 @@ class GPTwoSampleInterval(object):
             prediction = False
         return prediction
         
-    def _calculate_indicator_mean(self, probabilities, hyperparams):
+    def _calculate_indicator_mean(self, probabilities, hyperparams, prediction_interval):
         """
         Calculate bernoulli mean for all probabilities given
         """
-        min = self._input.min() - 2
-        max = self._input.max() + 2
-        prediction_interval = SP.linspace(min, max, 100).reshape(-1,1)
-        sum_over_means = []
+        sum_over_means = SP.zeros(prediction_interval.shape[0])
         for interval_indicator in probabilities:
             self._indicator_regressor.setData(self._input, interval_indicator)
-            sum_over_means.append(self._indicator_regressor.predict(hyperparams, prediction_interval)[0])
-        return SP.mean(sum_over_means, 0), prediction_interval
+            sum_over_means += self._indicator_regressor.predict(hyperparams, prediction_interval)[0]
+        return sum_over_means/probabilities.shape[0], prediction_interval
