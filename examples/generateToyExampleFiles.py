@@ -10,9 +10,10 @@ def writeBackRepsAddNoise(wc1,wc2,y1,y2,geneName,n_reps):
         wc1.writerow(c1)
         wc2.writerow(c2)
     
-
-wc1 = csv.writer(open("ToyCondition1.csv",'wb'),delimiter=",")
-wc2 = csv.writer(open("ToyCondition2.csv",'wb'),delimiter=",")
+c1f = open("ToyCondition1.csv",'wb')
+c2f = open("ToyCondition2.csv",'wb')
+wc1 = csv.writer(c1f,delimiter=",")
+wc2 = csv.writer(c2f,delimiter=",")
 
 #HEader with time points
 xg = SP.linspace(0,SP.pi,12)
@@ -25,8 +26,8 @@ wc2.writerow(header)
 
 #Sixth Gene:
 geneName="gene 1"
-y1 = -special.erf(SP.sin(2*xg+.5*SP.pi))
-y2 = -special.erf(SP.sin(2*xg+SP.pi))
+y1 = -special.erf(SP.sin(2*xg))
+y2 = -special.erf(SP.sin(2*xg+1))
 writeBackRepsAddNoise(wc1, wc2, y1, y2, geneName, 4)
 
 #First Gene:
@@ -47,14 +48,23 @@ y1 = special.erf(xg)-SP.sin(xg)
 y2 = SP.log(y1+.1*SP.exp(xg[::-1]))+1
 writeBackRepsAddNoise(wc1, wc2, y1, y2, geneName, 4)
 
-#Fourth Gene:
+#Third Gene:
 geneName="gene 5"
+y1 = SP.sin(xg)
+y2 = SP.sin(xg-1)
+writeBackRepsAddNoise(wc1, wc2, y1, y2, geneName, 4)
+
+#Fourth Gene:
+geneName="gene 6"
 y1 = -special.erf(SP.sin(2*xg+.5*SP.pi))
 y2 = (.05 * y1)-.78
 writeBackRepsAddNoise(wc1, wc2, y1, y2, geneName, 4)
 
 #Fifth Gene:
-geneName="gene 6"
+geneName="gene 7"
 y1 = special.erf(xg)-SP.sin(xg)
 y2 = y1
 writeBackRepsAddNoise(wc1, wc2, y1, y2, geneName, 4)
+
+c1f.close()
+c2f.close()
