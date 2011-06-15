@@ -18,19 +18,26 @@ covar: covariance functions"""
 standard_params = dict(name='gptwosample',
       version = '0.0.7',
       description = __description__,
-      author = 'Oliver Stegle, Max Zwießele',
-      #packages = find_packages("./"),
-      packages=['gptwosample'],
-      package_dir={'gptwosample': './'})
+      author = 'Oliver Stegle, Max Zwießele')
+#packages = find_packages("./"),
 
 setuptools.setup(
     exclude=['gptwosample/cmd_line_tool'],
     install_requires = ['numpy','scipy'],
+    packages=['gptwosample'],
+    package_dir={'gptwosample': './'},
     **standard_params
     )
 
 cx_Freeze.setup(
-    executables=[cx_Freeze.Executable('cmd_src/gptwosample.py')],
+    executables=[cx_Freeze.Executable('cmd_src/GPTwoSample.py', 
+                                      #initScript='gptwosample/__init__.py', base='gptwosample', 
+                                      #path='./gptwosample', 
+                                      #targetDir=None, 
+                                      targetName="GPTwoSample",# includes=None, 
+                                      excludes='gptwosample/cmd_line_tool', packages=["gptwosample"], 
+                                      #replacePaths=None, compress=None, copyDependentFiles=None, appendScriptToExe=None, appendScriptToLibrary=None, icon=None, namespacePackages=None, shortcutName=None, shortcutDir=None)],
+                                      )],
     **standard_params
     )
 
