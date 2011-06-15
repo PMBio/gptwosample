@@ -5,10 +5,11 @@ Created on Mar 18, 2011
 '''
 from gptwosample.data import DataStructureError, get_model_structure
 from gptwosample.data.data_base import input_id, output_id, individual_id, \
-    common_id, replicate_indices_id, has_model_structure
+    common_id, has_model_structure
 from pygp.optimize import opt_hyper
 import scipy as SP
-    
+import logging
+
 class GPTwoSample(object):
     """
     Perform GPTwoSample with the given covariance function covar.
@@ -33,20 +34,20 @@ class GPTwoSample(object):
 
                 
         """
-
+        logging.info("GPTwoSample: \t initializing GPTwoSample object:")
         self._learn_hyperparameters = learn_hyperparameters
         self._covar = covar
         if has_model_structure(priors):
             self._priors = priors
         else:
             self._priors = get_model_structure(priors, priors)
-            
         
         self._models = dict()
         self._init_twosample_model(covar, **kwargs)
         
         if initial_hyperparameters is None:
             self._initial_hyperparameters = get_model_structure({}, {});
+            logging.info("GPTwoSample: \t Calculating initial hyperparameters with priors")
             for name, prior in self._priors.iteritems():
                 if prior.has_key('covar'):
                     #logarithmize the right hyperparameters for the covariance
@@ -55,11 +56,14 @@ class GPTwoSample(object):
                     # logtheta[covar.get_Iexp(logtheta)] = SP.log(logtheta[covar.get_Iexp(logtheta)])
                     self._initial_hyperparameters[name]['covar'] = logtheta
         elif has_model_structure(initial_hyperparameters):
+            logging.info("GPTwoSample: \t Inititial hyperparameters given: %s" % (initial_hyperparameters))
             self._initial_hyperparameters = initial_hyperparameters
         elif initial_hyperparameters is not None:
             self._initial_hyperparameters = get_model_structure(initial_hyperparameters, initial_hyperparameters)
+            logging.info("GPTwoSample: \t Inititial hyperparameters given in non-model-structure, ensuring model structure: %s" % (initial_hyperparameters))
         else:
             self._initial_hyperparameters = get_model_structure({'covar':SP.zeros(covar.get_number_of_parameters())}, {'covar':SP.zeros(covar.get_number_of_parameters())})
+            logging.info("GPTwoSample: \t Inititial hyperparameters not given, standard hyperparameters: %s" % (initial_hyperparameters))
 
         self._invalidate_cache()
         
