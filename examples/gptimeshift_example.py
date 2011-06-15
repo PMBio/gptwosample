@@ -45,6 +45,7 @@ def run_demo(cond1_file, cond2_file):
     gene_names = sorted(cond1.keys()) 
     assert gene_names == sorted(cond2.keys())
     
+    n_genes = len(gene_names)
     n_replicates = cond1[gene_names[0]].shape[0]
     gene_length = len(T1)
     
