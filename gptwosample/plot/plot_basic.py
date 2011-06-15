@@ -46,6 +46,8 @@ def plot_results(twosample_object,
     .. image:: ../images/plotGPTwoSampleSame.png
         :height: 8cm
     
+    Returns:
+        Proper rectangles for use in pylab.legend().
     """
     if twosample_object._predicted_mean_variance is None:
         print "Not yet predicted"
@@ -135,10 +137,12 @@ def plot_results(twosample_object,
                   ncol=2,
                   mode="expand",
                   borderaxespad=0.,
-                  fancybox=False, frameon=True)
+                  fancybox=False, frameon=False)
     
     PL.xlabel(xlabel)
     PL.ylabel(ylabel)
 
     PL.subplots_adjust(top=.88)
     PL.title(title, fontsize=22)
+    
+    return legend_plots
