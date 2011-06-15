@@ -9,7 +9,8 @@ Created on Jun 9, 2011
 @author: Max Zwiessele, Oliver Stegle
 """
 
-import csv, scipy as SP
+import csv
+import scipy as SP
 
 def get_data_from_csv(path_to_file,delimiter=','):
     '''
@@ -43,3 +44,8 @@ def get_data_from_csv(path_to_file,delimiter=','):
     for gene in SP.unique(names):
         data[gene] = d[names==gene,:]
     return data
+
+class twosample_writer(csv.writer):
+    
+    def __init__(self, path_to_file, delimiter):
+        

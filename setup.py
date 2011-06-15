@@ -22,5 +22,6 @@ setup(name='gptwosample',
       #packages = find_packages("./"),
       packages=['gptwosample'],
       package_dir={'gptwosample': './'},
+      exclude=['gptwosample/cmd_line_tool'],
       install_requires = ['numpy','scipy']
       )
