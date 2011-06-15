@@ -144,7 +144,7 @@ def run_demo(cond1_file, cond2_file):
         right=.98, top=.92,
         wspace=.4, hspace=.47)
         
-        PL.savefig("GPTimeShiftExample%s.png"%(gene_name),format="png")
+        PL.savefig("GPTimeShift_%s.png"%(gene_name),format="png")
         PL.show()
     
 if __name__ == "__main__":

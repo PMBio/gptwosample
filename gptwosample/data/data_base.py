@@ -7,9 +7,9 @@ This Class is for easy access to data structures gptwosample works with.
 '''
 import scipy
 
-replicate_indices_id = 'rep'
-individual_id = 'ind'
-common_id = 'com'
+replicate_indices_id = 'replicate'
+individual_id = 'individual'
+common_id = 'common'
 input_id = 'in'
 output_id = 'out'
 
