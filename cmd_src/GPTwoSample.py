@@ -51,19 +51,31 @@ try:
 except getopt.GetoptError:
     print usage()
     sys.exit(2)
+
 for opt,arg in opts:
     if(opt in ('-h', '--help')):
         print usage()
         sys.exit()
     elif opt in ('-o', '--out_dir'):
-        out_dir = os.path.abspath(arg)
+        try:
+            out_dir = os.path.abspath(arg)
+        except:
+            print "Cannot parse output directory: %s"%(arg)
+            sys.exit(2)
+        if os.path.isfile(out_dir):
+            print "Not a directory: %s"%(arg)
+            sys.exit(2)
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
     elif opt in ('-t', '--timeshift'):
         timeshift=True
     elif opt in ('-i', '--interval'):
         interval=True
-        gibbs_iterations = int(arg)
+        try:
+            gibbs_iterations = int(arg)
+        except:
+            print "Need an integer for option %s, given: %s"%(opt, arg)
+            sys.exit(2)
     elif(opt in ('-p', '--plot')):
         plotting = True
     elif(opt in ('-s', '--show')):
