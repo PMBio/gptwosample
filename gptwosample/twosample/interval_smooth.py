@@ -1,4 +1,12 @@
 '''
+GPTwoSampleInterval
+===================
+
+Resamples each input data point and elucidates the properties of both given samples in great detail.
+For each input point, a decision for `diferential` or `non-differential` is predicted.
+
+The Results of this class can be plottet by :py:class:`gptwosample.plot.interval`.
+
 Created on Apr 21, 2011
 
 @author: maxz

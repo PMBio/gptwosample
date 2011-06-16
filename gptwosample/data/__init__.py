@@ -2,7 +2,7 @@
 Package for data handling
 =========================
 
-Use this Package for easiest way to handle the data for GPTwoSample
+Use this Package for easiest way to handle the data for GPTwoSample.
 """
 try:
     __import__('pkg_resources').declare_namespace(__name__)

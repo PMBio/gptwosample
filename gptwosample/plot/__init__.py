@@ -1,3 +1,10 @@
+"""
+GPTwoSample plot
+================
+
+The easiest way to plot your results in an easy and convenient way.
+"""
+
 try:
     __import__('pkg_resources').declare_namespace(__name__)
 except ImportError:

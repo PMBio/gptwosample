@@ -11,7 +11,7 @@ experiment. You can give interval indices for plotting, if u chose
 
 Created on Feb 10, 2011
 
-@author: maxz
+@author: Max Zwiessele, Oliver Stegle
 '''
 
 import pygp.plot.gpr_plot as PLOT

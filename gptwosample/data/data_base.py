@@ -1,9 +1,12 @@
 '''
+Data Structure Module
+=====================
+
+This Module is for easy access to data structures gptwosample works with.
+
 Created on Mar 18, 2011
 
-@author: maxz
-
-This Class is for easy access to data structures gptwosample works with.
+@author: Max Zwiessele
 '''
 import scipy
 

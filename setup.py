@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import setuptools
-import cx_Freeze
+#import cx_Freeze
 
 __description__ = """Python package for Gaussian process regression in python 
 
@@ -24,21 +24,24 @@ standard_params = dict(name='gptwosample',
 setuptools.setup(
     exclude=['gptwosample/cmd_line_tool'],
     install_requires = ['numpy','scipy'],
+    #scripts=['examples/*.py'],
     packages=['gptwosample'],
     package_dir={'gptwosample': './'},
+    package_data={'gptwosample': ['./doc/*.html','./doc/*.js','./doc/*.html',
+				  './examples/*.py', './examples/*.csv']},
     **standard_params
     )
 
-cx_Freeze.setup(
-    executables=[cx_Freeze.Executable('cmd_src/GPTwoSample.py', 
-                                      #initScript='gptwosample/__init__.py', base='gptwosample', 
-                                      #path='./gptwosample', 
-                                      #targetDir=None, 
-                                      targetName="GPTwoSample",# includes=None, 
-                                      excludes='gptwosample/cmd_line_tool', packages=["gptwosample"], 
-                                      #replacePaths=None, compress=None, copyDependentFiles=None, appendScriptToExe=None, appendScriptToLibrary=None, icon=None, namespacePackages=None, shortcutName=None, shortcutDir=None)],
-                                      )],
-    **standard_params
-    )
+# cx_Freeze.setup(
+#     executables=[cx_Freeze.Executable('cmd_src/GPTwoSample.py', 
+#                                       #initScript='gptwosample/__init__.py', base='gptwosample', 
+#                                       #path='./gptwosample', 
+#                                       #targetDir=None, 
+#                                       targetName="GPTwoSample",# includes=None, 
+#                                       excludes='gptwosample/cmd_line_tool', packages=["gptwosample"], 
+#                                       #replacePaths=None, compress=None, copyDependentFiles=None, appendScriptToExe=None, appendScriptToLibrary=None, icon=None, namespacePackages=None, shortcutName=None, shortcutDir=None)],
+#                                       )],
+#     **standard_params
+#     )
 
 
