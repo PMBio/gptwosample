@@ -127,7 +127,7 @@ class GPTwoSample(object):
             self.set_data(training_data)
 
         for name, model in self._models.iteritems():
-            model.set_interval_indices(interval_indices[name])
+            model.set_active_set_indices(interval_indices[name])
             if(self._learn_hyperparameters):
                 self._learned_hyperparameters[name] = opt_hyper(model,
                                                                 self._initial_hyperparameters[name],
@@ -164,7 +164,7 @@ class GPTwoSample(object):
             hyperparams = self._learned_hyperparameters
         self._predicted_mean_variance = get_model_structure()
         for name, model in self._models.iteritems():
-            model.set_interval_indices(interval_indices[name])
+            model.set_active_set_indices(interval_indices[name])
             prediction = model.predict(hyperparams[name], interpolation_interval, var=True, *args, **kwargs)
             self._predicted_mean_variance[name] = {'mean':prediction[0], 'var':prediction[1]}
 

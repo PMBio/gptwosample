@@ -119,7 +119,7 @@ def run_demo(cond1_file, cond2_file):
         PL.subplot(212)
         plot_results(gptwosample_object, 
                      shift=gptwosample_object.get_learned_hyperparameters()[common_id]['covar'][2:2+2*n_replicates], 
-                     draw_arrows=2,legend=False,
+                     draw_arrows=1,legend=False, plot_old=True,
                      xlabel="Time [h]",ylabel="Expression level",
                      title=r'TimeShift: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gptwosample_object.bayes_factor()))
         ylim = PL.ylim()
