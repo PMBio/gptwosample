@@ -23,7 +23,7 @@ from matplotlib import cm
 from copy import deepcopy
 
 def plot_results(twosample_object,
-                 ax=None, xlabel="input", ylabel="ouput", title=None,
+                 xlabel="input", ylabel="ouput", title=None,
                  interval_indices=None, alpha=None, legend=True,
                  replicate_indices=None, shift=None, *args, **kwargs):
     """

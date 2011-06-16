@@ -8,7 +8,7 @@ import scipy as SP
 from gptwosample.plot.plot_basic import plot_results
 from gptwosample.data.data_base import individual_id, common_id
 
-def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level', title="", *args, **kwargs):
+def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level', title="", legend=False, *args, **kwargs):
         """
         Plot results of resampling of a (subclass of) 
         :py:class:`gptwosample.twosample.twosample_interval`.
@@ -27,17 +27,20 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
         IJ = SP.tile(predicted_indicators, twosample_interval_object._n_replicates_comm)
 
         # predict GPTwoSample object with indicators as interval_indices
-        twosample_interval_object._twosample_object.predict_model_likelihoods(\
-                                            interval_indices={individual_id:IS, common_id:IJ})
-        twosample_interval_object._twosample_object.predict_mean_variance(Xp,\
-                                            interval_indices={individual_id:IS, common_id:IJ})
-                    
+        if(IS.any() and IJ.any()):
+            twosample_interval_object._twosample_object.predict_model_likelihoods(\
+                interval_indices={individual_id:IS, common_id:IJ})
+            twosample_interval_object._twosample_object.predict_mean_variance(Xp,\
+                interval_indices={individual_id:IS, common_id:IJ})
+        else:
+            twosample_interval_object._twosample_object.predict_model_likelihoods()
+            twosample_interval_object._twosample_object.predict_mean_variance(Xp)
         #now plot stuff
         ax1 = PL.axes([0.15, 0.1, 0.8, 0.7])
 
         plot_results(twosample_interval_object._twosample_object, 
                      alpha=model_dist, 
-                     legend=False,#interval_indices={individual_id:IS, common_id:IJ},
+                     legend=legend,#interval_indices={individual_id:IS, common_id:IJ},
                      xlabel=xlabel,
                      ylabel=ylabel,
                      title="", *args, **kwargs)
