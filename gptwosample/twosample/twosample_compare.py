@@ -3,6 +3,8 @@ Different implementations for using GPTwoSample
 ===============================================
 
 Some implementations of GPTwoSample, to detect differential expression between two timelines.
+
+@author: Max Zwiessele, Oliver Stegle
 """
 
 

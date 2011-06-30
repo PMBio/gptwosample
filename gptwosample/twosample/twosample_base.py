@@ -6,11 +6,11 @@ All classes ahndling GPTwoSample tasks should extend this class.
 
 Created on Mar 18, 2011
 
-@author: maxz
+@author: Max Zwiessele, Oliver Stegle
 '''
 from gptwosample.data import DataStructureError, get_model_structure
 from gptwosample.data.data_base import input_id, output_id, individual_id, \
-    common_id, replicate_indices_id, has_model_structure
+    common_id, has_model_structure
 from pygp.optimize import opt_hyper
 import scipy as SP
     

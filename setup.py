@@ -22,13 +22,13 @@ standard_params = dict(name='gptwosample',
 #packages = find_packages("./"),
 
 setuptools.setup(
-    exclude=['gptwosample/cmd_line_tool'],
-    install_requires = ['numpy','scipy'],
+    exclude=['./cmd_src'],
+    install_requires = ['numpy','scipy','matplotlib'],
     #scripts=['examples/*.py'],
     packages=['gptwosample'],
     package_dir={'gptwosample': './'},
-    package_data={'gptwosample': ['./doc/*.html','./doc/*.js','./doc/*.html',
-				  './examples/*.py', './examples/*.csv']},
+    package_data={'gptwosample': ['/doc/*.html','/doc/*.js',
+                                  '/examples/*.py', '/examples/*.csv']},
     **standard_params
     )
 

@@ -9,15 +9,13 @@ The Results of this class can be plottet by :py:class:`gptwosample.plot.interval
 
 Created on Apr 21, 2011
 
-@author: maxz
+@author: Max Zwiessele, Oliver Stegle
 '''
 from pygp.covar.combinators import SumCF
 from pygp.covar.noise import NoiseCFISO
 from pygp.covar.se import SqexpCFARD
 import scipy as SP
 from pygp.gp.gpcEP import GPCEP
-import logging
-import copy
 from gptwosample.data.data_base import common_id, individual_id
 
 class GPTwoSampleInterval(object):
@@ -100,14 +98,14 @@ class GPTwoSampleInterval(object):
             for interval_index in xrange(self._input.shape[0]):
                 self._indicators[interval_index] = self._resample_interval_index(interval_index, hyperparams)
             probabilities[iteration,:] = self._indicators
-            logging.info("Gibbs Iteration: %i"%(iteration))
-            logging.info("Current Indicator: %s"% (self._indicators))
+#            logging.info("Gibbs Iteration: %i"%(iteration))
+#            logging.info("Current Indicator: %s"% (self._indicators))
         
         probabilities = SP.array(probabilities, dtype='bool')
         
         #get rid of training runs (first half)
         probabilities = probabilities[SP.ceil(number_of_gibbs_iterations/2):]
-        logging.info("End: Indicators %s"% (probabilities.mean(0)))
+#        logging.info("End: Indicators %s"% (probabilities.mean(0)))
         
         self._predicted_model_distribution = self._calculate_indicator_mean(probabilities, hyperparams, prediction_interval)
         self._predicted_indicators = probabilities.mean(0) > .5
