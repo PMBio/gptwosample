@@ -71,6 +71,8 @@ def plot_results(twosample_object,
     legend_plots = []
     legend_names = []
 
+    calc_replicate_indices = replicate_indices is None
+
     alpha_groups = alpha
     if alpha is not None:
         alpha_groups = 1 - alpha
@@ -87,7 +89,7 @@ def plot_results(twosample_object,
                 data = twosample_object.get_data(name, i)
                 replicate_length = len(SP.unique(data[0]))
                 number_of_replicates = len(data[0]) / replicate_length
-                if replicate_indices is None:
+                if calc_replicate_indices:
                     # Assume replicates are appended one after another
                     replicate_indices = SP.concatenate([SP.repeat(rep, replicate_length) for rep in range(number_of_replicates)])
                 shifti = deepcopy(shift)
@@ -100,7 +102,6 @@ def plot_results(twosample_object,
                                       mean[i], var[i],
                                       format_fill={'alpha':0.2, 'facecolor':col},
                                       format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
-                                          
                 PLOT.plot_training_data(
                         SP.array(data[0]), SP.array(data[1]),
                         format_data={'alpha':.8,
