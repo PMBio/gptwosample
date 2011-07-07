@@ -6,7 +6,7 @@ Created on Jun 15, 2011
 @author: Max Zwiessele, Oliver Stegle
 '''
 
-__all__ = ['plotting', 'show', 'timeshift', 'interval', 'gibbs_iteratons', 'delim', 'out_dir']
+__all__ = ['plotting', 'show', 'timeshift', 'interval', 'gibbs_iteratons', 'delim', 'out_dir','interpolation']
 import os, sys
 
 #global plotting
@@ -76,7 +76,7 @@ for opt, arg in opts:
         try:
             gibbs_iterations = int(arg)
         except:
-            print "Need an integer for option %s, given: %s" % (opt, arg)
+            print "Need an Integer for option %s, given: %s" % (opt, arg)
             sys.exit(2)
     elif(opt in ('-p', '--plot')):
         plotting = True
@@ -191,6 +191,9 @@ def get_exp_on_timeshift_right(gptwosample_object, n_replicates, dim):
         timeshift_index = scipy.array(scipy.ones_like(individual), dtype='bool')
         timeshift_index[dim + 1:dim + 1 + n_replicates] = 0
         individual[timeshift_index] = scipy.exp(individual[timeshift_index])
+    else:
+        common = scipy.exp(common)
+        individual = scipy.exp(individual)
     return common, individual
 
 def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_names,
