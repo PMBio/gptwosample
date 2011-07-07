@@ -32,7 +32,7 @@ def get_data_from_csv(path_to_file,delimiter=','):
 
     Returns: {"input":[x1,...,xl], "Gene Name 1":[[y1 replicate 1, ... yl replicate 1], ... ,[y1 replicate k, ..., yl replikate k]]}
     '''
-    reader = csv.reader(open(path_to_file,"rb"),delimiter=delimiter)
+    reader = csv.reader(open(path_to_file,"rb"),delimiter=str(delimiter))
     d = []
     for line in reader:
         d.append(line)
