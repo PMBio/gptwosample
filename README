@@ -9,4 +9,4 @@ different ones. This prediction is defined by which covariance function :py:clas
 
 Examples:
 Please see 'ready-to-use' example scripts in ./examples.
-Make shure to run "python ./examples/generateToyExampleFiles.py" to generate toy data for examples.
+Make shure to run "python ./examples/generateToyExampleFiles.py" to generate toy data for examples, if they are not already present.
