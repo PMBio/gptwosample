@@ -7,6 +7,17 @@ It compares two timeseries against each other, depicting whether these two
 timeseries were more likely drawn from the same function, or from
 different ones. This prediction is defined by which covariance function :py:class:`pygp.covar` you use.
 
+To install the package run 
+
+python setup.py install
+
 Examples:
-Please see 'ready-to-use' example scripts in ./examples.
-Make shure to run "python ./examples/generateToyExampleFiles.py" to generate toy data for examples, if they are not already present.
+Please see 'ready-to-use' example scripts in ./gptwosample/examples. (In your python site-packages folder, see www.python.org for further details)
+
+To see for example GPTimeShift example, run
+
+sh gptimeshift_example.sh
+
+The Output will be saved in gptimeshift_example/ with plots and results.csv. If you don't have sh, you can still run the script by modifying the scripts via "chmod -x gptimeshift_example.sh" and then run it by "./gptimeshift_example.sh"
+
+Make shure to run "python ./examples/generateToyExampleFiles.py" to generate toy data for examples, if they are not present.
