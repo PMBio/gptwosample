@@ -9,10 +9,12 @@ Python package for time series comparison by Gaussian Processes
 
 """
 
-def find_example_files():
-    for (p,d,f) in os.walk('./examples'):
-	examples = [os.path.join(p,file) for file in f if os.path.splitext(file)[-1] in ['.csv','.sh']]
-    return examples
+def get_recursive_data_files(name,path):
+    out = []
+    for (p,d,files) in os.walk(path):
+        files = [os.path.join(p,f) for f in files]
+        out.append((os.path.join(name,p),files))
+    return out
 
 standard_params = dict(name='gptwosample',
       version = '0.0.7',
@@ -21,8 +23,8 @@ standard_params = dict(name='gptwosample',
 
 setuptools.setup(
     install_requires = ['numpy','scipy'],
-    packages=setuptools.find_packages('./'),#['gptwosample','examples'],
-    package_data={'examples':['*.csv','*.py']},
-    data_files=[('examples',find_example_files())],
+    packages = setuptools.find_packages('./'),#['gptwosample','examples'],
+    package_data ={'gptwosample.examples':['*.csv','*.sh']},
+    data_files = get_recursive_data_files('doc','./doc/doc'),
     **standard_params
     )
