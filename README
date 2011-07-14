@@ -11,6 +11,9 @@ To install the package run
 
 python setup.py install
 
+After installation you can use GPTwoSample with all it's features.
+See doc/index.html for the documentation in your site-packages folder, see www.python.org for further details.
+
 Examples:
 Please see 'ready-to-use' example scripts in ./gptwosample/examples. (In your python site-packages folder, see www.python.org for further details)
 
