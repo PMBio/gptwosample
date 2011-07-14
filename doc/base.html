@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Package for using GPTwoSample &mdash; GPTwoSample v0.7.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample v0.7.0 documentation" href="index.html" />
+    <link rel="next" title="Plot GPTwoSample predictions" href="plot.html" />
+    <link rel="prev" title="Welcome to GPTwoSample" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plot.html" title="Plot GPTwoSample predictions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to GPTwoSample"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GPTwoSample v0.7.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-gptwosample"></span><div class="section" id="package-for-using-gptwosample">
+<h1>Package for using GPTwoSample<a class="headerlink" href="#package-for-using-gptwosample" title="Permalink to this headline">¶</a></h1>
+<p>This module allows the user to compare two timelines with respect to diffferential expression.</p>
+<p>It compares two timeseries against each other, depicting whether these two
+timeseries were more likely drawn from the same function, or from
+different ones. This prediction is defined by which covariance function <tt class="xref py py-class docutils literal"><span class="pre">pygp.covar</span></tt> you use.</p>
+<p>Created on Jun 15, 2011</p>
+<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
+<span class="target" id="module-gptwosample.twosample"></span><div class="section" id="basic-module-for-using-gptwosample">
+<h2>Basic Module for using GPTwoSample<a class="headerlink" href="#basic-module-for-using-gptwosample" title="Permalink to this headline">¶</a></h2>
+<p>Provides basic <tt class="docutils literal"><span class="pre">twosample</span></tt> class, which should be superclass for all implementations of gptwosample</p>
+<span class="target" id="module-gptwosample.twosample.twosample_base"></span><p>Created on Mar 18, 2011</p>
+<p>&#64;author: maxz</p>
+<dl class="class">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_base.</tt><tt class="descname">GPTwoSample</tt><big>(</big><em>covar</em>, <em>learn_hyperparameters=True</em>, <em>priors=None</em>, <em>initial_hyperparameters=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Perform GPTwoSample with the given covariance function covar.</p>
+<dl class="method">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample.bayes_factor">
+<tt class="descname">bayes_factor</tt><big>(</big><em>model_likelihoods=None</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample.bayes_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Bayes Factor for the given log marginal likelihoods model_likelihoods</p>
+<p><strong>Parameters:</strong></p>
+<dl class="docutils">
+<dt>model_likelihoods <span class="classifier-delimiter">:</span> <span class="classifier">{&#8216;individual&#8217;: <em>the individual likelihoods</em>, &#8216;common&#8217;: <em>the common likelihoods</em>}</span></dt>
+<dd>The likelihoods calculated by
+predict_model_likelihoods(training_data)
+for given training data training_data.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample.get_data">
+<tt class="descname">get_data</tt><big>(</big><em>model='common'</em>, <em>index=None</em>, <em>interval_indices={'individual': None</em>, <em>'common': None}</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>get inputs of model <cite>model</cite> with group index <cite>index</cite>.
+If index is None, the whole model group will be returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample.get_predicted_mean_variance">
+<tt class="descname">get_predicted_mean_variance</tt><big>(</big><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample.get_predicted_mean_variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the predicted mean and variance as:</p>
+<div class="highlight-python"><pre>{'individual':{'mean':[pointwise mean], 'var':[pointwise variance]},
+     'common':{'mean':[pointwise mean], 'var':[pointwise variance]}}</pre>
+</div>
+<p>If not yet predicted it will return &#8216;individual&#8217; and &#8216;common&#8217; empty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample.predict_mean_variance">
+<tt class="descname">predict_mean_variance</tt><big>(</big><em>interpolation_interval</em>, <em>hyperparams=None</em>, <em>interval_indices={'individual': None</em>, <em>'common': None}</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample.predict_mean_variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the mean and variance of both models.
+Returns:</p>
+<div class="highlight-python"><pre>{'individual':{'mean':[pointwise mean], 'var':[pointwise variance]},
+     'common':{'mean':[pointwise mean], 'var':[pointwise variance]}}</pre>
+</div>
+<p><strong>Parameters:</strong></p>
+<dl class="docutils">
+<dt>interpolation_interval <span class="classifier-delimiter">:</span> <span class="classifier">[double]</span></dt>
+<dd>The interval of inputs, which shall be predicted</dd>
+<dt>hyperparams <span class="classifier-delimiter">:</span> <span class="classifier">{&#8216;covar&#8217;:logtheta, ...}</span></dt>
+<dd>Default: learned hyperparameters. Hyperparams for the covariance function&#8217;s prediction.</dd>
+<dt>interval_indices <span class="classifier-delimiter">:</span> <span class="classifier">{&#8216;common&#8217;:[boolean],&#8217;individual&#8217;:[boolean]}</span></dt>
+<dd>Indices in which to predict, for each group, respectively.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample.predict_model_likelihoods">
+<tt class="descname">predict_model_likelihoods</tt><big>(</big><em>training_data=None</em>, <em>interval_indices={'individual': None</em>, <em>'common': None}</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample.predict_model_likelihoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict the probabilities of the models (individual and common) to describe the data.
+It will optimize hyperparameters respectively.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt>training_data <span class="classifier-delimiter">:</span> <span class="classifier">dict traning_data</span></dt>
+<dd>The training data to learn from. Input are time-values and
+output are expression-values of e.g. a timeseries. 
+If not given, training data must be given previously by 
+<tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.basic.set_data</span></tt>.</dd>
+<dt>interval_indices: <tt class="xref py py-class docutils literal"><span class="pre">gptwosample.data.get_model_structure()</span></tt></dt>
+<dd>interval indices, which assign data to individual or common model,
+respectively.</dd>
+<dt>args <span class="classifier-delimiter">:</span> <span class="classifier">[..]</span></dt>
+<dd>see <tt class="xref py py-class docutils literal"><span class="pre">pygp.gpr.GP</span></tt></dd>
+<dt>kwargs <span class="classifier-delimiter">:</span> <span class="classifier">{..}</span></dt>
+<dd>see <tt class="xref py py-class docutils literal"><span class="pre">pygp.gpr.GP</span></tt></dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample_base.GPTwoSample.set_data">
+<tt class="descname">set_data</tt><big>(</big><em>training_data</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample.set_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the data of prediction.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="docutils">
+<dt>training_data <span class="classifier-delimiter">:</span> <span class="classifier">dict traning_data</span></dt>
+<dd><p class="first">The training data to learn from. Input are time-values and
+output are expression-values of e.g. a timeseries.</p>
+<p>Training data training_data has following structure:</p>
+<div class="last highlight-python"><pre>{'input' : {'group 1':[double] ... 'group n':[double]},
+ 'output' : {'group 1':[double] ... 'group n':[double]}}</pre>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-gptwosample.twosample.twosample_compare"></span><div class="section" id="different-implementations-for-using-gptwosample">
+<h3>Different implementations for using GPTwoSample<a class="headerlink" href="#different-implementations-for-using-gptwosample" title="Permalink to this headline">¶</a></h3>
+<p>Some implementations of GPTwoSample, to detect differential expression between two timelines.</p>
+<dl class="class">
+<dt id="gptwosample.twosample.twosample_compare.GPTimeShift">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_compare.</tt><tt class="descname">GPTimeShift</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_compare.GPTimeShift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gptwosample.twosample.twosample_base.GPTwoSample" title="gptwosample.twosample.twosample_base.GPTwoSample"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.twosample_base.GPTwoSample</span></tt></a></p>
+<p>This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively</p>
+<p>see <tt class="xref py py-class docutils literal"><span class="pre">GPTwoSample.src.GPTwoSample</span></tt> for detailed description of provided methods.</p>
+<p>Note that this model will need one covariance function for each model, respectively!</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gptwosample.twosample.twosample_compare.GPTwoSampleMLII">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_compare.</tt><tt class="descname">GPTwoSampleMLII</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_compare.GPTwoSampleMLII" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gptwosample.twosample.twosample_base.GPTwoSample" title="gptwosample.twosample.twosample_base.GPTwoSample"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.twosample_base.GPTwoSample</span></tt></a></p>
+<p>This class provides comparison of two Timeline Groups to each other.</p>
+<p>see <tt class="xref py py-class docutils literal"><span class="pre">GPTwoSample.src.GPTwoSample</span></tt> for detailed description of provided methods.</p>
+</dd></dl>
+
+</div>
+<span class="target" id="module-gptwosample.twosample.interval_smooth"></span><p>Created on Apr 21, 2011</p>
+<p>&#64;author: maxz</p>
+<dl class="class">
+<dt id="gptwosample.twosample.interval_smooth.GPTwoSampleInterval">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.interval_smooth.</tt><tt class="descname">GPTwoSampleInterval</tt><big>(</big><em>twosample_object</em>, <em>indicator_prior=0.29999999999999999</em>, <em>outlier_probability=0.10000000000000001</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.interval_smooth.GPTwoSampleInterval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Sample each x point by gibbs sampling, smoothing indicators by gpcEP with ProbitLikelihood.</p>
+<dl class="method">
+<dt id="gptwosample.twosample.interval_smooth.GPTwoSampleInterval.get_predicted_indicators">
+<tt class="descname">get_predicted_indicators</tt><big>(</big><big>)</big><a class="headerlink" href="#gptwosample.twosample.interval_smooth.GPTwoSampleInterval.get_predicted_indicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the predicted interval_indicators.
+NOTE: If no predction was done, this method will return None!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.interval_smooth.GPTwoSampleInterval.get_predicted_model_distribution">
+<tt class="descname">get_predicted_model_distribution</tt><big>(</big><big>)</big><a class="headerlink" href="#gptwosample.twosample.interval_smooth.GPTwoSampleInterval.get_predicted_model_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return model distribution P(common model explains data best), 
+and prediction interval (on which probabilities was calculated, 
+see <tt class="xref py py-class docutils literal"><span class="pre">pygp.gp.GPEP</span></tt>).
+NOTE: If no predction was done, this method will return None!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.interval_smooth.GPTwoSampleInterval.predict_interval_probabilities">
+<tt class="descname">predict_interval_probabilities</tt><big>(</big><em>prediction_interval</em>, <em>hyperparams</em>, <em>number_of_gibbs_iterations=10</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.interval_smooth.GPTwoSampleInterval.predict_interval_probabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict propability for each input point whether it 
+is more likely described by common, or individual model, respectively.</p>
+<p><strong>Parameters:</strong>
+hyperparams : dict([&#8216;covar&#8217;:covariance hyperparameters for interval regressor,                             &#8216;lik&#8217;: robust likelihood hyperparameters], ...)</p>
+<p><strong>Returns:</strong>
+[double] : P(input_values correspond to common model, respectively?),        [double] : prediction interval</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Package for using GPTwoSample</a><ul>
+<li><a class="reference internal" href="#basic-module-for-using-gptwosample">Basic Module for using GPTwoSample</a><ul>
+<li><a class="reference internal" href="#different-implementations-for-using-gptwosample">Different implementations for using GPTwoSample</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to GPTwoSample</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plot.html"
+                        title="next chapter">Plot GPTwoSample predictions</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plot.html" title="Plot GPTwoSample predictions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to GPTwoSample"
+             >previous</a> |</li>
+        <li><a href="index.html">GPTwoSample v0.7.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
