@@ -22,7 +22,7 @@ standard_params = dict(name='gptwosample',
 setuptools.setup(
     install_requires = ['numpy','scipy'],
     packages=setuptools.find_packages('./'),#['gptwosample','examples'],
-    #package_data={'examples':['*.csv','*.py']},
-    #data_files=[('examples',find_example_files())],
+    package_data={'examples':['*.csv','*.py']},
+    data_files=[('examples',find_example_files())],
     **standard_params
     )
