@@ -6,3 +6,7 @@ This module allows the user to compare two timelines with respect to diffferenti
 It compares two timeseries against each other, depicting whether these two
 timeseries were more likely drawn from the same function, or from
 different ones. This prediction is defined by which covariance function :py:class:`pygp.covar` you use.
+
+Examples:
+Please see 'ready-to-use' example scripts in ./examples.
+Make shure to run "python ./examples/generateToyExampleFiles.py" to generate toy data for examples.

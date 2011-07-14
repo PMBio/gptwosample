@@ -289,7 +289,7 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
             savefig(os.path.join(out_dir, "%s.png") % (gene_name), format='png')
             if verbose: print("GPTwoSampleInterval:Saving Figure %s" % (os.path.join(out_dir, "%s.png") % (gene_name)))
             if hold:
-                if verbose: print("GPTwoSampleInterval:Hold for Showing (Close figure to continue...")
+                print("GPTwoSampleInterval:Hold for Showing (Close figure to continue...")
                 show()
             clf()
         if(delim == ","):
@@ -350,7 +350,7 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
             savefig(os.path.join(out_dir, "%s.png") % (gene_name), format='png')
             if verbose: print("GPTwoSample:Saving Figure %s" % (os.path.join(out_dir, "%s.png") % (gene_name)))
             if hold:
-                if verbose: print("GPTwoSample:Hold for Showing")
+                print("GPTwoSampleInterval:Hold for Showing (Close figure to continue...")
                 show()
             clf()
         if verbose: print("GPTwoSample:Writing back" % (line))
