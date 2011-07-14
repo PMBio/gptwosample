@@ -12,3 +12,12 @@ Created on Jun 15, 2011
 
 @author: Max Zwiessele, Oliver Stegle
 """
+
+try:
+    __import__('pkg_resources').declare_namespace(__name__)
+except ImportError:
+    from pkgutil import extend_path
+    __path__ = extend_path(__path__, __name__)
+
+from gptwosample.data.data_base import *
+
