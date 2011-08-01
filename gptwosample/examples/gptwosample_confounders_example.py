@@ -25,7 +25,7 @@ from pygp.gp import gplvm
 from pygp import likelihood as lik
 from pygp.optimize.optimize_base import opt_hyper
 from pygp.covar.fixed import FixedCF
-
+import pdb
 
 def run_demo(cond1_file, cond2_file):
     #full debug info:
@@ -59,19 +59,22 @@ def run_demo(cond1_file, cond2_file):
     lvm_covariance = linear.LinearCFISO(n_dimensions=components)
     
     X0=X01
-    hyperparams = {'covar': SP.log([1.2])}
-    hyperparams['x'] = X0
-    
+    hyperparams = {'covar': SP.log([1.2])}   
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.1])
-    g = gplvm.GPLVM(covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y1)
-    
     bounds = {}
     bounds['lik'] = SP.array([[-5.,5.]]*Y1.shape[1])
-    hyperparams['x'] = X0
+    hyperparams['x'] = X0.copy()
+
+    g = gplvm.GPLVM(covar_func=lvm_covariance,likelihood=likelihood,x=hyperparams['x'],y=Y1)
     
     print "running standard gplvm"
     [opt_hyperparams_1,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=False)
+
+    print "comparison of X"
+    print (opt_hyperparams_1['x']-X0)
+    print (opt_hyperparams_1['x']-hyperparams['x'])
+    print (hyperparams['x']-X0)
     
     X0=X02
     hyperparams = {'covar': SP.log([1.2])}
@@ -201,7 +204,6 @@ def run_demo(cond1_file, cond2_file):
         PL.xlim(T1.min(), T1.max())
         
         PL.savefig("GPTwoSample_%s.png"%(gene_name),format='png')
-        import pdb;pdb.set_trace()
         ## wait for window close
         pass
 
