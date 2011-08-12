@@ -15,7 +15,7 @@ Created on Apr 28, 2011
 from gptwosample.data.data_base import get_training_data_structure, \
     get_model_structure, common_id
 from gptwosample.plot.plot_basic import plot_results
-from gptwosample.twosample.twosample_compare import GPTwoSampleMLII, GPTimeShift
+from gptwosample.twosample.twosample_compare import GPTwoSample_share_covariance, GPTwoSample_individual_covariance
 from pygp.covar import se, noise, combinators
 from pygp.priors import lnpriors
 import logging as LG
@@ -105,8 +105,8 @@ def run_demo(cond1_file, cond2_file):
                                                     SP.tile(T2,n_replicates).reshape(-1,1),
                                                     y1.reshape(-1,1), y2.reshape(-1,1))
         
-        # First, GPTimeShift:
-        gptwosample_object = GPTimeShift([combinators.SumCF((shiftCFInd1,noiseCF)),
+        # First, GPTwoSample_individual_covariance:
+        gptwosample_object = GPTwoSample_individual_covariance([combinators.SumCF((shiftCFInd1,noiseCF)),
                                           combinators.SumCF((shiftCFInd2,noiseCF)),
                                           combinators.SumCF((shiftCFCom,noiseCF))],
                                          priors=priors)
@@ -114,7 +114,7 @@ def run_demo(cond1_file, cond2_file):
         gptwosample_object.predict_model_likelihoods(training_data=training_data)
         gptwosample_object.predict_mean_variance(Tpredict)
         
-        #PL.suptitle("Example for GPTimeShift with simulated data", fontsize=24)
+        #PL.suptitle("Example for GPTwoSample_individual_covariance with simulated data", fontsize=24)
     
         PL.subplot(212)
         plot_results(gptwosample_object, 
@@ -125,7 +125,7 @@ def run_demo(cond1_file, cond2_file):
         ylim = PL.ylim()
         
         # Second, GPTwoSample without timeshift:
-        gptwosample_object = GPTwoSampleMLII(CovFun, priors={'covar':SP.array(covar_priors)})
+        gptwosample_object = GPTwoSample_share_covariance(CovFun, priors={'covar':SP.array(covar_priors)})
         gptwosample_object.predict_model_likelihoods(training_data=training_data)
         gptwosample_object.predict_mean_variance(Tpredict)
         

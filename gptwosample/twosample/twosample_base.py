@@ -231,4 +231,3 @@ class GPTwoSample(object):
         self._predicted_mean_variance = None
         #self._training_data_cache = {'input': {'group_1':None,'group_2':None},
         #                             'output': {'group_1':None,'group_2':None}}
-

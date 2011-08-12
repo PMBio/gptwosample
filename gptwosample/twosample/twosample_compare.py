@@ -14,7 +14,7 @@ from pygp.gp.composite import GroupGP
 from gptwosample.twosample import GPTwoSample
 from gptwosample.data.data_base import individual_id, common_id
 
-class GPTwoSampleMLII(GPTwoSample):
+class GPTwoSample_share_covariance(GPTwoSample):
     """
     This class provides comparison of two Timeline Groups to each other.
 
@@ -25,7 +25,7 @@ class GPTwoSampleMLII(GPTwoSample):
         """
         see :py:class:`GPTwoSample.src.GPTwoSample`
         """
-        super(GPTwoSampleMLII, self).__init__(*args, **kwargs)
+        super(GPTwoSample_share_covariance, self).__init__(*args, **kwargs)
 
 
     def _init_twosample_model(self, covar, **kwargs):
@@ -36,7 +36,7 @@ class GPTwoSampleMLII(GPTwoSample):
         # set models for this GPTwoSample Test
         self._models = {individual_id:individual_model,common_id:common_model}
         
-class GPTimeShift(GPTwoSample):
+class GPTwoSample_individual_covariance(GPTwoSample):
     """
     This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively
 
@@ -48,7 +48,7 @@ class GPTimeShift(GPTwoSample):
         """
         see :py:class:`GPTwoSample.src.GPTwoSample`
         """
-        super(GPTimeShift, self).__init__(*args, **kwargs)
+        super(GPTwoSample_individual_covariance, self).__init__(*args, **kwargs)
 
 
     def _init_twosample_model(self, covar, **kwargs):
@@ -58,4 +58,3 @@ class GPTimeShift(GPTwoSample):
         common_model = GP(covar[2])
         # set models for this GPTwoSample Test
         self._models = {individual_id:individual_model,common_id:common_model}
-

@@ -44,7 +44,7 @@ def get_twosample_object(dim=1):
 
     priors = {'covar':SP.array(covar_priors)}
 
-    twosample_object = TS.GPTwoSampleMLII(CovFun, priors=priors)
+    twosample_object = TS.GPTwoSample_share_covariance(CovFun, priors=priors)
 
     return twosample_object
     

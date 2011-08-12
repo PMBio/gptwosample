@@ -45,7 +45,7 @@ def usage():
     usage.append('\t-p|--plot \t Plot all genes and save to file outdir/{gene_name}.png')
     usage.append('\t-s|--show \t Hold between each gene, showing current results as plot')
     usage.append('\t-o|--out_dir=<out_dir> \t ["./"] Save results to out_dir. See file format below')
-    usage.append('\t-t|--timeshift=\t Perform GPTimeShift on data')
+    usage.append('\t-t|--timeshift=\t Perform GPTwoSample_individual_covariance on data')
     usage.append('\t-i|--interval=<iterations> \t Perform Interval prediction for iterations gibbs iterations on data')
     usage.append('\t-n|--interpolation=<number> \t [100] Specify Number of time points to interpolate with (smoothness of regression)')
     usage.append('\t-d|--delimiter=<delimiter> \t [","] Specify delimiter for reading and writing')
@@ -129,20 +129,22 @@ def main():
     global gibbs_iterations
     global delim
     global out_dir
-
+    global csv_out_file
+    
     if verbose: 
         print "GPTwoSample:Chosen Parameters: "
-        print "GPTwoSample: verbose:\tobviously =)"
-        print "GPTwoSample: plotting:\t%s" % (plotting)
-        print "GPTwoSample: hold:\t%s" % (hold)
-        print "GPTwoSample: timeshift:\t%s" % (timeshift)
-        print "GPTwoSample: interval:\t%s, with iterations: %s" % (interval, gibbs_iterations)
-        print "GPTwoSample: interpolation:\t%s" % (interpolation)
-        print "GPTwoSample: delim:\t%s" % (delim.encode('string-escape'))
-        print "GPTwoSample: out_dir:\t%s" % (os.path.relpath(out_dir, "./"))
+        print "GPTwoSample:-verbose:\tobviously =)"
+        print "GPTwoSample:-plotting:\t%s" % (plotting)
+        print "GPTwoSample:-hold:\t%s" % (hold)
+        print "GPTwoSample:-timeshift:\t%s" % (timeshift)
+        print "GPTwoSample:-interval:\t%s, with iterations: %s" % (interval, gibbs_iterations)
+        print "GPTwoSample:-interpolation:\t%s" % (interpolation)
+        print "GPTwoSample:-delim:\t%s" % (delim.encode('string-escape'))
+        print "GPTwoSample:-out_dir:\t%s" % (os.path.relpath(out_dir, "./"))
     
     csv_out_file = open(os.path.join(out_dir, "result"+os.path.splitext(args[0])[1]), 'wb')
     csv_out = csv.writer(csv_out_file, delimiter=delim)
+    csv_out_file.flush()
     #range where to create time local predictions ? 
     #note: this need to be [T x 1] dimensional: (newaxis)
     # read data
@@ -181,11 +183,11 @@ def main():
     n_replicates_2 = cond2[gene_names[0]].shape[0]
     if timeshift:
         if not(n_replicates_1 == n_replicates_1):
-            print "ERROR:GPTimeShift:For proper timeshift detection same number of replicates is required (try duplicating to get right amount of replicates)!"
-            print "ERROR:GPTimeShift:Given: rep(%s)=%i and rep(%s)=%i" % (os.path.basename(args[0]),n_replicates_1,os.path.basename(args[1]),n_replicates_2)
+            print "ERROR:GPTwoSample_individual_covariance:For proper timeshift detection same number of replicates is required (try duplicating to get right amount of replicates)!"
+            print "ERROR:GPTwoSample_individual_covariance:Given: rep(%s)=%i and rep(%s)=%i" % (os.path.basename(args[0]),n_replicates_1,os.path.basename(args[1]),n_replicates_2)
             sys.exit(2)
         if not(len(T1) == len(T2)):
-            print "WARNING:GPTimeShift:Cannot estimate time shift if time series have different dimensions, turning of timeshift"
+            print "WARNING:GPTwoSample_individual_covariance:Cannot estimate time shift if time series have different dimensions, turning off timeshift"
             timeshift = False
 
     
@@ -198,20 +200,21 @@ def main():
     header = ["Gene", "Bayes Factor"]
     if(timeshift):
         header.extend(get_header_for_covar(CovFun[2], CovFun[0]))
-        from gptwosample.twosample.twosample_compare import GPTimeShift
-        gptwosample_object = GPTimeShift(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
-        del GPTimeShift
+        from gptwosample.twosample.twosample_compare import GPTwoSample_individual_covariance
+        gptwosample_object = GPTwoSample_individual_covariance(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
+        del GPTwoSample_individual_covariance
     else:
         header.extend(get_header_for_covar(CovFun))
-        from gptwosample.twosample.twosample_compare import GPTwoSampleMLII
-        gptwosample_object = GPTwoSampleMLII(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
-        del GPTwoSampleMLII
+        from gptwosample.twosample.twosample_compare import GPTwoSample_share_covariance
+        gptwosample_object = GPTwoSample_share_covariance(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
+        del GPTwoSample_share_covariance
     if(interval):
         header.append("Interval Indicators")
         header.append("Interval Probabilities")
     
     csv_out.writerow(header)
-    
+    csv_out_file.flush()
+
     if interval:
         perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_names, csv_out, n_replicates_1, n_replicates_2, dim)
     else:
@@ -250,6 +253,8 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
     global gibbs_iterations
     global delim
     global out_dir
+    global csv_out_file
+
     logthetaZ = scipy.log([.5, 2, .001])
     lik = scipy.log([2, 2])
     from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
@@ -300,6 +305,8 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
         line.append(internal_delim.join(scipy.array(Z[0], dtype="str")))
         if verbose: print("GPTwoSampleInterval:Writing back..." % (line))
         csv_out.writerow(line)
+        csv_out_file.flush()
+
     del GPTwoSampleInterval
     if plotting:
         del xlim, show, savefig, clf
@@ -311,6 +318,8 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
     global hold
     global timeshift
     global out_dir
+    global csv_out_file
+
     if plotting:
         from pylab import xlim, show, savefig, clf
         from gptwosample.plot.plot_basic import plot_results
@@ -355,6 +364,8 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
             clf()
         if verbose: print("GPTwoSample:Writing back" % (line))
         csv_out.writerow(line)
+        csv_out_file.flush()
+
     if plotting:
         del xlim, show, savefig, clf
         del plot_results
