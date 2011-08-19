@@ -47,7 +47,7 @@ def get_data_from_csv(path_to_file,delimiter=','):
             else:
                 data[gene_name]=[line[1:]]
         progress += 1
-        step_ahead = int((1.*progress/end)*100.)
+        step_ahead = int((1.*progress/end)*60.)
         if(step_ahead > step):
             out.write("#"*(step_ahead-step))
             step = step_ahead

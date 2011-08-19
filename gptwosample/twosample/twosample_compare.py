@@ -51,7 +51,7 @@ class GPTwoSample_individual_covariance(GPTwoSample):
         super(GPTwoSample_individual_covariance, self).__init__(*args, **kwargs)
 
 
-    def _init_twosample_model(self, covar, **kwargs):
+    def _init_twosample_model(self, covar, individual_args=None, common_args=None, **kwargs):
         gpr1 = GP(covar[0])
         gpr2 = GP(covar[1])
         individual_model = GroupGP([gpr1,gpr2])

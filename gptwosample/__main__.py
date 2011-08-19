@@ -214,7 +214,11 @@ def main():
     
     csv_out.writerow(header)
     csv_out_file.flush()
-
+    
+    # get format for input:
+    T1 = scipy.tile(T1, n_replicates_1).reshape(-1, 1)
+    T2 = scipy.tile(T2, n_replicates_1).reshape(-1, 1)
+    
     if interval:
         perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_names, csv_out, n_replicates_1, n_replicates_2, dim)
     else:
@@ -261,15 +265,14 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
     if plotting:
         from pylab import xlim, show, savefig, clf
         from gptwosample.plot.interval import plot_results_interval
-        
+    
     for gene_name in gene_names:
         if verbose: print("GPTwoSampleInterval:Processing %s" % (gene_name))
-        Y0 = cond1[gene_name]
-        Y1 = cond2[gene_name]
-        gptwosample_object.set_data(get_training_data_structure(scipy.tile(T1, Y0.shape[0]).reshape(-1, 1),
-                                                              scipy.tile(T2, Y1.shape[0]).reshape(-1, 1),
-                                                              Y0.reshape(-1, 1),
-                                                              Y1.reshape(-1, 1)))
+        Y0 = cond1[gene_name].reshape(-1,1)
+        Y1 = cond2[gene_name].reshape(-1,1)
+        gptwosample_object.set_data_by_xy_data(T1,T2,
+                                               Y0,
+                                               Y1)
         gptwosample_object.predict_model_likelihoods()
 
         line = [gene_name, gptwosample_object.bayes_factor()]
@@ -325,18 +328,14 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
         from gptwosample.plot.plot_basic import plot_results
         
     for gene_name in gene_names:
-        Y0 = cond1[gene_name]
-        Y1 = cond2[gene_name]
+        Y0 = cond1[gene_name].reshape(-1,1)
+        Y1 = cond2[gene_name].reshape(-1,1)
 #        if(plotting):
 #            rep0 = get_replicate_indices(Y0)
 #            rep1 = get_replicate_indices(Y1)
         if verbose: print("GPTwoSample:Processing %s" % (gene_name))
-        gptwosample_object.set_data(\
-            get_training_data_structure(\
-                scipy.tile(T1, Y0.shape[0]).reshape(-1, 1),
-                scipy.tile(T2, Y1.shape[0]).reshape(-1, 1),
-                Y0.reshape(-1, 1),
-                Y1.reshape(-1, 1)))
+        gptwosample_object.set_data_by_xy_data(T1,T2,
+                                               Y0,Y1)
         gptwosample_object.predict_model_likelihoods()
         gptwosample_object.predict_mean_variance(Tpredict)
         if verbose: print("GPTwoSample:Prediction: %s" % (gptwosample_object.bayes_factor()))

@@ -67,7 +67,14 @@ class GPTwoSample(object):
             self._initial_hyperparameters = get_model_structure({'covar':SP.zeros(covar.get_number_of_parameters())}, {'covar':SP.zeros(covar.get_number_of_parameters())})
 
         self._invalidate_cache()
-        
+    
+    def set_data_by_xy_data(self, x1, x2, y1, y2):
+        X = [x1,x2]; Y=[y1,y2]
+        # set individual model's data
+        self._models[individual_id].setData(X, Y)
+        # set common model's data
+        self._models[common_id].setData(SP.concatenate(X), SP.concatenate(Y))
+    
     def set_data(self, training_data):
         """
         Set the data of prediction.
@@ -85,14 +92,10 @@ class GPTwoSample(object):
 
         """
         try:                
-            #X = training_data['input'].values()#
-            X = [training_data[input_id]['group_1'], training_data[input_id]['group_2']]
-            #Y = training_data['output'].values()
-            Y = [training_data[output_id]['group_1'], training_data[output_id]['group_2']]
-            # set individual model's data
-            self._models[individual_id].setData(X, Y)
-            # set common model's data
-            self._models[common_id].setData(SP.concatenate(X), SP.concatenate(Y))
+            self.set_data_by_xy_data(training_data[input_id]['group_1'], 
+                                     training_data[input_id]['group_2'],
+                                     training_data[output_id]['group_1'],
+                                     training_data[output_id]['group_2'])
         except KeyError:
             #print """Please validate training data given. \n
             #    training_data must have following structure: \n
