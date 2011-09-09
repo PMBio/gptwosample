@@ -13,7 +13,7 @@ from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance
 from pygp import likelihood as lik
 from pygp.covar import linear, se, noise, combinators
-from pygp.covar.combinators import ProductCF, SumCF
+from pygp.covar.combinators import ProductCF, SumCF, ShiftCF
 from pygp.covar.fixed import FixedCF
 from pygp.covar.linear import LinearCF, LinearCFISO
 from pygp.covar.se import SqexpCFARD
@@ -26,6 +26,7 @@ import os
 import pdb
 import scipy
 import scipy as SP
+from pygp.covar.noise import NoiseCFISO
 
 try:
     from gptwosample.data import toy_data_generator
@@ -40,7 +41,7 @@ finally:
 
 def run_demo(cond1_file, cond2_file):
     #full debug info:
-    LG.basicConfig(level=LG.DEBUG)
+    LG.basicConfig(level=LG.INFO)
 
     #1. read csv file
     print 'reading files'
@@ -108,15 +109,15 @@ def run_demo(cond1_file, cond2_file):
     #lvm_covariance = ProductCF((LinearCFISO(n_dimensions=1),LinearCFISO(n_dimensions=1,dimension_indices=[0])),n_dimensions=1)
     #hyperparams = {'covar': SP.log([1.2,1.2])}
     
-    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
-    #hyperparams = {'covar': SP.log([1,1,1,1])}
+    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
+    hyperparams = {'covar': SP.log([1,1,1,1,1,1])}
     
-    lvm_covariance = linear.LinearCFISO(n_dimensions=4)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
-    hyperparams = {'covar': SP.log([1.2])}
+    #lvm_covariance = linear.LinearCFISO(n_dimensions=4)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
+    #hyperparams = {'covar': SP.log([1.2])}
 
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
-    hyperparams['x'] = X_pca.copy()
+    hyperparams['x'] = T.copy()#X_pca.copy()
     
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.1])

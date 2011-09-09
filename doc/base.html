@@ -63,7 +63,7 @@ different ones. This prediction is defined by which covariance function <tt clas
 <h2>GPTwoSample Base Class<a class="headerlink" href="#gptwosample-base-class" title="Permalink to this headline">¶</a></h2>
 <p>All classes ahndling GPTwoSample tasks should extend this class.</p>
 <p>Created on Mar 18, 2011</p>
-<p>&#64;author: maxz</p>
+<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
 <dl class="class">
 <dt id="gptwosample.twosample.twosample_base.GPTwoSample">
 <em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_base.</tt><tt class="descname">GPTwoSample</tt><big>(</big><em>covar</em>, <em>learn_hyperparameters=True</em>, <em>priors=None</em>, <em>initial_hyperparameters=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.GPTwoSample" title="Permalink to this definition">¶</a></dt>
@@ -163,9 +163,10 @@ output are expression-values of e.g. a timeseries.</p>
 <span class="target" id="module-gptwosample.twosample.twosample_compare"></span><div class="section" id="different-implementations-for-using-gptwosample">
 <h2>Different implementations for using GPTwoSample<a class="headerlink" href="#different-implementations-for-using-gptwosample" title="Permalink to this headline">¶</a></h2>
 <p>Some implementations of GPTwoSample, to detect differential expression between two timelines.</p>
+<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
 <dl class="class">
-<dt id="gptwosample.twosample.twosample_compare.GPTimeShift">
-<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_compare.</tt><tt class="descname">GPTimeShift</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_compare.GPTimeShift" title="Permalink to this definition">¶</a></dt>
+<dt id="gptwosample.twosample.twosample_compare.GPTwoSample_individual_covariance">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_compare.</tt><tt class="descname">GPTwoSample_individual_covariance</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_compare.GPTwoSample_individual_covariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gptwosample.twosample.twosample_base.GPTwoSample" title="gptwosample.twosample.twosample_base.GPTwoSample"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.twosample_base.GPTwoSample</span></tt></a></p>
 <p>This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively</p>
 <p>see <tt class="xref py py-class docutils literal"><span class="pre">GPTwoSample.src.GPTwoSample</span></tt> for detailed description of provided methods.</p>
@@ -173,8 +174,8 @@ output are expression-values of e.g. a timeseries.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="gptwosample.twosample.twosample_compare.GPTwoSampleMLII">
-<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_compare.</tt><tt class="descname">GPTwoSampleMLII</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_compare.GPTwoSampleMLII" title="Permalink to this definition">¶</a></dt>
+<dt id="gptwosample.twosample.twosample_compare.GPTwoSample_share_covariance">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_compare.</tt><tt class="descname">GPTwoSample_share_covariance</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_compare.GPTwoSample_share_covariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gptwosample.twosample.twosample_base.GPTwoSample" title="gptwosample.twosample.twosample_base.GPTwoSample"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.twosample_base.GPTwoSample</span></tt></a></p>
 <p>This class provides comparison of two Timeline Groups to each other.</p>
 <p>see <tt class="xref py py-class docutils literal"><span class="pre">GPTwoSample.src.GPTwoSample</span></tt> for detailed description of provided methods.</p>
@@ -187,7 +188,7 @@ output are expression-values of e.g. a timeseries.</p>
 For each input point, a decision for <cite>diferential</cite> or <cite>non-differential</cite> is predicted.</p>
 <p>The Results of this class can be plottet by <a class="reference internal" href="plot.html#module-gptwosample.plot.interval" title="gptwosample.plot.interval"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.plot.interval</span></tt></a>.</p>
 <p>Created on Apr 21, 2011</p>
-<p>&#64;author: maxz</p>
+<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
 <dl class="class">
 <dt id="gptwosample.twosample.interval_smooth.GPTwoSampleInterval">
 <em class="property">class </em><tt class="descclassname">gptwosample.twosample.interval_smooth.</tt><tt class="descname">GPTwoSampleInterval</tt><big>(</big><em>twosample_object</em>, <em>indicator_prior=0.29999999999999999</em>, <em>outlier_probability=0.10000000000000001</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.interval_smooth.GPTwoSampleInterval" title="Permalink to this definition">¶</a></dt>
