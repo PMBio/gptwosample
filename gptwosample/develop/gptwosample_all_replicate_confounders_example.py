@@ -276,4 +276,4 @@ def run_demo(cond1_file, cond2_file):
         pass
 
 if __name__ == '__main__':
-    run_demo(cond1_file = './warwick_control.csv', cond2_file = 'warwick_treatment.csv')
+    run_demo(cond1_file = '../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv')

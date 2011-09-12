@@ -67,68 +67,41 @@ def run_demo(cond1_file, cond2_file):
     Y1 = SP.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
     Y2 = SP.array(cond2.values()).reshape(T2.shape[0]*n_replicates_2,-1)
 
-#    X01 = gplvm.PCA(Y1, components)[0]
-#    X02 = gplvm.PCA(Y2, components)[0]
-#    
-    
-#    
-#    X0=X01
-#    hyperparams = {'covar': SP.log([1.2])}   
-#    likelihood = lik.GaussLikISO()
-#    hyperparams['lik'] = SP.log([0.1])
-#    bounds = {}
-#    bounds['lik'] = SP.array([[-5.,5.]]*Y1.shape[1])
-#    hyperparams['x'] = X0.copy()
-
-#    g = gplvm.GPLVM(covar_func=lvm_covariance,likelihood=likelihood,x=hyperparams['x'],y=Y1)
-    
-#    print "running standard gplvm"
-#    [opt_hyperparams_1,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=False)
-#
-#    X0=X02.copy()
-#    hyperparams = {'covar': SP.log([1.2])}
-#    hyperparams['x'] = X0
-#    
-#    likelihood = lik.GaussLikISO()
-#    hyperparams['lik'] = SP.log([0.1])
-#    g = gplvm.GPLVM(covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y2)
-#    
-#    bounds = {}
-#    bounds['lik'] = SP.array([[-5.,5.]]*Y2.shape[1])
-#    
-#    print "running standard gplvm"
-#    [opt_hyperparams_2,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=False)
-#    
+    # Simulate linear Kernel by PCA estimation:
     Y_comm = SP.concatenate((Y1,Y2))#.reshape(T1.shape[0]*n_replicates*2,-1)
     X_pca = gplvm.PCA(Y_comm, components)[0]
     #SP.concatenate((X01, X02)).copy()#
     
-    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,5))),n_dimensions=components+1)
-    #hyperparams = {'covar': SP.log([1,1,1.2])}
+    # init product covariance for right dimensions
+    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,5))),n_dimensions=components+1)
+    hyperparams = {'covar': SP.array([1,0,.08])}
     
     #lvm_covariance = ProductCF((LinearCFISO(n_dimensions=1),LinearCFISO(n_dimensions=1,dimension_indices=[0])),n_dimensions=1)
     #hyperparams = {'covar': SP.log([1.2,1.2])}
     
-    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
-    hyperparams = {'covar': SP.log([1,1,1,1,1,1])}
+    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
+    #hyperparams = {'covar': SP.log([1,1,1,1,1,1])}
     
     #lvm_covariance = linear.LinearCFISO(n_dimensions=4)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
     #hyperparams = {'covar': SP.log([1.2])}
 
     T = SP.tile(T1,n_replicates).reshape(-1,1)
+    # Get X right:
     X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
-    hyperparams['x'] = T.copy()#X_pca.copy()
+    #hyperparams['x'] = T.copy()#X_pca.copy()
     
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.1])
     
+    # lvm for confounders only:
     g = gplvm.GPLVM(gplvm_dimensions=xrange(1,5),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
     
     bounds = {}
     bounds['lik'] = SP.array([[-5.,5.]]*Y2.shape[1])
     
+    # run lvm on data
     print "running standard gplvm"
-    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
+    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,Ifilter={'covar':SP.array([0,1,1]),'lik':SP.ones(1)},gradcheck=True)
     
     #X_conf_1 = opt_hyperparams_1['x'] * opt_hyperparams_1['covar']
     #X_conf_2 = opt_hyperparams_2['x'] * opt_hyperparams_2['covar']
@@ -302,5 +275,5 @@ def run_demo(cond1_file, cond2_file):
 #        pass
 
 if __name__ == '__main__':
-    #run_demo(cond1_file = './warwick_control.csv', cond2_file = 'warwick_treatment.csv')
-    run_demo(cond1_file = './ToyCondition1.csv', cond2_file = 'ToyCondition2.csv')
+    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv')
+    #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')
