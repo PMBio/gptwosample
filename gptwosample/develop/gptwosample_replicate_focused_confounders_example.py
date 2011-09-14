@@ -73,22 +73,23 @@ def run_demo(cond1_file, cond2_file):
     #SP.concatenate((X01, X02)).copy()#
     
     # init product covariance for right dimensions
-    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,5))),n_dimensions=components+1)
-    hyperparams = {'covar': SP.array([1,0,.08])}
+    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,5)\
+    #                                                                          )),n_dimensions=components+1)
+    #hyperparams = {'covar': SP.array([1,0,.08])}
     
-    #lvm_covariance = ProductCF((LinearCFISO(n_dimensions=1),LinearCFISO(n_dimensions=1,dimension_indices=[0])),n_dimensions=1)
-    #hyperparams = {'covar': SP.log([1.2,1.2])}
+    lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1)),LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1))),n_dimensions=components)
+    hyperparams = {'covar': SP.log([1.2,1.2])}
     
-    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
+    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0]))
     #hyperparams = {'covar': SP.log([1,1,1,1,1,1])}
     
-    #lvm_covariance = linear.LinearCFISO(n_dimensions=4)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
+    #lvm_covariance = linear.LinearCFISO(n_dimensions=components)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
     #hyperparams = {'covar': SP.log([1.2])}
 
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
     X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
-    #hyperparams['x'] = T.copy()#X_pca.copy()
+    #hyperparams['x'] = X_pca.copy()
     
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.1])
@@ -99,9 +100,14 @@ def run_demo(cond1_file, cond2_file):
     bounds = {}
     bounds['lik'] = SP.array([[-5.,5.]]*Y2.shape[1])
     
+    # Filter for scalar factor
+    Ifilter={'covar':SP.array([1,1,1]), 'lik':SP.ones(1), 'x':SP.array([1,1,1,1,1,1])}
+    
     # run lvm on data
     print "running standard gplvm"
-    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,Ifilter={'covar':SP.array([0,1,1]),'lik':SP.ones(1)},gradcheck=True)
+    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
+    
+    import pdb;pdb.set_trace()
     
     #X_conf_1 = opt_hyperparams_1['x'] * opt_hyperparams_1['covar']
     #X_conf_2 = opt_hyperparams_2['x'] * opt_hyperparams_2['covar']
@@ -275,5 +281,5 @@ def run_demo(cond1_file, cond2_file):
 #        pass
 
 if __name__ == '__main__':
-    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv')
+    run_demo(cond1_file = './../examples/warwick_control_ground_truth.csv', cond2_file = '../examples/warwick_treatment_ground_truth.csv')
     #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')

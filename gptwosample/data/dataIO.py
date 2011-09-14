@@ -58,6 +58,44 @@ def get_data_from_csv(path_to_file,delimiter=','):
         data[name] = SP.array(expr,dtype='float')
     return data
 
+def write_data_to_csv(data,path_to_file,header='GPTwoSample',delimiter=','):
+    """
+    Write given data in training_data_structure (see :py:class:`gptwosample.data.data_base` for details)
+    into file for path_to_file.
+    
+    **Parameters:**
+    
+    data : dict
+        data to write in training_data_format
+        
+    path_to_file : String
+        The path to the file to write to
+        
+    header : String
+        Name of the table
+    
+    delimiter : character
+        delimiter for the csv file
+    """
+    data=data.copy()
+    if not path_to_file.endswith(".csv"):
+        path_to_file.append(".csv")
+    out_file = open(path_to_file,"w")
+    writer = csv.writer(out_file)
+    line = [header]
+    line.extend(data.pop("input"))
+    writer.writerow(line)
+    for name,line in data.iteritems():
+        if line.shape[0]>1:
+            l = [[name]]*line.shape[0]
+            l = SP.concatenate((l,line),axis=1)
+            writer.writerows(l)
+        else:
+            l = [name]
+            l = SP.concatenate((l,line),axis=1)
+            writer.writerow(l)
+    out_file.flush()
+    
 def count_lines(filename):
     f = open(filename)
     lines = 1
