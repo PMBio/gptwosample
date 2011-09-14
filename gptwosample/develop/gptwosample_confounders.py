@@ -46,7 +46,7 @@ def run_demo(cond1_file, cond2_file):
     Y_comm = SP.concatenate((Y1, Y2))
     X_pca = gplvm.PCA(Y_comm, components)[0]
     
-    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1, dimension_indices=[0]), LinearCFISO(n_dimensions=components, dimensio_indices=xrange(1, 5))), n_dimensions=components + 1)
+    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1, dimension_indices=[0]), LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 5))), n_dimensions=components + 1)
     hyperparams = {'covar': SP.log([1, 1, 1.2])}
 
     T = SP.tile(T1, n_replicates).reshape(-1, 1)
@@ -182,6 +182,8 @@ def run_demo(cond1_file, cond2_file):
         line.extend(common)
         line.extend(individual)
         csv_out.writerow(line)
+        
+        still_to_go -= 1
         
 
 if __name__ == '__main__':
