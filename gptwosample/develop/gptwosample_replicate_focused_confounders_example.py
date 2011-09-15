@@ -74,18 +74,24 @@ def run_demo(cond1_file, cond2_file):
     #SP.concatenate((X01, X02)).copy()#
     
     # init product covariance for right dimensions
-    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,5)\
-    #                                                                          )),n_dimensions=components+1)
-    #hyperparams = {'covar': SP.array([1,0,.08])}
+    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),
+                                linear.LinearCFISO(n_dimensions=components,
+                                                   dimension_indices=xrange(1,5))),
+                               n_dimensions=components+1)
+    hyperparams = {'covar': SP.log([1,1,1])}
     
-#    lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1)),LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1))),n_dimensions=components)
+#    lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components,
+#                                            dimension_indices=xrange(1,components+1)),
+#                                LinearCFISO(n_dimensions=components,
+#                                            dimension_indices=xrange(1,components+1))),
+#                               n_dimensions=components)
 #    hyperparams = {'covar': SP.log([1.2,1.2])}
     
 #    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
 #    hyperparams = {'covar': SP.log([1,1,1,1])}
     
-    lvm_covariance = linear.LinearCFISO(n_dimensions=components)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
-    hyperparams = {'covar': SP.log([1.2])}
+    #lvm_covariance = linear.LinearCFISO(n_dimensions=components)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
+    #hyperparams = {'covar': SP.log([1.2])}
 
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
@@ -94,6 +100,9 @@ def run_demo(cond1_file, cond2_file):
 
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.1])
+
+    # Do gradchecks for covariance function
+    gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
     
     # lvm for confounders only:
     g = gplvm.GPLVM(gplvm_dimensions=xrange(1,5),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
@@ -107,9 +116,6 @@ def run_demo(cond1_file, cond2_file):
     # run lvm on data
     print "running standard gplvm"
     [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
-
-    # Do gradchecks for covariance function
-    gradcheck.grad_check_logtheta(lvm_covariance, opt_hyperparams_comm['covar'], X0)
     
     import pdb;pdb.set_trace()
     
