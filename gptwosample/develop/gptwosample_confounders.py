@@ -11,7 +11,7 @@ from pygp.covar.linear import LinearCFISO
 from pygp.covar.se import SqexpCFARD
 from pygp import likelihood as lik
 from pygp.optimize.optimize_base import opt_hyper
-from pygp.covar import se, noise
+from pygp.covar import se, noise, gradcheck
 from pygp.priors import lnpriors
 from pygp.covar.fixed import FixedCF
 from gptwosample.data.data_base import get_model_structure, common_id, \

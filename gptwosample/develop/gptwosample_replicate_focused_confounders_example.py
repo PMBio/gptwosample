@@ -12,7 +12,7 @@ from gptwosample.data.data_base import get_training_data_structure, \
 from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance
 from pygp import likelihood as lik
-from pygp.covar import linear, se, noise, combinators
+from pygp.covar import linear, se, noise, combinators, gradcheck
 from pygp.covar.combinators import ProductCF, SumCF, ShiftCF
 from pygp.covar.fixed import FixedCF
 from pygp.covar.linear import LinearCF, LinearCFISO
@@ -26,6 +26,7 @@ import os
 import pdb
 import scipy
 import scipy as SP
+import pylab as pl
 from pygp.covar.noise import NoiseCFISO
 
 try:
@@ -47,8 +48,8 @@ def run_demo(cond1_file, cond2_file):
     print 'reading files'
     cond1 = get_data_from_csv(cond1_file, delimiter=',')
     cond2 = get_data_from_csv(cond2_file, delimiter=",")
-
-#range where to create time local predictions ? 
+    
+    #range where to create time local predictions ? 
     #note: this need to be [T x 1] dimensional: (newaxis)
     Tpredict = SP.linspace(cond1["input"].min(), cond1["input"].max(), 100)[:, SP.newaxis]
     T1 = cond1.pop("input")
@@ -77,20 +78,20 @@ def run_demo(cond1_file, cond2_file):
     #                                                                          )),n_dimensions=components+1)
     #hyperparams = {'covar': SP.array([1,0,.08])}
     
-    lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1)),LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1))),n_dimensions=components)
-    hyperparams = {'covar': SP.log([1.2,1.2])}
+#    lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1)),LinearCFISO(n_dimensions=components,dimension_indices=xrange(1,components+1))),n_dimensions=components)
+#    hyperparams = {'covar': SP.log([1.2,1.2])}
     
-    #lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0]))
-    #hyperparams = {'covar': SP.log([1,1,1,1,1,1])}
+#    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
+#    hyperparams = {'covar': SP.log([1,1,1,1])}
     
-    #lvm_covariance = linear.LinearCFISO(n_dimensions=components)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
-    #hyperparams = {'covar': SP.log([1.2])}
+    lvm_covariance = linear.LinearCFISO(n_dimensions=components)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
+    hyperparams = {'covar': SP.log([1.2])}
 
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
     X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
     #hyperparams['x'] = X_pca.copy()
-    
+
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.1])
     
@@ -106,6 +107,9 @@ def run_demo(cond1_file, cond2_file):
     # run lvm on data
     print "running standard gplvm"
     [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
+
+    # Do gradchecks for covariance function
+    gradcheck.grad_check_logtheta(lvm_covariance, opt_hyperparams_comm['covar'], X0)
     
     import pdb;pdb.set_trace()
     
