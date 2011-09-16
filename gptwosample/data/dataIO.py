@@ -55,7 +55,8 @@ def get_data_from_csv(path_to_file,delimiter=','):
     out.write("\n")
     out.flush()
     for name,expr in data.iteritems():
-        data[name] = SP.array(expr,dtype='float')
+        if name != 'input':
+            data[name] = SP.array(expr,dtype='float')
     return data
 
 def write_data_to_csv(data,path_to_file,header='GPTwoSample',delimiter=','):
@@ -66,7 +67,7 @@ def write_data_to_csv(data,path_to_file,header='GPTwoSample',delimiter=','):
     **Parameters:**
     
     data : dict
-        data to write in training_data_format
+        data to write in training_data_structure
         
     path_to_file : String
         The path to the file to write to

@@ -7,15 +7,14 @@ Created on Jun 9, 2011
 @author: Max Zwiessele, Oliver Stegle
 '''
 from gptwosample.data.dataIO import get_data_from_csv
-from gptwosample.data.data_base import get_training_data_structure, \
-    get_model_structure, common_id, individual_id
+from gptwosample.data.data_base import get_model_structure, \
+    common_id, individual_id
 from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance
 from pygp import likelihood as lik
-from pygp.covar import linear, se, noise, combinators, gradcheck
-from pygp.covar.combinators import ProductCF, SumCF, ShiftCF
+from pygp.covar import linear, se, noise, combinators
+from pygp.covar.combinators import ProductCF
 from pygp.covar.fixed import FixedCF
-from pygp.covar.linear import LinearCF, LinearCFISO
 from pygp.covar.se import SqexpCFARD
 from pygp.gp import gplvm
 from pygp.optimize.optimize_base import opt_hyper
@@ -26,9 +25,6 @@ import os
 import pdb
 import scipy
 import scipy as SP
-import pylab as pl
-from pygp.covar.noise import NoiseCFISO
-
 try:
     from gptwosample.data import toy_data_generator
 except:
@@ -78,31 +74,18 @@ def run_demo(cond1_file, cond2_file):
                                 linear.LinearCFISO(n_dimensions=components,
                                                    dimension_indices=xrange(1,5))),
                                n_dimensions=components+1)
-    hyperparams = {'covar': SP.log([1,1,1])}
+    hyperparams = {'covar': SP.log([1,1,1.2])}
     
-#    lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components,
-#                                            dimension_indices=xrange(1,components+1)),
-#                                LinearCFISO(n_dimensions=components,
-#                                            dimension_indices=xrange(1,components+1))),
-#                               n_dimensions=components)
-#    hyperparams = {'covar': SP.log([1.2,1.2])}
-    
-#    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1,dimension_indices=[0]),SqexpCFARD(n_dimensions=1,dimension_indices=[0])))
-#    hyperparams = {'covar': SP.log([1,1,1,1])}
-    
-    #lvm_covariance = linear.LinearCFISO(n_dimensions=components)#ProductCF((SqexpCFARD(n_dimensions=1),linear.LinearCFISO(n_dimensions=components)),n_dimensions=components+1)
-    #hyperparams = {'covar': SP.log([1.2])}
-
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
     X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
     #hyperparams['x'] = X_pca.copy()
 
     likelihood = lik.GaussLikISO()
-    hyperparams['lik'] = SP.log([0.1])
+    hyperparams['lik'] = SP.log([0.2])
 
     # Do gradchecks for covariance function
-    gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
+    # gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
     
     # lvm for confounders only:
     g = gplvm.GPLVM(gplvm_dimensions=xrange(1,5),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
@@ -117,16 +100,9 @@ def run_demo(cond1_file, cond2_file):
     print "running standard gplvm"
     [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
     
-    import pdb;pdb.set_trace()
+    # X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
+    X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][2])
     
-    #X_conf_1 = opt_hyperparams_1['x'] * opt_hyperparams_1['covar']
-    #X_conf_2 = opt_hyperparams_2['x'] * opt_hyperparams_2['covar']
-    #SP.concatenate((X_conf_1, X_conf_2))
-    X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
-    
-#    X_conf_1 = SP.dot(X_conf_1,X_conf_1.T) \
-
-#    X_conf_2 = SP.dot(X_conf_2,X_conf_2.T) \
     X_len = X_conf_comm.shape[0]
     X_conf_1 = X_conf_comm[:X_len/2]
     X_conf_2 = X_conf_comm[X_len/2:]
@@ -161,7 +137,9 @@ def run_demo(cond1_file, cond2_file):
     
     shiftCFInd1 = combinators.ShiftCF(SECF,replicate_indices_1)
     shiftCFInd2 = combinators.ShiftCF(SECF,replicate_indices_2)
-    shiftCFCom = combinators.ShiftCF(SECF,SP.concatenate((replicate_indices_1,replicate_indices_2+n_replicates_1)))
+    shiftCFCom = combinators.ShiftCF(SECF,
+                                     SP.concatenate((replicate_indices_1,
+                                                     replicate_indices_2+n_replicates_1)))
 
     CovFun = combinators.SumCF((SECF,noiseCF))
     
@@ -191,7 +169,8 @@ def run_demo(cond1_file, cond2_file):
         covar_priors_individual.append([lnpriors.lnGammaExp,[1,1]])
         covar_priors.append([lnpriors.lnGammaExp,[1,1]])
     
-    priors = get_model_structure({'covar':SP.array(covar_priors_individual)}, {'covar':SP.array(covar_priors_common)})
+    priors = get_model_structure({'covar':SP.array(covar_priors_individual)}, 
+                                 {'covar':SP.array(covar_priors_common)})
     #Ifilter = {'covar': SP.ones(n_replicates+3)}
     covar = [combinators.SumCF((combinators.SumCF((shiftCFInd1,FixedCF(X_conf_1))),noiseCF)),
              combinators.SumCF((combinators.SumCF((shiftCFInd2,FixedCF(X_conf_2))),noiseCF)),
@@ -219,7 +198,7 @@ def run_demo(cond1_file, cond2_file):
     T2 = SP.tile(T2,n_replicates_2).reshape(-1, 1)
     #loop through genes
     for gene_name in gene_names:
-#        try:
+        try:
             #PL.close()
             #PL.close()
             if gene_name is "input":
@@ -281,14 +260,12 @@ def run_demo(cond1_file, cond2_file):
     #        PL.savefig("out/GPTwoSample_%s_confounder.png"%(gene_name),format='png')
             ## wait for window close
             #import pdb;pdb.set_trace()
-#        except:
-#            import sys
-#            import pdb;pdb.set_trace()
-#            print "Caught Failure on gene %s: " % (gene_name),sys.exc_info()[0]
-#            print "Genes left: %i"%(still_to_go)
-#        finally:
-#            still_to_go -= 1
-#        pass
+        except:
+            print "Caught Failure on gene %s: " % (gene_name),sys.exc_info()[0]
+            print "Genes left: %i"%(still_to_go)
+        finally:
+            still_to_go -= 1
+        pass
 
 if __name__ == '__main__':
     run_demo(cond1_file = './../examples/warwick_control_ground_truth.csv', cond2_file = '../examples/warwick_treatment_ground_truth.csv')
