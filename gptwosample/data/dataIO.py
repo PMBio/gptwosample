@@ -55,8 +55,11 @@ def get_data_from_csv(path_to_file,delimiter=','):
     out.write("\n")
     out.flush()
     for name,expr in data.iteritems():
-        if name != 'input':
+        try:
             data[name] = SP.array(expr,dtype='float')
+        except:
+            print "Caught Failure on gene %s: " % (gene_name)
+            print sys.exc_info()[0]
     return data
 
 def write_data_to_csv(data,path_to_file,header='GPTwoSample',delimiter=','):

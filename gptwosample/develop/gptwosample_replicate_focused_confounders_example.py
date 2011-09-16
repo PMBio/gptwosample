@@ -79,7 +79,7 @@ def run_demo(cond1_file, cond2_file):
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
     X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
-    #hyperparams['x'] = X_pca.copy()
+    hyperparams['x'] = X_pca.copy()
 
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.2])
@@ -178,7 +178,9 @@ def run_demo(cond1_file, cond2_file):
                                                    FixedCF(X_conf_comm))),
                                 noiseCF))]
     
-    csv_out_file = open(os.path.join('out', "result.csv"), 'wb')
+    out_path = 'out_learned_confounders'
+    os.mkdir(out_path)
+    csv_out_file = open(os.path.join(out_path, "result.csv"), 'wb')
     csv_out = csv.writer(csv_out_file)
     header = ["Gene", "Bayes Factor"]
     
@@ -193,7 +195,7 @@ def run_demo(cond1_file, cond2_file):
 #    gene_names = []
 #    for line in gt_reader:
 #        gene_names.append(line[0].upper())
-    still_to_go = len(gene_names)
+    still_to_go = len(gene_names) - 1
     T1 = SP.tile(T1,n_replicates_1).reshape(-1, 1)
     T2 = SP.tile(T2,n_replicates_2).reshape(-1, 1)
     #loop through genes
@@ -261,6 +263,7 @@ def run_demo(cond1_file, cond2_file):
             ## wait for window close
             #import pdb;pdb.set_trace()
         except:
+            import sys
             print "Caught Failure on gene %s: " % (gene_name),sys.exc_info()[0]
             print "Genes left: %i"%(still_to_go)
         finally:
