@@ -58,7 +58,7 @@ def get_data_from_csv(path_to_file,delimiter=','):
         try:
             data[name] = SP.array(expr,dtype='float')
         except:
-            print "Caught Failure on gene %s: " % (gene_name)
+            print "Caught Failure on dataset with name %s: " % (name)
             print sys.exc_info()[0]
     return data
 

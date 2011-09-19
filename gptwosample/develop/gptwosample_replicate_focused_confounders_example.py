@@ -12,7 +12,7 @@ from gptwosample.data.data_base import get_model_structure, \
 from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance
 from pygp import likelihood as lik
-from pygp.covar import linear, se, noise, combinators
+from pygp.covar import linear, se, noise, combinators, gradcheck
 from pygp.covar.combinators import ProductCF
 from pygp.covar.fixed import FixedCF
 from pygp.covar.se import SqexpCFARD
@@ -72,7 +72,7 @@ def run_demo(cond1_file, cond2_file):
     # init product covariance for right dimensions
     lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),
                                 linear.LinearCFISO(n_dimensions=components,
-                                                   dimension_indices=xrange(1,5))),
+                                                   dimension_indices=xrange(1,components+1))),
                                n_dimensions=components+1)
     hyperparams = {'covar': SP.log([1,1,1.2])}
     
@@ -86,9 +86,10 @@ def run_demo(cond1_file, cond2_file):
 
     # Do gradchecks for covariance function
     # gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
+    # gradcheck.grad_check_Kx(lvm_covariance, hyperparams['covar'], X0)
     
     # lvm for confounders only:
-    g = gplvm.GPLVM(gplvm_dimensions=xrange(1,5),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
+    g = gplvm.GPLVM(gplvm_dimensions=xrange(1,components+1),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
     
     bounds = {}
     bounds['lik'] = SP.array([[-5.,5.]]*Y2.shape[1])
@@ -98,7 +99,7 @@ def run_demo(cond1_file, cond2_file):
     
     # run lvm on data
     print "running standard gplvm"
-    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
+    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=False)
     
     # X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
     X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][2])
@@ -178,7 +179,7 @@ def run_demo(cond1_file, cond2_file):
                                                    FixedCF(X_conf_comm))),
                                 noiseCF))]
     
-    out_path = 'out_learned_confounders'
+    out_path = 'out_learned_confounders_%s'%(components)
     os.mkdir(out_path)
     csv_out_file = open(os.path.join(out_path, "result.csv"), 'wb')
     csv_out = csv.writer(csv_out_file)
