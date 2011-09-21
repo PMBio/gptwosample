@@ -84,10 +84,6 @@ def run_demo(cond1_file, cond2_file):
     likelihood = lik.GaussLikISO()
     hyperparams['lik'] = SP.log([0.2])
 
-    # Do gradchecks for covariance function
-    # gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
-    # gradcheck.grad_check_Kx(lvm_covariance, hyperparams['covar'], X0)
-    
     # lvm for confounders only:
     g = gplvm.GPLVM(gplvm_dimensions=xrange(1,components+1),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
     
@@ -99,7 +95,11 @@ def run_demo(cond1_file, cond2_file):
     
     # run lvm on data
     print "running standard gplvm"
-    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=False)
+    [opt_hyperparams_comm,opt_lml2] = opt_hyper(g,hyperparams,gradcheck=True)
+    
+    # Do gradchecks for covariance function
+    # gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
+    gradcheck.grad_check_Kx(lvm_covariance, hyperparams['covar'], X0)
     
     # X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
     X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][2])
@@ -179,9 +179,15 @@ def run_demo(cond1_file, cond2_file):
                                                    FixedCF(X_conf_comm))),
                                 noiseCF))]
     
-    out_path = 'out_learned_confounders_%s'%(components)
-    os.mkdir(out_path)
-    csv_out_file = open(os.path.join(out_path, "result.csv"), 'wb')
+    out_path = 'test_confounders_%s'%(components)
+    out_file = "result.csv"
+    num = 1
+    if not os.path.exists(out_path):
+        os.mkdir(out_path)
+    while os.path.exists(out_file):
+        out_file = "result_%i.csv"%num
+        num+=1
+    csv_out_file = open(os.path.join(out_path, out_file), 'wb')
     csv_out = csv.writer(csv_out_file)
     header = ["Gene", "Bayes Factor"]
     
@@ -191,6 +197,9 @@ def run_demo(cond1_file, cond2_file):
     
     twosample_object = GPTwoSample_individual_covariance(covar,
                                                          priors=priors)
+    
+    import pdb;pdb.set_trace()
+    
 #    print 'sorting out genes not in ground truth'
 #    gt_reader = csv.reader(open('./ground_truth_random_genes.csv','r'))
 #    gene_names = []
