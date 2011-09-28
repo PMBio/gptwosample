@@ -37,7 +37,7 @@ def get_data_from_csv(path_to_file,delimiter=','):
     reader = csv.reader(out_file,delimiter=str(delimiter))
     out = sys.stdout
     progress = 0; step = 0
-    out.write("Reading Process: ")
+    out.write("Reading Progress: ")
     data = {"input":reader.next()[1:]}
     for line in reader:
         if line:
@@ -58,8 +58,11 @@ def get_data_from_csv(path_to_file,delimiter=','):
         try:
             data[name] = SP.array(expr,dtype='float')
         except:
-            print "Caught Failure on dataset with name %s: " % (name)
-            print sys.exc_info()[0]
+            if(name == 'input'):
+                print "input is header and cannot be converted, this is NO error"
+            else:
+                print "Caught Failure on dataset with name %s: " % (name)
+                print sys.exc_info()[0]
     return data
 
 def write_data_to_csv(data,path_to_file,header='GPTwoSample',delimiter=','):
