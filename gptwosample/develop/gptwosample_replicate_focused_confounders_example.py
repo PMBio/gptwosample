@@ -77,15 +77,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
 #    Y2 = SP.array(cond2.values()).reshape(-1,1)
 
     if simulate_confounders:
-#        Y1_r = [scipy.random.randn(T1.shape[0]) for i in range(n_replicates_1)]
-#        Y1_c = [scipy.random.randn(T1.shape[0]*i) for i in [n_replicates_1]]
-#        
-#        Y1_all_r = SP.tile(Y1_r,len(gene_names)).reshape()
-#        Y1_all_c = SP.tile(Y1_c,len(gene_names))
-#        
-#        Y1_all = Y1_all_r + Y1_all_c
-#        Y1_all = scipy.atleast_2d(Y1_all).T        
-        
+        # Nicolo's way of simulating confounders?
         Y2_r = [scipy.random.randn(T2.shape[0]) for i in range(n_replicates_2)]
         Y2_c = [scipy.random.randn(T2.shape[0]*i) for i in [n_replicates_2]]
         
@@ -99,19 +91,15 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     # Simulate linear Kernel by PCA estimation:
     if simulate_confounders:
         Y_comm = SP.concatenate((Y1+Y2_all,Y2+Y2_all))
-        pylab.figure()
-        pylab.pcolor(SP.dot(Y2_all,Y2_all.T))
-        pylab.colorbar()
-        pylab.title(r"confounders")
-        import pdb;pdb.set_trace()
     else:
         Y_comm = SP.concatenate((Y1,Y2))
-        pylab.figure()
-        pylab.pcolor(SP.dot(Y1,Y2.T))
-        pylab.colorbar()
-        pylab.title(r"Y_1 \cdot Y_2^T")
-        import pdb;pdb.set_trace()
     
+    pylab.figure()
+    pylab.pcolor(SP.dot(Y_comm,Y_comm.T))
+    pylab.colorbar()
+    pylab.title(r"confounders")
+    import pdb;pdb.set_trace()
+
     X_pca = gplvm.PCA(Y_comm, components)[0]
     #SP.concatenate((X01, X02)).copy()#
     
