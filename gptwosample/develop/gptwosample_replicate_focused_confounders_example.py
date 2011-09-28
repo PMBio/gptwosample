@@ -45,7 +45,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
 
     # Settings:
     timeshift = False
-    grad_check = False
+    grad_check = True
     learn_X = True
     print "Number of components: %i"%components
     out_path = 'simulated_learned_confounders'
@@ -158,7 +158,6 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     pylab.figure()
     pylab.pcolor(X_conf_comm)
     pylab.title("learned confounders")
-    import pdb;pdb.set_trace()
 
     #hyperparamters
     dim = 1
