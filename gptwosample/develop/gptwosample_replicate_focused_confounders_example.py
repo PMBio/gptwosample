@@ -104,11 +104,14 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     #SP.concatenate((X01, X02)).copy()#
     
     # init product covariance for right dimensions
-    lvm_covariance = SumCF((SqexpCFARD(n_dimensions=1),
-                                linear.LinearCFISO(n_dimensions=components,
-                                                   dimension_indices=xrange(1,components+1))),
-                               n_dimensions=components+1)
-    hyperparams = {'covar': SP.log([1,1,1.2])}
+#    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),
+#                                linear.LinearCFISO(n_dimensions=components,
+#                                                   dimension_indices=xrange(1,components+1))),
+#                               n_dimensions=components+1)
+#    hyperparams = {'covar': SP.log([1,1,1.2])}
+    # no product for simulation and testing purpose
+    lvm_covariance = linear.LinearCFISO(n_dimensions=components)
+    hyperparams = {'covar': SP.log([1.2])}
     
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
