@@ -48,7 +48,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     grad_check = False
     learn_X = True
     print "Number of components: %i"%components
-    out_path = 'all_data_no_timeshift_learned_confounders'
+    out_path = 'simulated_learned_confounders'
     out_file = "%i_confounder.csv"%(components)
     print "writing to file: %s/%s"%(out_path,out_file)
 
@@ -98,7 +98,6 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     pylab.pcolor(SP.dot(Y_comm,Y_comm.T))
     pylab.colorbar()
     pylab.title(r"confounders")
-    import pdb;pdb.set_trace()
 
     X_pca = gplvm.PCA(Y_comm, components)[0]
     #SP.concatenate((X01, X02)).copy()#
@@ -110,12 +109,14 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
 #                               n_dimensions=components+1)
 #    hyperparams = {'covar': SP.log([1,1,1.2])}
     # no product for simulation and testing purpose
+
     lvm_covariance = linear.LinearCFISO(n_dimensions=components)
     hyperparams = {'covar': SP.log([1.2])}
     
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
-    X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
+#    X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
+    X0 = X_pca.copy()
     if learn_X:
         hyperparams['x'] = X_pca.copy()
 
@@ -123,7 +124,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     hyperparams['lik'] = SP.log([0.2])
 
     # lvm for confounders only:
-    g = gplvm.GPLVM(gplvm_dimensions=xrange(1,components+1),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
+    g = gplvm.GPLVM(gplvm_dimensions=xrange(components),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
     
     bounds = {}
     bounds['lik'] = SP.array([[-5.,5.]]*Y2.shape[1])
@@ -141,9 +142,9 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
         gradcheck.grad_check_Kx(lvm_covariance, hyperparams['covar'], X0)
     
     if learn_X:
-        X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
+        X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][0])
     else:
-        X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][2])
+        X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][0])
     
     X_len = X_conf_comm.shape[0]
     X_conf_1 = X_conf_comm[:X_len/2]
