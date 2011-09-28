@@ -13,7 +13,7 @@ from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance, GPTwoSample_share_covariance
 from pygp import likelihood as lik
 from pygp.covar import linear, se, noise, combinators, gradcheck
-from pygp.covar.combinators import ProductCF
+from pygp.covar.combinators import ProductCF, SumCF
 from pygp.covar.fixed import FixedCF
 from pygp.covar.se import SqexpCFARD
 from pygp.gp import gplvm
@@ -25,6 +25,9 @@ import os
 import pdb
 import scipy
 import scipy as SP
+import pylab
+
+
 try:
     from gptwosample.data import toy_data_generator
 except:
@@ -36,16 +39,16 @@ finally:
 #import pylab as PL
 #from gptwosample.plot.plot_basic import plot_results
 
-def run_demo(cond1_file, cond2_file, components=4):
+def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False):
     #full debug info:
     LG.basicConfig(level=LG.INFO)
 
     # Settings:
-    timeshift = True
+    timeshift = False
     grad_check = False
     learn_X = True
     print "Number of components: %i"%components
-    out_path = 'all_data_timeshift_learned_confounders'
+    out_path = 'all_data_no_timeshift_learned_confounders'
     out_file = "%i_confounder.csv"%(components)
     print "writing to file: %s/%s"%(out_path,out_file)
 
@@ -70,14 +73,50 @@ def run_demo(cond1_file, cond2_file, components=4):
     
     Y1 = SP.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
     Y2 = SP.array(cond2.values()).reshape(T2.shape[0]*n_replicates_2,-1)
+#    Y1 = SP.array(cond1.values()).reshape(-1,1)
+#    Y2 = SP.array(cond2.values()).reshape(-1,1)
 
+    if simulate_confounders:
+#        Y1_r = [scipy.random.randn(T1.shape[0]) for i in range(n_replicates_1)]
+#        Y1_c = [scipy.random.randn(T1.shape[0]*i) for i in [n_replicates_1]]
+#        
+#        Y1_all_r = SP.tile(Y1_r,len(gene_names)).reshape()
+#        Y1_all_c = SP.tile(Y1_c,len(gene_names))
+#        
+#        Y1_all = Y1_all_r + Y1_all_c
+#        Y1_all = scipy.atleast_2d(Y1_all).T        
+        
+        Y2_r = [scipy.random.randn(T2.shape[0]) for i in range(n_replicates_2)]
+        Y2_c = [scipy.random.randn(T2.shape[0]*i) for i in [n_replicates_2]]
+        
+        Y2_all_c = SP.tile(Y2_c,len(gene_names)).reshape(len(gene_names),-1)
+        Y2_all_r = SP.tile(Y2_r,len(gene_names)).reshape(Y2_all_c.shape)
+        
+        Y2_all = Y2_all_r + Y2_all_c
+        Y2_all = scipy.atleast_2d(Y2_all).T        
+        pass
+    
     # Simulate linear Kernel by PCA estimation:
-    Y_comm = SP.concatenate((Y1,Y2))#.reshape(T1.shape[0]*n_replicates*2,-1)
+    if simulate_confounders:
+        Y_comm = SP.concatenate((Y1+Y2_all,Y2+Y2_all))
+        pylab.figure()
+        pylab.pcolor(SP.dot(Y2_all,Y2_all.T))
+        pylab.colorbar()
+        pylab.title(r"confounders")
+        import pdb;pdb.set_trace()
+    else:
+        Y_comm = SP.concatenate((Y1,Y2))
+        pylab.figure()
+        pylab.pcolor(SP.dot(Y1,Y2.T))
+        pylab.colorbar()
+        pylab.title(r"Y_1 \cdot Y_2^T")
+        import pdb;pdb.set_trace()
+    
     X_pca = gplvm.PCA(Y_comm, components)[0]
     #SP.concatenate((X01, X02)).copy()#
     
     # init product covariance for right dimensions
-    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),
+    lvm_covariance = SumCF((SqexpCFARD(n_dimensions=1),
                                 linear.LinearCFISO(n_dimensions=components,
                                                    dimension_indices=xrange(1,components+1))),
                                n_dimensions=components+1)
@@ -110,8 +149,10 @@ def run_demo(cond1_file, cond2_file, components=4):
         gradcheck.grad_check_logtheta(lvm_covariance, hyperparams['covar'], X0)
         gradcheck.grad_check_Kx(lvm_covariance, hyperparams['covar'], X0)
     
-#     X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
-    X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][2])
+    if learn_X:
+        X_conf_comm = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])
+    else:
+        X_conf_comm = X_pca * SP.exp(opt_hyperparams_comm['covar'][2])
     
     X_len = X_conf_comm.shape[0]
     X_conf_1 = X_conf_comm[:X_len/2]
@@ -120,8 +161,12 @@ def run_demo(cond1_file, cond2_file, components=4):
     X_conf_1 = SP.dot(X_conf_1, X_conf_1.T)
     X_conf_2 = SP.dot(X_conf_2, X_conf_2.T)
     
-    X_conf_comm = SP.dot(X_conf_comm, X_conf_comm.T) \
-
+    X_conf_comm = SP.dot(X_conf_comm, X_conf_comm.T) 
+    
+    pylab.figure()
+    pylab.pcolor(X_conf_comm)
+    pylab.title("learned confounders")
+    import pdb;pdb.set_trace()
 
     #hyperparamters
     dim = 1
@@ -216,11 +261,11 @@ def run_demo(cond1_file, cond2_file, components=4):
         twosample_object = GPTwoSample_share_covariance(covar,priors=priors)
     csv_out.writerow(header)
 
-    print 'sorting out genes not in ground truth'
-    gt_reader = csv.reader(open('../examples/ground_truth_random_genes.csv','r'))
-    gene_names = []
-    for line in gt_reader:
-        gene_names.append(line[0].upper())
+#    print 'sorting out genes not in ground truth'
+#    gt_reader = csv.reader(open('../examples/ground_truth_random_genes.csv','r'))
+#    gene_names = []
+#    for line in gt_reader:
+#        gene_names.append(line[0].upper())
     still_to_go = len(gene_names) - 1
 
     T1 = SP.tile(T1,n_replicates_1).reshape(-1, 1)
@@ -299,6 +344,6 @@ def run_demo(cond1_file, cond2_file, components=4):
         pass
 
 if __name__ == '__main__':
-    for i in xrange(1,9):
-        run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=i)
-    #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')
+    #for i in xrange(1,9):
+    #    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=i)
+    run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv', simulate_confounders=True)
