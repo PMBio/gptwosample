@@ -26,6 +26,9 @@ import pdb
 import scipy
 import scipy as SP
 import pylab
+from gptwosample.plot.plot_basic import plot_results
+from pygp.linalg.linalg_matrix import solve_chol
+from numpy.linalg.linalg import cholesky
 
 
 try:
@@ -45,7 +48,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
 
     # Settings:
     timeshift = False
-    grad_check = True
+    grad_check = False
     learn_X = True
     print "Number of components: %i"%components
     out_path = 'simulated_learned_confounders'
@@ -71,37 +74,6 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     n_replicates = n_replicates_1+n_replicates_2
     gene_length = len(T1)    
     
-    Y1 = SP.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
-    Y2 = SP.array(cond2.values()).reshape(T2.shape[0]*n_replicates_2,-1)
-#    Y1 = SP.array(cond1.values()).reshape(-1,1)
-#    Y2 = SP.array(cond2.values()).reshape(-1,1)
-
-    if simulate_confounders:
-        # Nicolo's way of simulating confounders?
-        Y2_r = [scipy.random.randn(T2.shape[0]) for i in range(n_replicates_2)]
-        Y2_c = [scipy.random.randn(T2.shape[0]*i) for i in [n_replicates_2]]
-        
-        Y2_all_c = SP.tile(Y2_c,len(gene_names)).reshape(len(gene_names),-1)
-        Y2_all_r = SP.tile(Y2_r,len(gene_names)).reshape(Y2_all_c.shape)
-        
-        Y2_all = Y2_all_r + Y2_all_c
-        Y2_all = scipy.atleast_2d(Y2_all).T        
-        pass
-    
-    # Simulate linear Kernel by PCA estimation:
-    if simulate_confounders:
-        Y_comm = SP.concatenate((Y1+Y2_all,Y2+Y2_all))
-    else:
-        Y_comm = SP.concatenate((Y1,Y2))
-    
-    pylab.figure()
-    pylab.pcolor(SP.dot(Y_comm,Y_comm.T))
-    pylab.colorbar()
-    pylab.title(r"confounders")
-
-    X_pca = gplvm.PCA(Y_comm, components)[0]
-    #SP.concatenate((X01, X02)).copy()#
-    
     # init product covariance for right dimensions
 #    lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1),
 #                                linear.LinearCFISO(n_dimensions=components,
@@ -112,7 +84,50 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
 
     lvm_covariance = linear.LinearCFISO(n_dimensions=components)
     hyperparams = {'covar': SP.log([1.2])}
+
     
+    Y1_conf = SP.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
+    Y2_conf = SP.array(cond2.values()).reshape(T2.shape[0]*n_replicates_2,-1)
+
+    Y1_raw = Y1_conf.copy()
+    Y2_raw = Y2_conf.copy()
+#    Y1_conf = SP.array(cond1.values()).reshape(-1,1)
+#    Y2_conf = SP.array(cond2.values()).reshape(-1,1)
+    Y_comm = SP.concatenate((Y1_conf,Y2_conf))
+
+    if simulate_confounders:
+        if 0:
+            # Nicolo's way of simulating confounders
+            Y2_r = [scipy.random.randn(T2.shape[0]) for i in range(n_replicates)]
+            Y2_c = [scipy.random.randn(T2.shape[0]*i) for i in [n_replicates]]
+            
+            Y2_all_c = SP.tile(Y2_c,len(gene_names)).reshape(len(gene_names),-1)
+            Y2_all_r = SP.tile(Y2_r,len(gene_names)).reshape(Y2_all_c.shape)
+            
+            Y2_all = Y2_all_r + Y2_all_c
+            Y2_all = scipy.atleast_2d(Y2_all).T 
+            
+            Y_comm = SP.concatenate((Y1_conf,Y2_conf))+Y2_all
+        else:
+            # or draw from a GP:
+            Y_conf = []
+            NRT = n_replicates*gene_length
+            X = scipy.randn(NRT,components)
+            sigma = .01        
+            Y_conf = scipy.array([scipy.dot(cholesky(lvm_covariance.K(hyperparams['covar'],X)+sigma*scipy.eye(NRT)),scipy.randn(NRT,1)).flatten() for i in range(len(gene_names))]).T
+            Y_comm += Y_conf
+            pass
+    
+    # Simulate linear Kernel by PCA estimation:
+    
+    pylab.figure()
+    pylab.pcolor(SP.dot(Y_conf,Y_conf.T))
+    pylab.colorbar()
+    pylab.title(r"confounders")
+
+    X_pca = gplvm.PCA(Y_comm, components)[0]
+    #SP.concatenate((X01, X02)).copy()#
+        
     T = SP.tile(T1,n_replicates).reshape(-1,1)
     # Get X right:
 #    X0 = SP.concatenate((T.copy(),X_pca.copy()),axis=1)
@@ -127,7 +142,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     g = gplvm.GPLVM(gplvm_dimensions=xrange(components),covar_func=lvm_covariance,likelihood=likelihood,x=X0,y=Y_comm)
     
     bounds = {}
-    bounds['lik'] = SP.array([[-5.,5.]]*Y2.shape[1])
+    bounds['lik'] = SP.array([[-5.,5.]]*Y2_conf.shape[1])
     
     # Filter for scalar factor
     Ifilter={'covar':SP.array([1,1,1]), 'lik':SP.ones(1), 'x':SP.array([1,1,1,1,1,1])}
@@ -157,18 +172,22 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     
     pylab.figure()
     pylab.pcolor(X_conf_comm)
+    pylab.colorbar()
     pylab.title("learned confounders")
 
     #hyperparamters
     dim = 1
-    replicate_indices_1 = []
-    for rep in SP.arange(n_replicates_1):
-        replicate_indices_1.extend(SP.repeat(rep,gene_length))
-    replicate_indices_1 = SP.array(replicate_indices_1)
-    replicate_indices_2 = []
-    for rep in SP.arange(n_replicates_2):
-        replicate_indices_2.extend(SP.repeat(rep,gene_length))
-    replicate_indices_2 = SP.array(replicate_indices_2)
+    replicate_indices_1=None
+    replicate_indices_2=None
+    if timeshift:
+        replicate_indices_1 = []
+        for rep in SP.arange(n_replicates_1):
+            replicate_indices_1.extend(SP.repeat(rep,gene_length))
+        replicate_indices_1 = SP.array(replicate_indices_1)
+        replicate_indices_2 = []
+        for rep in SP.arange(n_replicates_2):
+            replicate_indices_2.extend(SP.repeat(rep,gene_length))
+        replicate_indices_2 = SP.array(replicate_indices_2)
     #n_replicates = len(SP.unique(replicate_indices))
 #    
 #    logthetaCOVAR = [1,1]
@@ -192,13 +211,13 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     covar_priors_individual = []
     covar_priors = []
     #scale
-    covar_priors_common.append([lnpriors.lnGammaExp,[1,2]])
-    covar_priors_individual.append([lnpriors.lnGammaExp,[1,2]])
-    covar_priors.append([lnpriors.lnGammaExp,[1,2]])
+    covar_priors_common.append([lnpriors.lnGammaExp,[2,1]])
+    covar_priors_individual.append([lnpriors.lnGammaExp,[2,1]])
+    covar_priors.append([lnpriors.lnGammaExp,[2,1]])
     for i in range(dim):
-        covar_priors_common.append([lnpriors.lnGammaExp,[1,1]])
-        covar_priors_individual.append([lnpriors.lnGammaExp,[1,1]])
-        covar_priors.append([lnpriors.lnGammaExp,[1,1]])
+        covar_priors_common.append([lnpriors.lnGammaExp,[3,1]])
+        covar_priors_individual.append([lnpriors.lnGammaExp,[3,1]])
+        covar_priors.append([lnpriors.lnGammaExp,[3,1]])
     #shift
     if timeshift:
         for i in range(n_replicates):
@@ -262,15 +281,19 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     T1 = SP.tile(T1,n_replicates_1).reshape(-1, 1)
     T2 = SP.tile(T2,n_replicates_2).reshape(-1, 1)
     #loop through genes
-    for gene_name in gene_names:
-        try:
-            #PL.close()
-            #PL.close()
+    for i,gene_name in enumerate(gene_names):
+#        try:
             if gene_name is "input":
                 continue
             #expression levels: replicates x #time points
-            Y0 = cond1[gene_name]
-            Y1 = cond2[gene_name]
+            if simulate_confounders:
+                Y0 = Y_comm[:len(T1/2),i]
+                Y1 = Y_comm[len(T1/2):,i]
+            else:
+                Y0 = cond1[gene_name]
+                Y1 = cond2[gene_name]
+            
+                
             #create data structure for GPTwwoSample:
             #note; there is no need for the time points to be aligned for all replicates
             #creates score and time local predictions
@@ -295,44 +318,61 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
             line.extend(individual)
             csv_out.writerow(line)
             
-            #print 'plotting %s'%(gene_name)
-            #plot_results(twosample_object,
-            #             title=r'%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
-            #             shift=twosample_object.get_learned_hyperparameters()[common_id]['covar'][2:2+2*n_replicates],
-            #             draw_arrows=1)
-            #PL.xlim(T1.min(), T1.max())
-            #PL.savefig("out/GPTwoSample_%s_raw.png"%(gene_name),format='png')
-            #PL.figure()
+            pylab.figure()
+            shift = None
+            if timeshift:
+                shift=SP.concatenate((replicate_indices_1,replicate_indices_2+n_replicates_1))
+            print 'plotting %s'%(gene_name)
+            plot_results(twosample_object,
+                         title=r'%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
+                         shift=shift,
+                         draw_arrows=1)
+            pylab.xlim(T1.min(), T1.max())
+            pylab.savefig("out/GPTwoSample_%s_%s_confounder.png"%(gene_name,components),format='png')
+            pylab.close()
+            pylab.figure()
             
-            #yres_1 = g.predict(opt_hyperparams_1,opt_hyperparams_1['x'],var=False,output=components)
-            #yres_2 = g.predict(opt_hyperparams_2,opt_hyperparams_2['x'],var=False,output=components)
-            #yres_comm = g.predict(opt_hyperparams_comm,opt_hyperparams_comm['x'],var=False,output=components)
-            #yres_len = yres_comm.shape[0]
-            #yres_1 = yres_comm[:yres_len/2]
-            #yres_2 = yres_comm[yres_len/2:]
+            twosample_object.set_data_by_xy_data(T1, T2, Y1_raw[:,i].reshape(-1,1), Y2_raw[:,i].reshape(-1,1))
+            twosample_object.predict_model_likelihoods()
+            twosample_object.predict_mean_variance(Tpredict)
             
-            #twosample_object.set_data(get_training_data_structure(SP.tile(T1,Y0.shape[0]).reshape(-1, 1),
-            #                                                      SP.tile(T2,Y1.shape[0]).reshape(-1, 1),
-            #                                                      (Y0.reshape(-1)-yres_1).reshape(-1, 1),
-            #                                                      (Y1.reshape(-1)-yres_2).reshape(-1, 1)))
-            #twosample_object.predict_model_likelihoods()
-            #twosample_object.predict_mean_variance(Tpredict)
-    #        plot_results(twosample_object,
-    #                     title=r'%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
-    #                     shift=twosample_object.get_learned_hyperparameters()[common_id]['covar'][2:2+2*n_replicates],
-    #                     draw_arrows=1)
-    #        PL.xlim(T1.min(), T1.max())
-    #        
-    #        PL.savefig("out/GPTwoSample_%s_confounder.png"%(gene_name),format='png')
-            ## wait for window close
-            #import pdb;pdb.set_trace()
-        except:
-            import sys
-            print "Caught Failure on gene %s: " % (gene_name),sys.exc_info()[0]
-            print "Genes left: %i"%(still_to_go)
-        finally:
+            plot_results(twosample_object,
+                         title=r'RAW: %s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
+                         shift=shift,
+                         draw_arrows=1)
+            pylab.xlim(T1.min(), T1.max())
+            pylab.savefig("out/GPTwoSample_%s_raw.png"%(gene_name),format='png')
+            pylab.close()
+            
+#            yres_1 = g.predict(opt_hyperparams_1,opt_hyperparams_1['x'],var=False,output=components)
+#            yres_2 = g.predict(opt_hyperparams_2,opt_hyperparams_2['x'],var=False,output=components)
+#            yres_comm = g.predict(opt_hyperparams_comm,opt_hyperparams_comm['x'],var=False,output=components)
+#            yres_len = yres_comm.shape[0]
+#            yres_1 = yres_comm[:yres_len/2]
+#            yres_2 = yres_comm[yres_len/2:]
+#            
+#            twosample_object.set_data(get_training_data_structure(SP.tile(T1,Y0.shape[0]).reshape(-1, 1),
+#                                                                  SP.tile(T2,Y1_conf.shape[0]).reshape(-1, 1),
+#                                                                  (Y0.reshape(-1)-yres_1).reshape(-1, 1),
+#                                                                  (Y1_conf.reshape(-1)-yres_2).reshape(-1, 1)))
+#            twosample_object.predict_model_likelihoods()
+#            twosample_object.predict_mean_variance(Tpredict)
+#            plot_results(twosample_object,
+#                         title=r'%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
+#                         shift=twosample_object.get_learned_hyperparameters()[common_id]['covar'][2:2+2*n_replicates],
+#                         draw_arrows=1)
+#            PL.xlim(T1.min(), T1.max())
+#            
+#            PL.savefig("out/GPTwoSample_%s_confounder.png"%(gene_name),format='png')
+#            ## wait for window close
+#            #import pdb;pdb.set_trace()
+#        except:
+#            import sys
+#            print "Caught Failure on gene %s: " % (gene_name),sys.exc_info()
+#            print "Genes left: %i"%(still_to_go)
+#        finally:
             still_to_go -= 1
-        pass
+            
 
 if __name__ == '__main__':
     #for i in xrange(1,9):
