@@ -96,6 +96,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     Y_comm = SP.concatenate((Y1_conf,Y2_conf))
 
     if simulate_confounders:
+        print "simulating confounders"
         if 0:
             # Nicolo's way of simulating confounders
             Y2_r = [scipy.random.randn(T2.shape[0]) for i in range(n_replicates)]
@@ -105,27 +106,28 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
             Y2_all_r = SP.tile(Y2_r,len(gene_names)).reshape(Y2_all_c.shape)
             
             Y2_all = Y2_all_r + Y2_all_c
-            Y2_all = scipy.atleast_2d(Y2_all).T 
+            Y2_conf = scipy.atleast_2d(Y2_all).T 
             
-            Y_comm = SP.concatenate((Y1_conf,Y2_conf))+Y2_all
+            Y_comm = SP.concatenate((Y1_conf,Y2_conf))+Y2_conf
         else:
             # or draw from a GP:
-            Y_conf = []
             NRT = n_replicates*gene_length
             X = scipy.randn(NRT,components)
             sigma = .01        
-            Y_conf = scipy.array([scipy.dot(cholesky(lvm_covariance.K(hyperparams['covar'],X)+sigma*scipy.eye(NRT)),scipy.randn(NRT,1)).flatten() for i in range(len(gene_names))]).T
+            Y_conf = scipy.array([scipy.dot(cholesky(lvm_covariance.K(hyperparams['covar'],X)+sigma*scipy.eye(NRT)),
+                                            scipy.randn(NRT,1)).flatten() for i in range(len(gene_names))]).T
             Y_comm += Y_conf
             pass
     
-    # Simulate linear Kernel by PCA estimation:
-    
-    pylab.figure()
-    pylab.pcolor(SP.dot(Y_conf,Y_conf.T))
-    pylab.colorbar()
-    pylab.title(r"confounders")
+        pylab.figure()
+        pylab.pcolor(SP.dot(Y_conf,Y_conf.T))
+        pylab.colorbar()
+        pylab.title(r"confounders")
 
+    # Simulate linear Kernel by PCA estimation:    
+    print "running pca"
     X_pca = gplvm.PCA(Y_comm, components)[0]
+    X_pca += 0.1*SP.random.randn(X_pca.shape[0], X_pca.shape[1])
     #SP.concatenate((X01, X02)).copy()#
         
     T = SP.tile(T1,n_replicates).reshape(-1,1)
@@ -170,10 +172,11 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     
     X_conf_comm = SP.dot(X_conf_comm, X_conf_comm.T) 
     
-    pylab.figure()
-    pylab.pcolor(X_conf_comm)
-    pylab.colorbar()
-    pylab.title("learned confounders")
+    if simulate_confounders:
+        pylab.figure()
+        pylab.pcolor(X_conf_comm)
+        pylab.colorbar()
+        pylab.title("learned confounders")
 
     #hyperparamters
     dim = 1
@@ -376,5 +379,5 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
 
 if __name__ == '__main__':
     #for i in xrange(1,9):
-    #    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=i)
-    run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv', simulate_confounders=True)
+    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=4, simulate_confounders=True)
+    #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv', simulate_confounders=True)
