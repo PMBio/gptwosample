@@ -51,7 +51,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     grad_check = False
     learn_X = True
     print "Number of components: %i"%components
-    out_path = 'simulated_learned_confounders_LinearCF'
+    out_path = 'simulated_learned_confounders_ProductCF_strict_priors'
     out_file = "%i_confounder.csv"%(components)
     print "writing to file: %s/%s"%(out_path,out_file)
 
@@ -97,7 +97,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
         if 0:
             Y_comm += get_simulated_confounders_nicolo(T2, gene_names, n_replicates, Y1_conf, Y2_conf)
         else:
-            Y_comm += get_simulated_confounders_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams)
+            Y_comm += get_simulated_confounders_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams, T)
             
     Y_dict = dict([[name, Y_comm[i]] for i,name in enumerate(cond1.keys())])
     
@@ -347,10 +347,10 @@ def get_simulated_confounders_nicolo(T2, gene_names, n_replicates, Y1_conf, Y2_c
     return Y_comm
 
 
-def get_simulated_confounders_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams):
+def get_simulated_confounders_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams, T):
     # or draw from a GP:
-    NRT = n_replicates * gene_length #            X = SP.concatenate((T.copy().T,scipy.randn(NRT,components).T)).T
-    X = scipy.randn(NRT, components)
+    NRT = n_replicates * gene_length 
+    X = SP.concatenate((T.copy().T,scipy.randn(NRT,components).T)).T
     sigma = 1e-6
     Y_conf = scipy.array([scipy.dot(cholesky(lvm_covariance.K(hyperparams['covar'], X) + sigma * scipy.eye(NRT)), scipy.randn(NRT, 1)).flatten() for i in range(len(gene_names))])
     return Y_conf
