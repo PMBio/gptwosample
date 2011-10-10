@@ -7,14 +7,10 @@ from gptwosample.data.dataIO import get_data_from_csv
 from pygp.priors import lnpriors
 from gptwosample.data.data_base import get_model_structure
 import scipy
-from pygp import likelihood
-from pygp.covar.combinators import ProductCF
-from pygp.covar.fixed import FixedCF
-from pygp.covar.linear import LinearCFISO
+from pygp import likelihood, covar
+from pygp.covar import se,gradcheck
 from pygp.gp import gplvm
-from pygp.covar import gradcheck
 from pygp.optimize.optimize_base import opt_hyper
-from pygp.covar.se import SqexpCFARD
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -45,24 +41,24 @@ def run_demo(cond1_file,cond2_file):
     # starting point for confounder learning 
     X_pca = gplvm.PCA(Y_comm, components)[0]
     X_pca += 0.1*scipy.random.randn(X_pca.shape[0], X_pca.shape[1])
-    X0 = scipy.concatenate((T,X_pca.copy()),1)
+    X0 = X_pca.copy()#scipy.concatenate((T,X_pca.copy()),1)
     
     # LVM covariance
     #lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components),FixedCF(scipy.eye(n_replicates*gene_length))))
     #lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components),LinearCFISO(n_dimensions=components)))
     #lvm_covariance = ProductCF((FixedCF(scipy.eye(n_replicates*gene_length)),FixedCF(scipy.eye(n_replicates*gene_length))))
-    lvm_covariance = ProductCF((SqexpCFARD(dimension_indices=[0]),(LinearCFISO(dimension_indices=xrange(1,1+components)))))
-    #lvm_covariance = ProductCF((SqexpCFARD(),SqexpCFARD()))
+    #lvm_covariance = ProductCF((SqexpCFARD(dimension_indices=[0]),(LinearCFISO(dimension_indices=xrange(1,1+components)))))
+    lvm_covariance = se.SqexpCFARD(n_dimensions=components)
     
     # LVM paramteters
-    hyperparams = {'covar': scipy.log([1,1,1])}
+    hyperparams = {'covar': scipy.log([1,1,1,1,1])}
     hyperparams['x'] = X_pca.copy()
     # noise likelihood
     lik = likelihood.GaussLikISO()
     hyperparams['lik'] = scipy.log([0.2])
     
     # get GPLVM instance
-    g = gplvm.GPLVM(gplvm_dimensions=xrange(1,1+components),covar_func=lvm_covariance,likelihood=lik,x=X0,y=Y_comm)
+    g = gplvm.GPLVM(gplvm_dimensions=xrange(4),covar_func=lvm_covariance,likelihood=lik,x=X0,y=Y_comm)
     
     # run gplvm on data for testing purpose
     gradcheck.grad_check_Kx(lvm_covariance, hyperparams['covar'], X0)

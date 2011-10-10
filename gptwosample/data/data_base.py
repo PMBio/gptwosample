@@ -30,7 +30,10 @@ def get_model_structure(individual=None, common=None):
     Returns the valid structure for model dictionaries, used in gptwosample.
     Make sure to use this method if you want to use the model structure in this package!
     """
-    return {individual_id:individual, common_id:common}
+    if common is not None:
+        return {individual_id:individual, common_id:common}
+    else:
+        return {individual_id:individual, common_id:individual}
 
 def has_model_structure(structure):
     """
