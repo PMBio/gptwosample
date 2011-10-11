@@ -51,7 +51,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     grad_check = False
     learn_X = True
     print "Number of components: %i"%components
-    out_path = 'simulated_learned_confounders_ProductCF_strict_priors'
+    out_path = 'simulated_learned_confounders_ProductCF_strict_priors_100'
     out_file = "%i_confounder.csv"%(components)
     print "writing to file: %s/%s"%(out_path,out_file)
 
@@ -214,7 +214,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
                 Y0 = cond1[gene_name]
                 Y1 = cond2[gene_name]
 
-            pdb.set_trace()
+            #pdb.set_trace()
                 
             #create data structure for GPTwwoSample:
             #note; there is no need for the time points to be aligned for all replicates
@@ -436,5 +436,5 @@ def get_priors(timeshift, n_replicates_1, n_replicates, dim):
 
 if __name__ == '__main__':
 #    for i in xrange(1,5):
-    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=4, simulate_confounders=True)
+    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=1, simulate_confounders=True)
     #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv', simulate_confounders=True)
