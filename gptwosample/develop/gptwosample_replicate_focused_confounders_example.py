@@ -193,7 +193,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     csv_out_no_conf.writerow(header_no_conf)
     
     print 'sorting out genes not in ground truth'
-    gt_reader = csv.reader(open('../examples/ground_truth_random_genes.csv','r'))
+    gt_reader = csv.reader(open('../examples/ground_truth_balanced_set_of_100.csv','r'))
     gt_gene_names = []
     for line in gt_reader:
         gt_gene_names.append(line[0].upper())
@@ -213,7 +213,8 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
             else:
                 Y0 = cond1[gene_name]
                 Y1 = cond2[gene_name]
-            
+
+            pdb.set_trace()
                 
             #create data structure for GPTwwoSample:
             #note; there is no need for the time points to be aligned for all replicates
@@ -352,8 +353,12 @@ def get_simulated_confounders_GP(components, gene_names, n_replicates, gene_leng
     NRT = n_replicates * gene_length 
     X = SP.concatenate((T.copy().T,scipy.randn(NRT,components).T)).T
     sigma = 1e-6
-    Y_conf = scipy.array([scipy.dot(cholesky(lvm_covariance.K(hyperparams['covar'], X) + sigma * scipy.eye(NRT)), scipy.randn(NRT, 1)).flatten() for i in range(len(gene_names))])
-    return Y_conf
+    # Y_conf = scipy.array([scipy.dot(cholesky(lvm_covariance.K(hyperparams['covar'], X) + sigma * scipy.eye(NRT)), scipy.randn(NRT, 1)).flatten() for i in range(len(gene_names))])
+
+    X = SP.random.randn(NRT,components)
+    W = SP.random.randn(components, len(gene_names))*0.5
+    Y_conf = SP.dot(X, W)
+    return Y_conf.T
 
 
 def calculate_replicate_stuff(timeshift, n_replicates_1, n_replicates_2, gene_length):
