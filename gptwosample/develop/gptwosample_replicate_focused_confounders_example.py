@@ -80,7 +80,7 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
     lvm_covariance = ProductCF((SqexpCFARD(dimension_indices=[0]),
                                 linear.LinearCFISO(dimension_indices=xrange(1,components+1))),
                                n_dimensions=components+1)
-    hyperparams = {'covar': SP.log([1.1,1.2,1])}
+    hyperparams = {'covar': SP.log([1.1,1.2,.4])}
     
     # no product for simulation and testing purpose
 #    lvm_covariance = linear.LinearCFISO(n_dimensions=components)
