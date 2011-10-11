@@ -45,8 +45,12 @@ def run_demo(cond1_file,cond2_file):
     
     X = scipy.randn(timepoints,components)
     sigma = 1e-6
-    Y_comm = scipy.array([scipy.dot(cholesky(lvm_covariance.K([1,.5], X) + sigma 
-                                             * scipy.eye(timepoints)), scipy.randn(timepoints, 1)).flatten() for i in range(10)])
+    
+    W = sigma*scipy.eye(timepoints)
+    Y_comm = scipy.dot(W,X)
+    
+#    Y_comm = scipy.array([scipy.dot(cholesky(lvm_covariance.K([1,.5], X) + sigma 
+#                                             * scipy.eye(timepoints)), scipy.eye(timepoints, 1)).flatten() for i in range(10)])
         
     # Get all outputs for traiing
 #    Y1_conf = scipy.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
@@ -59,7 +63,7 @@ def run_demo(cond1_file,cond2_file):
     X0 = X_pca.copy()#scipy.concatenate((T,X_pca.copy()),1)
     
     # LVM paramteters
-    hyperparams = {'covar': scipy.log([1,1,1,1,1])}
+    hyperparams = {'covar': scipy.log([1,1])}
     hyperparams['x'] = X_pca.copy()
     # noise likelihood
     lik = likelihood.GaussLikISO()
