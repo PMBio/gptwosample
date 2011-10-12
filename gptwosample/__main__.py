@@ -326,14 +326,18 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
     if plotting:
         from pylab import xlim, show, savefig, clf
         from gptwosample.plot.plot_basic import plot_results
-        
+
+    iterations_left = len(gene_names) - 1
+    
     for gene_name in gene_names:
         Y0 = cond1[gene_name].reshape(-1,1)
         Y1 = cond2[gene_name].reshape(-1,1)
 #        if(plotting):
 #            rep0 = get_replicate_indices(Y0)
 #            rep1 = get_replicate_indices(Y1)
-        if verbose: print("GPTwoSample:Processing %s" % (gene_name))
+        print("GPTwoSample:Processing gene %s, genes left: %i" % (gene_name, iterations_left))
+        iterations_left -= 1
+        
         gptwosample_object.set_data_by_xy_data(T1,T2,
                                                Y0,Y1)
         gptwosample_object.predict_model_likelihoods()

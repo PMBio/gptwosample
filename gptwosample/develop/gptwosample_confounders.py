@@ -20,8 +20,12 @@ import os
 import csv
 from gptwosample.twosample.twosample_compare import GPTwoSample_individual_covariance
 from numpy.linalg.linalg import cholesky
+import pdb
+import logging
 
 def run_demo(cond1_file, cond2_file):
+    logging.basicConfig(level=logging.INFO)
+
     #1. read csv file
     print 'reading files'
     cond1 = get_data_from_csv(cond1_file, delimiter=',')
@@ -52,7 +56,8 @@ def run_demo(cond1_file, cond2_file):
 
     # get Y values for all genes
     Y = SP.concatenate((Y1,Y2),1).reshape(Y1.shape[0],-1)
-    Y_confounded = Y+sample_confounders_linear(components, gene_names, n_replicates, gene_length)
+    simulated_confounders, W = sample_confounders_linear(components, gene_names, n_replicates, gene_length)
+    Y_confounded = Y+simulated_confounders
     
     Y_dict = dict([[name, {'confounded':Y_confounded[i],'raw':Y[i]}] for i,name in enumerate(cond1.keys())])
 
@@ -80,8 +85,9 @@ def run_demo(cond1_file, cond2_file):
     # run lvm on data
     print "running standard gplvm"
     [opt_hyperparams_comm, opt_lml2] = opt_hyper(g, hyperparams, gradcheck=True)
-    
-    mean_predicted_confounders = g.predict(opt_hyperparams_comm, Tpredict)
+
+    pdb.set_trace()
+    #mean_predicted_confounders = g.predict(opt_hyperparams_comm, Tpredict)
     
     # Adjust Confounders for proper kernel usage
     learned_confounders = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])    
@@ -199,7 +205,7 @@ def sample_confounders_linear(components, gene_names, n_replicates, gene_length)
     X = SP.random.randn(NRT,components)
     W = SP.random.randn(components, len(gene_names))*0.5
     Y_conf = SP.dot(X, W)
-    return Y_conf.T
+    return Y_conf.T, W
 
 if __name__ == '__main__':
     run_demo(cond1_file='./../examples/warwick_control.csv', cond2_file='../examples/warwick_treatment.csv')
