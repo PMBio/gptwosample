@@ -52,7 +52,7 @@ def run_demo(cond1_file,cond2_file):
 #    Y_comm = scipy.array([scipy.dot(cholesky(lvm_covariance.K([1,.5], X) + sigma 
 #                                             * scipy.eye(timepoints)), scipy.eye(timepoints, 1)).flatten() for i in range(10)])
         
-    # Get all outputs for traiing
+    # Get all outputs for training
 #    Y1_conf = scipy.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
 #    Y2_conf = scipy.array(cond2.values()).reshape(T2.shape[0]*n_replicates_2,-1)
 #    Y_comm = scipy.concatenate((Y1_conf,Y2_conf))

@@ -4,7 +4,7 @@ Small Example application of GPTwoSample with confounder detection
 
 Created on Jun 9, 2011
 
-@author: Max Zwiessele, Oliver Stegle
+@author: Max Zwiessele, Oliver Stegle, Nicolò Fusi
 '''
 from gptwosample.data.dataIO import get_data_from_csv
 from gptwosample.data.data_base import get_model_structure, \
@@ -296,15 +296,15 @@ def run_demo(cond1_file, cond2_file, components=4, simulate_confounders = False)
             pylab.xlim(T1.min(), T1.max())
             pylab.savefig(os.path.join(plot_path, "%s_%s_raw.png"%(gene_name,components)),format='png')
             
-            line = [gene_name, twosample_no_conf_object.bayes_factor()]
-            common = twosample_no_conf_object.get_learned_hyperparameters()[common_id]['covar']
-            individual = twosample_no_conf_object.get_learned_hyperparameters()[individual_id]['covar']
-            common = scipy.exp(common)
-            individual = scipy.exp(individual)        
-            line.extend(common)
-            line.extend(individual)
-            csv_out_no_conf.writerow(line)
-            
+#            line = [gene_name, twosample_no_conf_object.bayes_factor()]
+#            common = twosample_no_conf_object.get_learned_hyperparameters()[common_id]['covar']
+#            individual = twosample_no_conf_object.get_learned_hyperparameters()[individual_id]['covar']
+#            common = scipy.exp(common)
+#            individual = scipy.exp(individual)        
+#            line.extend(common)
+#            line.extend(individual)
+#            csv_out_no_conf.writerow(line)
+#            
             ################## plotting <<<<<<<<<<<<<<< 
             
 #            yres_1 = g.predict(opt_hyperparams_1,opt_hyperparams_1['x'],var=False,output=components)
@@ -436,5 +436,5 @@ def get_priors(timeshift, n_replicates_1, n_replicates, dim):
 
 if __name__ == '__main__':
 #    for i in xrange(1,5):
-    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=1, simulate_confounders=True)
+    run_demo(cond1_file = './../examples/warwick_control.csv', cond2_file = '../examples/warwick_treatment.csv',components=4, simulate_confounders=True)
     #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv', simulate_confounders=True)
