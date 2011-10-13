@@ -86,8 +86,19 @@ def run_demo(cond1_file, cond2_file):
     print "running standard gplvm"
     [opt_hyperparams_comm, opt_lml2] = opt_hyper(g, hyperparams, gradcheck=True)
 
+    # Here comes the analysis: >>>>
     pdb.set_trace()
-    #mean_predicted_confounders = g.predict(opt_hyperparams_comm, Tpredict)
+    # Note: simulated confounders is W*X
+
+    mean_predicted_confounders = g.predict(opt_hyperparams_comm, g.x) # 
+    Y_wx=SP.tile(Y_mean[0].reshape(-1,1),simulated_confounders.shape[0]) # >>> Here might be the mistake <<<
+    Y2 = Y_confounded-Y_wx
+
+    SP.mean((Y-Y2)**2)
+    SP.mean((Y_confounded-Y)**2)
+    SP.mean((Y_wx - simulated_confounders)**2)
+    
+    # end of analysis <<<<
     
     # Adjust Confounders for proper kernel usage
     learned_confounders = opt_hyperparams_comm['x'] * SP.exp(opt_hyperparams_comm['covar'][2])    
