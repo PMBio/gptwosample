@@ -75,24 +75,24 @@ def run_demo(cond1_file, cond2_file, components = 4):
     for gene_name in gt_names:
         if gene_name is "input":
             continue
-	gene_name = gene_name.upper()
+        gene_name = gene_name.upper()
         print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
 
-	twosample_object = GPTwoSample_share_covariance(covar_conf, priors=priors_conf)
-        run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
+        twosample_object_conf = GPTwoSample_share_covariance(covar_conf, priors=priors_conf)
+        run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                 Y_dict[gene_name]['confounded'][:len(T1)],
                                 Y_dict[gene_name]['confounded'][len(T1):], 
                                 gene_name)
 
-	twosample_object = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
-        run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
+        twosample_object_normal = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
+        run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                 Y_dict[gene_name]['confounded'][:len(T1)],
                                 Y_dict[gene_name]['confounded'][len(T1):], 
                                 gene_name)
 
         still_to_go -= 1
-	pdb.set_trace()
-	
+        pdb.set_trace()
+
 def write_back_data(twosample_object, gene_name, csv_out):
     line = [gene_name, twosample_object.bayes_factor()]
     common = twosample_object.get_learned_hyperparameters()[common_id]['covar']
@@ -144,8 +144,8 @@ def get_priors(dim, confounders):
         covar_priors_individual.append([lnpriors.lnGammaExp, [30, .1]])
 
     if confounders:
-	covar_priors_common.append([lnpriors.lnuniformpdf, [0, 0]])
-	covar_priors_individual.append([lnpriors.lnuniformpdf, [0, 0]])
+        covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
+        covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
     #noise
     for i in range(1):
         covar_priors_common.append([lnpriors.lnGammaExp, [1, .5]])
@@ -190,8 +190,8 @@ def run_gplvm(Y_confounded, T, Y2, components = 4, only_pca = True):
 			    LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 5))),
 			   n_dimensions=components + 1)
     hyperparams = {'covar': SP.log([1, 1, 1.2])}
-    linear_cf = LinearCFISO(n_dimensions=components)
-    mu_cf = FixedCF(SP.ones([Y_confounded.shape[0],Y_confounded.shape[0]]))
+    #linear_cf = LinearCFISO(n_dimensions=components)
+    #mu_cf = FixedCF(SP.ones([Y_confounded.shape[0],Y_confounded.shape[0]]))
     lvm_covariance = combinators.SumCF((mu_cf, linear_cf))
     hyperparams = {'covar': SP.log([1, 1])}
 
@@ -200,7 +200,7 @@ def run_gplvm(Y_confounded, T, Y2, components = 4, only_pca = True):
     X_pca = gplvm.PCA(Y_confounded, components)[0]
 
     if only_pca:
-	return X_pca
+        return X_pca
     
     # Get X right:
     X0 = SP.concatenate((T.copy(), X_pca.copy()), axis=1) 
@@ -221,7 +221,7 @@ def run_gplvm(Y_confounded, T, Y2, components = 4, only_pca = True):
     # Adjust Confounders for proper kernel usage
     X = opt_hyperparams_comm['x']# * SP.exp(opt_hyperparams_comm['covar'][2]) 
 
-    return X
+    return X, SP.exp(opt_hyperparams_comm['covar'][2])
 
 if __name__ == '__main__':
     run_demo(cond1_file='./../examples/warwick_control.csv', cond2_file='../examples/warwick_treatment.csv')

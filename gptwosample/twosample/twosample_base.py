@@ -69,7 +69,7 @@ class GPTwoSample(object):
         self._invalidate_cache()
     
     def set_data_by_xy_data(self, x1, x2, y1, y2):
-        X = [x1,x2]; Y=[y1,y2]
+        X = [x1, x2]; Y = [y1, y2]
         # set individual model's data
         self._models[individual_id].setData(X, Y)
         # set common model's data
@@ -92,7 +92,7 @@ class GPTwoSample(object):
 
         """
         try:                
-            self.set_data_by_xy_data(training_data[input_id]['group_1'], 
+            self.set_data_by_xy_data(training_data[input_id]['group_1'],
                                      training_data[input_id]['group_2'],
                                      training_data[output_id]['group_1'],
                                      training_data[output_id]['group_2'])
