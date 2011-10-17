@@ -13,12 +13,13 @@ from pygp.gp import gplvm
 from pygp.optimize.optimize_base import opt_hyper
 import logging
 from numpy.linalg.linalg import cholesky
+from pygp.covar import dist
 
 logging.basicConfig(level=logging.INFO)
 
 def run_demo(cond1_file,cond2_file):
     # settings
-    components = 1
+    components = 12
     
 #    # Data Values
 #    cond1 = get_data_from_csv(cond1_file)
@@ -43,14 +44,14 @@ def run_demo(cond1_file,cond2_file):
     
     timepoints = 12
     
-    X = scipy.randn(timepoints,components)
+    X = scipy.tile(scipy.arange(0, timepoints).reshape(-1,1),components)#scipy.randn(timepoints,components)
     sigma = 1e-6
     
     W = sigma*scipy.eye(timepoints)
     Y_comm = scipy.dot(W,X)
     
-#    Y_comm = scipy.array([scipy.dot(cholesky(lvm_covariance.K([1,.5], X) + sigma 
-#                                             * scipy.eye(timepoints)), scipy.eye(timepoints, 1)).flatten() for i in range(10)])
+#    Y_comm = scipy.array([scipy.dot(cholesky(lvm_covariance.K(scipy.log([1 for i in range(components+1)]), X) + sigma 
+#                                             * scipy.eye(timepoints)), scipy.eye(timepoints, 1)).flatten() for i in range(timepoints)])
         
     # Get all outputs for training
 #    Y1_conf = scipy.array(cond1.values()).reshape(T1.shape[0]*n_replicates_1,-1)
@@ -63,7 +64,8 @@ def run_demo(cond1_file,cond2_file):
     X0 = X_pca.copy()#scipy.concatenate((T,X_pca.copy()),1)
     
     # LVM paramteters
-    hyperparams = {'covar': scipy.log([1,1])}
+    logtheta = scipy.log([3 for i in range(components+1)])
+    hyperparams = {'covar': logtheta}
     hyperparams['x'] = X_pca.copy()
     # noise likelihood
     lik = likelihood.GaussLikISO()

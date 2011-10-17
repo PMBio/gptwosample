@@ -91,7 +91,7 @@ def run_demo(cond1_file, cond2_file):
     # Note: simulated confounders is W*X
 
     mean_predicted_confounders = g.predict(opt_hyperparams_comm, g.x) # 
-    Y_wx=SP.tile(Y_mean[0].reshape(-1,1),simulated_confounders.shape[0]) # >>> Here might be the mistake <<<
+    Y_wx=SP.tile(mean_predicted_confounders[0].reshape(-1,1),simulated_confounders.shape[0]) # >>> Here might be the mistake <<<
     Y2 = Y_confounded-Y_wx
 
     SP.mean((Y-Y2)**2)
