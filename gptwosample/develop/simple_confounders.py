@@ -62,14 +62,30 @@ def run_demo(cond1_file, cond2_file, components = 4):
     # covar_conf = SumCF((ProductCF((SECF,confounderCF)), noiseCF))
     covar_conf = SumCF((SumCF((SECF,confounderCF)), noiseCF))    
 
-    still_to_go = len(gene_names)
     T1 = SP.tile(T1, n_replicates_1).reshape(-1, 1)
     T2 = SP.tile(T2, n_replicates_2).reshape(-1, 1)
 
+    # get csv files to write to
+    out_dir = "./simple_confounders/"
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    out_conf = csv.writer(open(os.path.join(out_dir,"conf.csv"),'wb'))
+    out_normal = csv.writer(open(os.path.join(out_dir,"normal.csv"),'wb'))
+    
+    first_line = ["gene name","bayes factor"]
+    first_line.extend(map(lambda x:"Common: "+x,covar_conf.get_hyperparameter_names()))
+    first_line.extend(map(lambda x:"Individual: "+x,covar_conf.get_hyperparameter_names()))
+    out_conf.writerow(first_line)
+    first_line = ["gene name","bayes factor"]
+    first_line.extend(map(lambda x:"Common: "+x,covar_normal.get_hyperparameter_names()))
+    first_line.extend(map(lambda x:"Individual: "+x,covar_normal.get_hyperparameter_names()))
+    out_normal.writerow(first_line)
+    
     # get ground truth genes for comparison:
     gt_names = []
     for [name,val] in csv.reader(open("../examples/ground_truth_balanced_set_of_100.csv",'r')):
         gt_names.append(name)
+    still_to_go = len(gt_names)
     
     #loop through genes
     for gene_name in gt_names:
@@ -82,16 +98,18 @@ def run_demo(cond1_file, cond2_file, components = 4):
         run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                 Y_dict[gene_name]['confounded'][:len(T1)],
                                 Y_dict[gene_name]['confounded'][len(T1):], 
-                                gene_name)
+                                gene_name,os.path.join(out_dir,gene_name+"_conf"))
+        write_back_data(twosample_object_conf, gene_name, out_conf)
 
         twosample_object_normal = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
         run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                 Y_dict[gene_name]['confounded'][:len(T1)],
                                 Y_dict[gene_name]['confounded'][len(T1):], 
-                                gene_name)
-
+                                gene_name,os.path.join(out_dir,gene_name+"_normal"))
+        write_back_data(twosample_object_normal, gene_name, out_normal)
+        
         still_to_go -= 1
-        pdb.set_trace()
+        # pdb.set_trace()
 
 def write_back_data(twosample_object, gene_name, csv_out):
     line = [gene_name, twosample_object.bayes_factor()]
@@ -103,7 +121,7 @@ def write_back_data(twosample_object, gene_name, csv_out):
     line.extend(individual)
     csv_out.writerow(line)
 
-def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, n_replicates_2, Y0, Y1, gene_name):
+def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, n_replicates_2, Y0, Y1, gene_name, savename=None):
     #create data structure for GPTwwoSample:
     #note; there is no need for the time points to be aligned for all replicates
     #creates score and time local predictions
@@ -111,12 +129,17 @@ def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, 
     twosample_object.predict_model_likelihoods()
     twosample_object.predict_mean_variance(Tpredict)
 
-    pylab.figure()
+    pylab.figure(1)
+    pylab.clf()
     plot_results(twosample_object,
 		 title='%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
 		 shift=None,
 		 draw_arrows=1)
     pylab.xlim(T1.min(), T1.max())
+    
+    if savename is None:
+        savename=gene_name
+    pylab.savefig("%s.png"%(savename))
     
 def sample_confounders_from_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams, T):
         # or draw from a GP:
@@ -190,8 +213,8 @@ def run_gplvm(Y_confounded, T, Y2, components = 4, only_pca = True):
 			    LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 5))),
 			   n_dimensions=components + 1)
     hyperparams = {'covar': SP.log([1, 1, 1.2])}
-    #linear_cf = LinearCFISO(n_dimensions=components)
-    #mu_cf = FixedCF(SP.ones([Y_confounded.shape[0],Y_confounded.shape[0]]))
+    linear_cf = LinearCFISO(n_dimensions=components)
+    mu_cf = FixedCF(SP.ones([Y_confounded.shape[0],Y_confounded.shape[0]]))
     lvm_covariance = combinators.SumCF((mu_cf, linear_cf))
     hyperparams = {'covar': SP.log([1, 1])}
 

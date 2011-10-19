@@ -46,15 +46,17 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     for gene_name,result in result_data.iteritems():
         result_names.append(gene_name.upper())
         result_results.append(scipy.ndarray.flatten(result)[0])
-    result_names=scipy.array(result_names)
-    result_results=scipy.array(result_results,dtype='float')
+    result_names_sorting = scipy.argsort(result_names)
+    result_names=scipy.array(result_names)[result_names_sorting]
+    result_results=scipy.array(result_results,dtype='float')[result_names_sorting]
     ground_truth_names = []
     ground_truth_results = []
     for gene_name,truth in ground_truth_data.iteritems():
         ground_truth_names.append(gene_name.upper())
         ground_truth_results.append(scipy.ndarray.flatten(truth)[0])
-    ground_truth_names=scipy.array(ground_truth_names)
-    ground_truth_results=scipy.array(ground_truth_results,dtype='int')
+    ground_truth_sorting = scipy.argsort(ground_truth_names)
+    ground_truth_names=scipy.array(ground_truth_names)[ground_truth_sorting]
+    ground_truth_results=scipy.array(ground_truth_results,dtype='int')[ground_truth_sorting]
     #### end ####
 
     # pairwise match names, to get comparison set    
