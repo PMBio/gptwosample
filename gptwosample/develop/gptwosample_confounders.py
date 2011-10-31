@@ -93,18 +93,16 @@ def run_demo(cond1_file, cond2_file,fraction = 0.1,confounder_model='linear',com
 
             print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
             gene_index=SP.where(gene_name_hit)[0][0]
-            Y1 = Y_dict['Y'][:len(T1),gene_index]
-            Y2 = Y_dict['Y'][len(T1):,gene_index]
-
+            
             run_gptwosample_on_data(twosample_object, Tpredict, T1, T2,
-                                    Y1 - Y_dict['Y_reconstruct_PCA'][:len(T1),gene_index],
-                                    Y2 - Y_dict['Y_reconstruct_PCA'][len(T1):,gene_index])
+                                    Y_dict['Y_reconstruct_PCA'][Y_dict['condition']==0,gene_index],
+                                    Y_dict['Y_reconstruct_PCA'][Y_dict['condition']==1,gene_index])
             write_back_data(twosample_object, gene_name, csv_out_PCA)
             plot_and_save_figure(T1, twosample_object, gene_name, savename=os.path.join(out_path,"plots","%s_PCA.png"%gene_name))
             
             run_gptwosample_on_data(twosample_object, Tpredict, T1, T2,
-                                    Y1 - Y_dict['Y_reconstruct_GPLVM'][:len(T1),gene_index],
-                                    Y2 - Y_dict['Y_reconstruct_GPLVM'][len(T1):,gene_index])
+                                    Y_dict['Y_reconstruct_GPLVM'][Y_dict['condition']==0,gene_index],
+                                    Y_dict['Y_reconstruct_GPLVM'][Y_dict['condition']==1,gene_index])
             write_back_data(twosample_object, gene_name, csv_out_GPLVM)
             plot_and_save_figure(T1, twosample_object, gene_name, savename=os.path.join(out_path,"plots","%s_GPLVM.png"%gene_name))
     
