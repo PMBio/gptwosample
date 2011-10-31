@@ -75,7 +75,7 @@ def run_demo(cond1_file, cond2_file):
 
     CovFun = SumCF((ProductCF((SECF, confounderCF)), noiseCF))
     
-    out_path = "simulated_confounders_GP_2000"
+    out_path = "simulated_confounders_GP_2000_fixed_changed"
     out_file = "%i_confounders.csv" % (components)
     out_file_raw = "%i_confounders_raw.csv" % (components)    
     
