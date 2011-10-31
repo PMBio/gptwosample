@@ -73,7 +73,7 @@ def run_demo(cond1_file, cond2_file,fraction = 0.1,confounder_model='linear',com
     T1 = Y_dict['T'][Y_dict['condition']==0]
     T2 = Y_dict['T'][Y_dict['condition']==1]
 
-    Tpredict = SP.arange(Y_dict['T'].min(), Y_dict['T'].max(), 100)
+    Tpredict = SP.linspace(Y_dict['T'].min(), Y_dict['T'].max(), 100)
 
     # get ground truth genes for comparison:
     gt_names = []
@@ -83,7 +83,7 @@ def run_demo(cond1_file, cond2_file,fraction = 0.1,confounder_model='linear',com
     
     #loop through genes
     for gene_name in gt_names:
-        try:
+#        try:
             gene_name_hit = Y_dict['gene_names'] == gene_name
             if gene_name is "input":
                 continue
@@ -93,22 +93,25 @@ def run_demo(cond1_file, cond2_file,fraction = 0.1,confounder_model='linear',com
 
             print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
             gene_index=SP.where(gene_name_hit)[0][0]
+            Y1 = Y_dict['Y'][:len(T1),gene_index]
+            Y2 = Y_dict['Y'][len(T1):,gene_index]
 
             run_gptwosample_on_data(twosample_object, Tpredict, T1, T2,
-                                    Y_dict['Y_reconstruct_PCA'][:len(T1),gene_index],
-                                    Y_dict['Y_reconstruct_PCA'][len(T1):,gene_index])
+                                    Y1 - Y_dict['Y_reconstruct_PCA'][:len(T1),gene_index],
+                                    Y2 - Y_dict['Y_reconstruct_PCA'][len(T1):,gene_index])
             write_back_data(twosample_object, gene_name, csv_out_PCA)
             plot_and_save_figure(T1, twosample_object, gene_name, savename=os.path.join(out_path,"plots","%s_PCA.png"%gene_name))
             
             run_gptwosample_on_data(twosample_object, Tpredict, T1, T2,
-                                    Y_dict['Y_reconstruct_GPLVM'][:len(T1),gene_index],
-                                    Y_dict['Y_reconstruct_GPLVM'][len(T1):,gene_index])
+                                    Y1 - Y_dict['Y_reconstruct_GPLVM'][:len(T1),gene_index],
+                                    Y2 - Y_dict['Y_reconstruct_GPLVM'][len(T1):,gene_index])
             write_back_data(twosample_object, gene_name, csv_out_GPLVM)
             plot_and_save_figure(T1, twosample_object, gene_name, savename=os.path.join(out_path,"plots","%s_GPLVM.png"%gene_name))
     
             still_to_go -= 1
-        except:
-            still_to_go -= 1
+#        except:
+            
+#            still_to_go -= 1
 
 def write_back_data(twosample_object, gene_name, csv_out):
     line = [gene_name.upper(), twosample_object.bayes_factor()]
