@@ -167,9 +167,11 @@ class GPTwoSample(object):
         if(hyperparams is None):
             hyperparams = self._learned_hyperparameters
         self._predicted_mean_variance = get_model_structure()
+        if(not has_model_structure(interpolation_interval)):
+            interpolation_interval = get_model_structure(interpolation_interval, interpolation_interval)
         for name, model in self._models.iteritems():
             model.set_active_set_indices(interval_indices[name])
-            prediction = model.predict(hyperparams[name], interpolation_interval, var=True, *args, **kwargs)
+            prediction = model.predict(hyperparams[name], interpolation_interval[name], var=True, *args, **kwargs)
             self._predicted_mean_variance[name] = {'mean':prediction[0], 'var':prediction[1]}
 
         self._interpolation_interval_cache = interpolation_interval

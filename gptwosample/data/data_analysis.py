@@ -19,21 +19,21 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     **Parameters:**
 
     path_to_result_file : String
-        has to be in training_data_structure (see :py:class:`gptwosample.data.data_base` for details)
+        has to be in training_data_structure (see :py:class:`gptwosample.data.data_base` for details).
 
     ground_truth : String
         file has to have following structure: 
             first column contains gene_names, 
-            second column contains 1 for positive, 0 for negative truth
+            second column contains 1 for positive, 0 for negative truth.
             
     delimiter_i : char
-        delimiter for result file and ground truth file, respectively
+        delimiter for result file and ground truth file, respectively.
         
     xlabel, ylabel: string
-        The x/ylabel for the plot. See matplotlib for details
+        The x/ylabel for the plot. See matplotlib for details.
     
     kwargs:
-        matplotlib kwargs, for adjusting the plot
+        matplotlib kwargs, for adjusting the plot.
     """
     result_data = get_data_from_csv(path_to_result,delimiter=delimiter_1)
     result_data_header = result_data.pop('input')

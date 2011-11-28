@@ -18,7 +18,7 @@ import pygp.plot.gpr_plot as PLOT
 import pylab as PL
 import scipy as SP
 from gptwosample.data.data_base import get_model_structure, common_id, \
-    individual_id
+    individual_id, has_model_structure
 from matplotlib import cm
 from copy import deepcopy
 
@@ -96,9 +96,9 @@ def plot_results(twosample_object,
                 if shifti is not None:
                     shifti = shift[i * number_of_replicates:(i + 1) * number_of_replicates]
                     #import pdb;pdb.set_trace()
-                    PLOT.plot_sausage(twosample_object._interpolation_interval_cache - SP.mean(shifti), mean[i], var[i], format_fill={'alpha':0.2, 'facecolor':col}, format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
+                    PLOT.plot_sausage(twosample_object._interpolation_interval_cache[name] - SP.mean(shifti), mean[i], var[i], format_fill={'alpha':0.2, 'facecolor':col}, format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
                 else:
-                    PLOT.plot_sausage(twosample_object._interpolation_interval_cache,
+                    PLOT.plot_sausage(twosample_object._interpolation_interval_cache[name],
                                       mean[i], var[i],
                                       format_fill={'alpha':0.2, 'facecolor':col},
                                       format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
@@ -128,7 +128,7 @@ def plot_results(twosample_object,
 #                                 'color':col})
             legend_names.append("%s" % (name))
             PLOT.plot_sausage(
-                twosample_object._interpolation_interval_cache, mean, var,
+                twosample_object._interpolation_interval_cache[name], mean, var,
                 format_fill={'alpha':0.2, 'facecolor':col},
                 format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha)[0]
             legend_plots.append(PL.Rectangle((0, 0), 1, 1, alpha=.2, fc=col, fill=True))
