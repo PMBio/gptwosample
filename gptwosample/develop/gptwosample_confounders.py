@@ -40,23 +40,13 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
     # how many confounders to learn?
     components = 4
 
-    dump_file = "%s.pickle"%get_out_path(confounder_model, confounder_learning_model, components)
-    if (not os.path.exists(dump_file)) or 'recalc' in sys.argv:
-        Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
-        gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=2)
-        Y_dict = add_simulated_confounders(Y_dict, gpmodel, components=components)
-        gpmodel = construct_gp_model(Y_dict, model=confounder_learning_model, components=components, explained_variance=2)
-        Y_dict = learn_confounder_matrix(Y_dict, gpmodel, components=components)
-        cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
-    else:
-        Y_dict = cPickle.load(open(dump_file, 'r'))
-        gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=2)
+    Y_dict = get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components)
 
     
     #hyperparamters
     dim = 1
     
-    CovFun_pca, CovFun_gplvm = get_gptwosample_covariance_functions(Y_dict, prediction_model, dim)    
+    CovFun_pca, CovFun_gplvm = get_gptwosample_covariance_function(Y_dict, prediction_model, dim)    
     
     out_path = get_out_path(confounder_model, confounder_learning_model, components)
     out_file_PCA = "%s-%i_confounders_PCA.csv" % (prediction_model,components)
@@ -318,10 +308,10 @@ def get_gptwosample_priors(dim, prediction_model):
 
 def append_to_CovFun(X, CovFun_pca, SECF, noiseCF):
     confounderCF_pca = fixed.FixedCF(SP.dot(X, X.T))
-    CovFun_pca.append(SumCF((ProductCF((SECF, confounderCF_pca)), noiseCF)))
+    CovFun_pca.append(SumCF((SumCF((SECF, confounderCF_pca)), noiseCF)))
     return confounderCF_pca
 
-def get_gptwosample_covariance_functions(Y_dict, prediction_model, dim):
+def get_gptwosample_covariance_function(Y_dict, prediction_model, dim):
     SECF = se.SqexpCFARD(dim)
     noiseCF = noise.NoiseCFISO()
 
@@ -346,13 +336,27 @@ def get_gptwosample_covariance_functions(Y_dict, prediction_model, dim):
     
     return CovFun_pca, CovFun_gplvm
 
+def get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components):
+    dump_file = "%s.pickle" % get_out_path(confounder_model, confounder_learning_model, components)
+    if (not os.path.exists(dump_file)) or 'recalc' in sys.argv:
+        Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
+        gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=2)
+        Y_dict = add_simulated_confounders(Y_dict, gpmodel, components=components)
+        gpmodel = construct_gp_model(Y_dict, model=confounder_learning_model, components=components, explained_variance=2)
+        Y_dict = learn_confounder_matrix(Y_dict, gpmodel, components=components)
+        cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
+    else:
+        Y_dict = cPickle.load(open(dump_file, 'r'))
+        gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=2)
+    return Y_dict
 
 if __name__ == '__main__':
     cond1_file='./../examples/warwick_control.csv'
     cond2_file='../examples/warwick_treatment.csv'
-    confounder_learning_model= 'linear'
-    confounder_model='linear'
-    prediction_model='covariance'
-    run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction=.05)
+    confounder_learning_model= 'product_linear'
+    confounder_model='product_linear'
+    prediction_model='reconstruct'
+    run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction=1)
+
 #    gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model)
     #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')
