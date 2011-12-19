@@ -36,12 +36,15 @@ def get_out_path(confounder_model, confounder_learning_model, components):
 def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', confounder_learning_model= 'linear', prediction_model='reconstruct', components=4):
     """run demo script with condition file on random fraction of all data"""
     
+    print "Sampled from: %s. Learned by: %s. Predicted by: %s" % (confounder_model, confounder_learning_model, prediction_model)
+    
     logging.basicConfig(level=logging.INFO)
     # how many confounders to learn?
     components = 4
 
     Y_dict = get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components)
 
+    import pdb;pdb.set_trace()
     
     #hyperparamters
     dim = 1
@@ -70,9 +73,9 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
 
     # get ground truth genes for comparison:
     gt_names = {}
-#    for [name, val] in csv.reader(open("../examples/ground_truth_random_genes.csv", 'r')):
-    for [name, val] in csv.reader(open("../examples/ground_truth_balanced_set_of_100.csv", 'r')):
-        gt_names[name] = val
+    for [name, val] in csv.reader(open("../examples/ground_truth_random_genes.csv", 'r')):
+#    for [name, val] in csv.reader(open("../examples/ground_truth_balanced_set_of_100.csv", 'r')):
+        gt_names[name.upper()] = val
     
     still_to_go = int(fraction*(len(gt_names)))
     
@@ -80,14 +83,17 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
 #    for gene_name in ["CATMA1A24060", "CATMA1A49990"]:
     for gene_name in SP.random.permutation(gt_names.keys())[:still_to_go]:
 #        try:
-            gene_name = gene_name.upper()
+            gene_name = gene_name
             gene_name_hit = Y_dict['gene_names'] == gene_name
             if gene_name is "input":
                 continue
             if not gene_name_hit.any():
-                print "%s not in random set"%(gene_name)
-                still_to_go -= 1
-                continue
+                gene_name = gene_name.upper()
+                gene_name_hit = Y_dict['gene_names'] == gene_name
+                if not gene_name_hit.any():
+                    print "%s not in random set"%(gene_name)
+                    still_to_go -= 1
+                    continue
 
             print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
             gene_index = SP.where(gene_name_hit)[0][0]
@@ -357,6 +363,5 @@ if __name__ == '__main__':
     confounder_model='product_linear'
     prediction_model='reconstruct'
     run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction=1)
-
 #    gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model)
     #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')
