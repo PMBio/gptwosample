@@ -11,7 +11,7 @@ from gptwosample.twosample.twosample_compare import GPTwoSample_share_covariance
     GPTwoSample_individual_covariance
 from numpy.linalg.linalg import cholesky
 from pygp import likelihood as lik, covar
-from pygp.covar import se, noise, fixed
+from pygp.covar import se, noise, fixed, delta
 from pygp.covar.combinators import ProductCF, SumCF
 from pygp.covar.linear import LinearCFISO
 from pygp.covar.se import SqexpCFARD
@@ -27,13 +27,19 @@ import pylab
 import scipy as SP
 import sys
 import gptwosample_confounders_standard_prediction
+from gptwosample.statistics.sample_confounders import sample_GP
 sys.path.append('./../../')
 
+# Id for identifying the different models:
+linear_covariance_model_id = "k = XX" # Use only linear kernel for confounders
+product_linear_covariance_model_id = "k = kt * XX" # Use product of time kernel and linear kernel 
+reconstruct_model_id = "reconstruct by subtracting predicted confounders" # Predict on data, from which the confounders are subtracted 
+covariance_model_id = "reconstruct by including covariance into prediction" # Predict on confounded data, using the predicted confounder covariance
 
-def get_out_path(confounder_model, confounder_learning_model, components):
-    return 'sampledfrom-%s learnedby-%s conf-%i' % (confounder_model, confounder_learning_model, components)
+def get_path_for_pickle(confounder_model, confounder_learning_model, components):
+    return 'sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
 
-def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', confounder_learning_model= 'linear', prediction_model='reconstruct', components=4):
+def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model=linear_covariance_model_id, confounder_learning_model= linear_covariance_model_id, prediction_model=reconstruct_model_id, components=4):
     """run demo script with condition file on random fraction of all data"""
     
     print "Sampled from: %s. Learned by: %s. Predicted by: %s" % (confounder_model, confounder_learning_model, prediction_model)
@@ -41,21 +47,18 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
     logging.basicConfig(level=logging.INFO)
     # how many confounders to learn?
     components = 4
-
+    
+    # get all data needed into Y_dict:
     Y_dict = get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components)
 
-    import pdb;pdb.set_trace()
-    
-    #hyperparamters
+    # hyperparamters
     dim = 1
     
-    CovFun_pca, CovFun_gplvm = get_gptwosample_covariance_function(Y_dict, prediction_model, dim)    
+    CovFun_gplvm = get_gptwosample_covariance_function(Y_dict, prediction_model, dim)    
     
-    out_path = get_out_path(confounder_model, confounder_learning_model, components)
-    out_file_PCA = "%s-%i_confounders_PCA.csv" % (prediction_model,components)
+    out_path = get_path_for_pickle(confounder_model, confounder_learning_model, components)
     out_file_GPLVM = "%s-%i_confounders_GPLVM.csv" % (prediction_model,components)    
     
-    csv_out_PCA = prepare_csv_out(CovFun_pca, out_path, out_file_PCA)
     csv_out_GPLVM = prepare_csv_out(CovFun_gplvm, out_path, out_file_GPLVM)
 
     if not os.path.exists(os.path.join(out_path, "plots")):
@@ -63,7 +66,6 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
         
     priors = get_gptwosample_priors(dim, prediction_model)
     
-    twosample_object_pca = GPTwoSample_individual_covariance(CovFun_pca, priors=priors)
     twosample_object_gplvm = GPTwoSample_individual_covariance(CovFun_gplvm, priors=priors)
 
     T1 = Y_dict['T'][Y_dict['condition'] == 0]
@@ -82,7 +84,8 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
     #loop through genes
 #    for gene_name in ["CATMA1A24060", "CATMA1A49990"]:
     for gene_name in SP.random.permutation(gt_names.keys())[:still_to_go]:
-#        try:
+        try:
+            # find the right gene:
             gene_name = gene_name
             gene_name_hit = Y_dict['gene_names'] == gene_name
             if gene_name is "input":
@@ -98,27 +101,26 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model='linear', co
             print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
             gene_index = SP.where(gene_name_hit)[0][0]
             
-            run_gptwosample_on_data(twosample_object_pca, Tpredict, T1, T2,
-                                    get_gptwosample_data_for_model(prediction_model, "PCA", 0, Y_dict, gene_index),
-                                    get_gptwosample_data_for_model(prediction_model, "PCA", 1, Y_dict, gene_index))
-            write_back_data(twosample_object_pca, gene_name, csv_out_PCA)
-            plot_and_save_figure(T1, twosample_object_pca, gene_name, savename=os.path.join(out_path, "plots", "%s_%s-PCA.png" % (gene_name, prediction_model)))
+#            run_gptwosample_on_data(twosample_object_pca, Tpredict, T1, T2,
+#                                    get_gptwosample_data_for_model(prediction_model, "PCA", 0, Y_dict, gene_index),
+#                                    get_gptwosample_data_for_model(prediction_model, "PCA", 1, Y_dict, gene_index))
+#            write_back_data(twosample_object_pca, gene_name, csv_out_PCA)
+#            plot_and_save_figure(T1, twosample_object_pca, gene_name, savename=os.path.join(out_path, "plots", "%s_%s-PCA.png" % (gene_name, prediction_model)))
             
             run_gptwosample_on_data(twosample_object_gplvm, Tpredict, T1, T2,
                                     get_gptwosample_data_for_model(prediction_model, "GPLVM", 0, Y_dict, gene_index),
                                     get_gptwosample_data_for_model(prediction_model, "GPLVM", 1, Y_dict, gene_index))
             write_back_data(twosample_object_gplvm, gene_name, csv_out_GPLVM)
-            plot_and_save_figure(T1, twosample_object_gplvm, gene_name, savename=os.path.join(out_path, "plots", "%s_%s-GPLVM.png" % (gene_name, prediction_model)))
+            plot_and_save_figure(T1, twosample_object_gplvm, gene_name, savename=os.path.join(out_path, "plots", "%s_%s.png" % (gene_name, prediction_model)))
     
             still_to_go -= 1
-#        except:
-#            
-#            still_to_go -= 1
+        except:
+            still_to_go -= 1
 
 def get_gptwosample_data_for_model(prediction_model, learning_model, condition, Y_dict, gene_index):
-    if prediction_model == 'reconstruct':
+    if prediction_model == reconstruct_model_id:
         return Y_dict['Y_reconstruct_'+learning_model][Y_dict['condition'] == condition, gene_index]
-    elif prediction_model == 'covariance':
+    elif prediction_model == covariance_model_id:
         return Y_dict['Y_confounded'][Y_dict['condition'] == condition, gene_index]    
     
 def write_back_data(twosample_object, gene_name, csv_out):
@@ -158,24 +160,6 @@ def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, Y0, Y1):
     twosample_object.set_data_by_xy_data(T1, T2, Y0.reshape(-1, 1), Y1.reshape(-1, 1))
     twosample_object.predict_model_likelihoods()
     twosample_object.predict_mean_variance(Tpredict)
-
-def sample_GP(covariance, covar_hyperparams, X, Nsamples):
-    """draw Nsample from a GP with covaraince covaraince, hyperparams and X as inputs"""
-    # or draw from a GP:
-    sigma = 1e-6
-    K = covariance.K(covar_hyperparams, X)
-    K += sigma * SP.eye(K.shape[0])
-    cholK = cholesky(K)
-    #left multiply indepnendet confounding matrix with cholesky:
-    Ys = SP.dot(cholK, SP.randn(K.shape[0], Nsamples))
-    return Ys
-    
-def sample_confounders_linear(components, gene_names, n_replicates, gene_length):
-    NRT = n_replicates * gene_length 
-    X = SP.random.randn(NRT, components)
-    W = SP.random.randn(components, len(gene_names)) * 0.5
-    Y_conf = SP.dot(X, W)
-    return Y_conf.T
 
 def read_data_from_file(cond1_file, cond2_file, fraction=1.0):
     """read raw data and return dict with all data"""
@@ -221,23 +205,53 @@ def read_data_from_file(cond1_file, cond2_file, fraction=1.0):
     RV = {'Y': Y, 'gene_names':gene_names, 'T':T, 'condition': condition, 'subset_indices': Isubset}
     return RV
 
-def construct_gp_model(Ydict, model='linear', components=4, explained_variance=1.0):
-    #construct covariance model
-    if model == 'linear':
-        lvm_covariance = LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 1 + components))
-        hyperparams = {'covar': SP.log([explained_variance]), 'lik':SP.array([0.1])}
-        
-    elif model == 'product_linear':
-        lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1, dimension_indices=[0]),
-                                  LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 1 + components))), n_dimensions=components + 1)
-        hyperparams = {'covar': SP.log([1, 1, explained_variance]), 'lik':SP.array([0.1])}
+def construct_gp_model(Ydict, model=linear_covariance_model_id, components=4, explained_variance=1.0):
+#    #construct covariance model
+#    if model == linear_covariance_model_id:
+#        lvm_covariance = LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 1 + components))
+#        hyperparams = {'covar': SP.log([explained_variance]), 'lik':SP.array([0.1])}
+#        
+#    elif model == product_linear_covariance_model_id:
+#        lvm_covariance = ProductCF((SqexpCFARD(n_dimensions=1, dimension_indices=[0]),
+#                                  LinearCFISO(n_dimensions=components, dimension_indices=xrange(1, 1 + components))), n_dimensions=components + 1)
+#        hyperparams = {'covar': SP.log([1, 1, explained_variance]), 'lik':SP.array([0.1])}
+#
+#    real_covariance = DeltaCFISO(n_dimensions=1, dimension_indices=xrange())
+#    X = SP.concatenate((Ydict['T'], SP.random.randn(Ydict['T'].shape[0], components)), axis=1)
+#   
+#    #optimization over the latent dimension only (1. Dimension is time)
+#    hyperparams['x'] = X[:, 1::].copy()
+#        
+#    RV = {covariance_model_id:lvm_covariance, 'hyperparams':hyperparams, 'X0':X}
 
-    X = SP.concatenate((Ydict['T'], SP.random.randn(Ydict['T'].shape[0], components)), axis=1)
-   
-    #optimization over the latent dimension only (1. Dimension is time)
-    hyperparams['x'] = X[:, 1::].copy()
+    #construct covariance model 
+    if model == linear_covariance_model_id:
+        lvm_covariance = LinearCFISO(n_dimensions=components, dimension_indices=xrange(0, components))
+        lvm_hyperparams = {'covar': SP.log([explained_variance]), 'lik':SP.array([0.1])}
+        hyperparams = {'covar': SP.log([explained_variance, 1, 1, 1]), 'lik':SP.array([0.1])}
         
-    RV = {'covariance':lvm_covariance, 'hyperparams':hyperparams, 'X0':X}
+    elif model == product_linear_covariance_model_id:
+        lvm_covariance = ProductCF((LinearCFISO(n_dimensions=components, dimension_indices=xrange(0, components)),
+                                    SqexpCFARD(n_dimensions=1, dimension_indices=[components])), n_dimensions=components + 1)
+        lvm_hyperparams = {'covar': SP.log([explained_variance, 1, 1]), 'lik':SP.array([0.1])}
+        hyperparams = {'covar': SP.log([explained_variance, 1, 1, 1, 1, 1]), 'lik':SP.array([0.1])}
+        
+    real_covariance = SumCF((ProductCF((delta.DeltaCFISO(n_dimensions=1, 
+                                                         dimension_indices=[components+1]),
+                                        SqexpCFARD(n_dimensions=1, 
+                                                   dimension_indices=[components+2]))),
+                             lvm_covariance))
+    X = SP.concatenate((SP.random.randn(Ydict['T'].shape[0], components), # Random initialization for confounders, due to delta included 
+                        Ydict['T'], # Time points for lvm time covariance 
+                        Ydict['condition'][:,SP.newaxis], # Conditions for seperation of conditions  
+                        Ydict['T']), # Time points for condition covariance
+                       axis=1)
+    lvm_X = SP.concatenate((X[:,:components], Ydict['T']), axis=1)
+   
+    #optimization over the latent dimension only (1. Dimension is time, 2. Dimension is )
+    hyperparams['x'] = X[:,:components].copy()
+        
+    RV = {covariance_model_id:real_covariance, 'hyperparams':hyperparams, 'X0':X, 'lvm_covariance':lvm_covariance, 'lvm_hyperparams': lvm_hyperparams, 'lvm_X0': lvm_X}
     return RV
     
 def add_simulated_confounders(Ydict, gpmodel, components=4, **kw_args):
@@ -247,7 +261,7 @@ def add_simulated_confounders(Ydict, gpmodel, components=4, **kw_args):
     # structure consists of [Time, factor1,factor2,..factorN]
     # (time is needed for product_linear covaraince which assume non-perfect independence of measurements
     
-    Yconf = sample_GP(gpmodel['covariance'], gpmodel['hyperparams']['covar'], gpmodel['X0'], len(Ydict['gene_names']))
+    Yconf = sample_GP(gpmodel['lvm_covariance'], gpmodel['lvm_hyperparams']['covar'], gpmodel['lvm_X0'], len(Ydict['gene_names']))
 
     Ydict['confounder'] = Yconf
     Ydict['Y_confounded'] = Ydict['Y'] + Yconf
@@ -260,34 +274,34 @@ def learn_confounder_matrix(Ydict, gpmodel, components=4, **kw_args):
     #1. simple PCA
     # Simulate linear Kernel by PCA estimation:
     Y_confounded = Ydict['Y_confounded']
-    X_pca, W_pca = gplvm.PCA(Y_confounded, components)
-    #quick checkup: reconstruct Y from Y_confounded using PCA
-    Y_reconstruct_PCA = Y_confounded - SP.dot(X_pca, W_pca.T)
-    Ydict['X_PCA'] = X_pca.copy()
-   
+#    X_pca, W_pca = gplvm.PCA(Y_confounded, components)
+#    #quick checkup: reconstruct Y from Y_confounded using PCA
+#    Y_reconstruct_PCA = Y_confounded - SP.dot(X_pca, W_pca.T)
+#    Ydict['X_PCA'] = X_pca.copy()
+#   
     #2. GPLVM
     likelihood = lik.GaussLikISO()
     
-    g = gplvm.GPLVM(gplvm_dimensions=xrange(1, 1 + components), covar_func=gpmodel['covariance'], likelihood=likelihood, x=gpmodel['X0'], y=Ydict['Y_confounded'])
+    g = gplvm.GPLVM(gplvm_dimensions=xrange(1, 1 + components), covar_func=gpmodel[covariance_model_id], likelihood=likelihood, x=gpmodel['X0'], y=Ydict['Y_confounded'])
     bounds = {'lik': SP.array([[-5., 5.]] * Ydict['T'].shape[1])}
     
     # run lvm on data
     print "running standard gplvm"
     hyperparams = gpmodel['hyperparams']
-    hyperparams['x'] = X_pca
+#    hyperparams['x'] = SP.randn(Y_confounded.shape[0], components)
     [opt_hyperparams_comm, opt_lml2] = opt_hyper(g, hyperparams, bounds=bounds, gradcheck=False)
-    Ydict['X_GPLVM'] = opt_hyperparams_comm['x'].copy()
 
+    Ydict['X_GPLVM'] = gpmodel[covariance_model_id].K(opt_hyperparams_comm['covar'], g.x)
     Y_reconstruct_GPLVM = Y_confounded - g.predict(opt_hyperparams_comm, g.x, output=SP.arange(Y_confounded.shape[1]), var=False)
 
     print "reconstructions using PCA and GPLVM reconstruct:"
     print ((Ydict['Y'] - Y_confounded) ** 2).mean()
-    print ((Ydict['Y'] - Y_reconstruct_PCA) ** 2).mean()
+#    print ((Ydict['Y'] - Y_reconstruct_PCA) ** 2).mean()
     print ((Ydict['Y'] - Y_reconstruct_GPLVM) ** 2).mean()
 
-    Ydict['Y_reconstruct_PCA'] = Y_reconstruct_PCA
+#    Ydict['Y_reconstruct_PCA'] = Y_reconstruct_PCA
     Ydict['Y_reconstruct_GPLVM'] = Y_reconstruct_GPLVM
-    pdb.set_trace()
+#    pdb.set_trace()
     return Ydict
 
 def get_gptwosample_priors(dim, prediction_model):
@@ -301,7 +315,7 @@ def get_gptwosample_priors(dim, prediction_model):
         covar_priors_common.append([lnpriors.lnGammaExp, [3, 1]])
         covar_priors_individual.append([lnpriors.lnGammaExp, [3, 1]])
     # fixedCF amplitude
-    if prediction_model=="covariance":
+    if prediction_model==covariance_model_id:
         covar_priors_common.append([lnpriors.lnGauss, [0, 5]])
         covar_priors_individual.append([lnpriors.lnGauss, [0, 5]])
     #noise
@@ -312,38 +326,33 @@ def get_gptwosample_priors(dim, prediction_model):
     priors = get_model_structure({'covar':SP.array(covar_priors_individual)}, {'covar':SP.array(covar_priors_common)})
     return priors
 
-def append_to_CovFun(X, CovFun_pca, SECF, noiseCF):
+def get_covariance_function(X, SECF, noiseCF):
     confounderCF_pca = fixed.FixedCF(SP.dot(X, X.T))
-    CovFun_pca.append(SumCF((SumCF((SECF, confounderCF_pca)), noiseCF)))
-    return confounderCF_pca
+    return SumCF((SumCF((SECF, confounderCF_pca)), noiseCF))
 
 def get_gptwosample_covariance_function(Y_dict, prediction_model, dim):
     SECF = se.SqexpCFARD(dim)
     noiseCF = noise.NoiseCFISO()
 
-    if prediction_model == 'reconstruct':
-        CovFun_gplvm = CovFun_pca = [SumCF((SECF, noiseCF))]*3
+    if prediction_model == reconstruct_model_id:
+        CovFun_gplvm = [SumCF((SECF, noiseCF))]*3
 
-    elif prediction_model == 'covariance':
+    elif prediction_model == covariance_model_id:
         CovFun_gplvm = []
-        CovFun_pca = []
         
         # condition 1:
-        append_to_CovFun(Y_dict['X_PCA'][Y_dict['condition'] == 0], CovFun_pca, SECF, noiseCF)
-        append_to_CovFun(Y_dict['X_GPLVM'][Y_dict['condition'] == 0], CovFun_gplvm, SECF, noiseCF)
+        CovFun_gplvm.append(get_covariance_function(Y_dict['X_GPLVM'][Y_dict['condition'] == 0], SECF, noiseCF))
 
         # condition 2:
-        append_to_CovFun(Y_dict['X_PCA'][Y_dict['condition'] == 1], CovFun_pca, SECF, noiseCF)
-        append_to_CovFun(Y_dict['X_GPLVM'][Y_dict['condition'] == 1], CovFun_gplvm, SECF, noiseCF)
+        CovFun_gplvm.append(get_covariance_function(Y_dict['X_GPLVM'][Y_dict['condition'] == 1], SECF, noiseCF))
 
         # shared:
-        append_to_CovFun(Y_dict['X_PCA'], CovFun_pca, SECF, noiseCF)
-        append_to_CovFun(Y_dict['X_GPLVM'], CovFun_gplvm, SECF, noiseCF)
+        CovFun_gplvm.append(get_covariance_function(Y_dict['X_GPLVM'], SECF, noiseCF))
     
-    return CovFun_pca, CovFun_gplvm
+    return CovFun_gplvm
 
 def get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components):
-    dump_file = "%s.pickle" % get_out_path(confounder_model, confounder_learning_model, components)
+    dump_file = "%s.pickle" % get_path_for_pickle(confounder_model, confounder_learning_model, components)
     if (not os.path.exists(dump_file)) or 'recalc' in sys.argv:
         Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
         gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=2)
@@ -359,9 +368,17 @@ def get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_lear
 if __name__ == '__main__':
     cond1_file='./../examples/warwick_control.csv'
     cond2_file='../examples/warwick_treatment.csv'
-    confounder_learning_model= 'product_linear'
-    confounder_model='product_linear'
-    prediction_model='reconstruct'
-    run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction=1)
+    fraction = .05
+    
+#    confounder_learning_model= linear_covariance_model_id
+#    confounder_model= linear_covariance_model_id
+#    prediction_model= covariance_model_id
+#    run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction=1.)
+    
+    for confounder_model in [linear_covariance_model_id, product_linear_covariance_model_id]:
+        for prediction_model in [covariance_model_id, reconstruct_model_id]:
+            for confounder_learning_model in [linear_covariance_model_id, product_linear_covariance_model_id]:
+                run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction=fraction)
+            gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model, fraction = fraction)
 #    gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model)
     #run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')
