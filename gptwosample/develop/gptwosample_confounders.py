@@ -300,11 +300,11 @@ def run_demo(cond1_file, cond2_file, fraction=0.1, confounder_model=linear_covar
 if __name__ == '__main__':
     cond1_file='./../examples/warwick_control.csv'
     cond2_file='../examples/warwick_treatment.csv'
-    fraction = .1
+    fraction = 1
     
-    for confounder_model in [linear_covariance_model_id, product_linear_covariance_model_id]:
-        for confounder_learning_model in [linear_covariance_model_id, product_linear_covariance_model_id]:
-#            run_demo(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, reconstruct_model_id, 4)
+    for confounder_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
+        for confounder_learning_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
+#            run_demo(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, covariance_model_id, 4)
             Thread(target=f, name="%s>%s"%(confounder_model, confounder_learning_model), args=(cond1_file, cond2_file), 
                    kwargs={'confounder_model':confounder_model, 
                            'confounder_learning_model':confounder_learning_model, 
