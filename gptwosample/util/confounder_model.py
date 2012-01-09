@@ -37,8 +37,8 @@ class Confounder_Model():
                   x=self._learning_X,
                   y=Y)
         
-        opt_hyperparams, num_steps = opt_hyper(g, self._learning_hyperparams, None, 10000, False, bounds)
-        print "%s found optimum within %s steps"%(threading.current_thread().getName(), num_steps)
+        opt_hyperparams, opt_f = opt_hyper(g, self._learning_hyperparams, None, 10000, False, bounds)
+        print "%s found optimum of F=%s"%(threading.current_thread().getName(), opt_f)
         
         return self._learning_covariance.K(opt_hyperparams['covar'], g.x), g.predict(opt_hyperparams, g.x, output=scipy.arange(Y.shape[1]), var=False)
 
@@ -55,7 +55,7 @@ class Confounder_Model():
                                                       LinearCFISO(n_dimensions=self._components, 
                                                                   dimension_indices=xrange(0, self._components))
                                                       ,
-                                                      delta.DeltaCF(n_dimensions=1, 
+                                                      delta.DeltaCFISO(n_dimensions=1, 
                                                                     dimension_indices=[self._components + 1])
                                                       )
                                                      )
