@@ -2,7 +2,7 @@
 GPTwoSample Base Class
 ======================
 
-All classes ahndling GPTwoSample tasks should extend this class.
+All classes handling GPTwoSample tasks should extend this class.
 
 Created on Mar 18, 2011
 
