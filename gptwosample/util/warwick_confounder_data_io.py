@@ -17,7 +17,7 @@ import sys
 
 
 def get_path_for_pickle(confounder_model, confounder_learning_model, components):
-    return 'sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
+    return 'strict_priors/sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
 
 def find_gene_name_hit(Y_dict, gene_name):
     """Searches for the right index of given gene_name in Y_dict, returns -1 if no gene was hit"""
@@ -139,7 +139,10 @@ def add_simulated_confounders(Ydict, gp_conf_model, components=4, **kw_args):
     # structure consists of [Time, factor1,factor2,..factorN]
     # (time is needed for product_linear covaraince which assume non-perfect independence of measurements
     
-    Yconf = sample_GP(gp_conf_model._lvm_covariance, gp_conf_model._lvm_hyperparams['covar'], gp_conf_model._lvm_X, Ydict['Y'].shape[1])
+    Yconf = sample_GP(gp_conf_model.get_prediction_covariance(),
+                      gp_conf_model.get_prediction_hyperparams()['covar'],
+                      gp_conf_model.get_prediction_X(),
+                      Ydict['Y'].shape[1])
 
     Ydict['confounder'] = Yconf
     Ydict['Y_confounded'] = Ydict['Y'] + Yconf

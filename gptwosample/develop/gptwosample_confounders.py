@@ -7,7 +7,6 @@ from gptwosample.data.data_base import get_model_structure
 from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance
 from gptwosample.util.confounder_constants import *
-from gptwosample.util.sample_confounders import sample_GP
 from pygp.covar import se, noise, fixed
 from pygp.covar.combinators import SumCF
 from pygp.priors import lnpriors
@@ -52,8 +51,8 @@ def get_gptwosample_priors(dim, prediction_model):
         covar_priors_individual.append([lnpriors.lnGammaExp, [6, 2]])
     # fixedCF amplitude
     if prediction_model == covariance_model_id:
-        covar_priors_common.append([lnpriors.lnGauss, [0, 1]])
-        covar_priors_individual.append([lnpriors.lnGauss, [0, 1]])
+        covar_priors_common.append([lnpriors.lnGammaExp, [1, .06]])
+        covar_priors_individual.append([lnpriors.lnGammaExp, [1, .06]])
     #noise
     for i in range(1):
         covar_priors_common.append([lnpriors.lnGammaExp, [1, .6]])
@@ -88,8 +87,8 @@ def get_gptwosample_covariance_function(Y_dict, prediction_model, dim):
     return CovFun_gplvm
 
 def run_both_prediction_models_and_standard_prediction(cond1_file, cond2_file, **kwargs):
-#    run_demo(cond1_file, cond2_file, prediction_model=covariance_model_id, **kwargs)
-#    run_demo(cond1_file, cond2_file, prediction_model=reconstruct_model_id, **kwargs)
+    run_demo(cond1_file, cond2_file, prediction_model=covariance_model_id, **kwargs)
+    run_demo(cond1_file, cond2_file, prediction_model=reconstruct_model_id, **kwargs)
     gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, **kwargs)
 
 def run_gptwosample_and_write_back_threaded(csv_lock, still_to_go, prediction_model, CovFun, priors, Y_dict, csv_out_GPLVM, csv_out_file_GPLVM, T1, T2, Tpredict, gene_name):
@@ -154,16 +153,16 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
 
     # get ground truth genes for comparison:
     gt_names = {}
-    for [name, val] in get_ground_truth_iterator:
+    for [name, val] in get_ground_truth_iterator():
 #    for [name, val] in csv.reader(open("../examples/ground_truth_balanced_set_of_100.csv", 'r')):
         gt_names[name.upper()] = val
     
-    still_to_go = int(fraction * (len(gt_names)))
+    still_to_go = len(gt_names)
     csv_lock = threading.Lock()
     
     #loop through genes
 #    for gene_name in ["CATMA1A24060", "CATMA1A49990"]:
-    for gene_name in scipy.random.permutation(gt_names.keys())[:still_to_go]:
+    for gene_name in gt_names.keys():
         try:
             # find the right gene:
 #            if gene_name == "input":
@@ -202,7 +201,8 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
 if __name__ == '__main__':
     cond1_file = './../examples/warwick_control.csv'
     cond2_file = '../examples/warwick_treatment.csv'
-    fraction = 1
+    fraction = .2
+    components = 4
     
     for confounder_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
         for confounder_learning_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
@@ -212,7 +212,7 @@ if __name__ == '__main__':
                    kwargs={'confounder_model':confounder_model,
                            'confounder_learning_model':confounder_learning_model,
                            'fraction':fraction,
-                           'components':4
+                           'components':components
                            }, verbose=False).start()
 #            thread.start_new_thread(f, (cond1_file, cond2_file),
 #                                    {'confounder_model':confounder_model, 
