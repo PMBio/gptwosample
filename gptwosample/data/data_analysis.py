@@ -10,6 +10,7 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
                    delimiter_1=',',delimiter_2=',',
                    xlabel="False positive rate",
                    ylabel="True positive rate",
+                   upper=False,
                    **kwargs):
     """
     Plot roc curve for given results and ground truth. 
@@ -32,6 +33,9 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     xlabel, ylabel: string
         The x/ylabel for the plot. See matplotlib for details.
     
+    upper : boolean
+        True, if all names shall be upper converted. 
+    
     kwargs:
         matplotlib kwargs, for adjusting the plot.
     """
@@ -44,6 +48,8 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     result_names = []
     result_results = []
     for gene_name,result in result_data.iteritems():
+        if(upper):
+            gene_name = gene_name.upper()
         result_names.append(gene_name)
         result_results.append(scipy.ndarray.flatten(result)[0])
     result_names_sorting = scipy.argsort(result_names)
@@ -52,6 +58,8 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     ground_truth_names = []
     ground_truth_results = []
     for gene_name,truth in ground_truth_data.iteritems():
+        if(upper):
+            gene_name = gene_name.upper()
         ground_truth_names.append(gene_name)
         ground_truth_results.append(scipy.ndarray.flatten(truth)[0])
     ground_truth_sorting = scipy.argsort(ground_truth_names)

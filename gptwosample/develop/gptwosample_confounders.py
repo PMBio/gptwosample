@@ -11,19 +11,16 @@ from pygp.covar import se, noise, fixed
 from pygp.covar.combinators import SumCF
 from pygp.priors import lnpriors
 from threading import Thread
-import gptwosample_confounders_standard_prediction
 import logging
 import os
 import scipy
 import sys
 import threading
-import time
 from gptwosample.util.warwick_confounder_data_io import get_ground_truth_iterator,\
     get_path_for_pickle, prepare_csv_out, get_data, find_gene_name_hit,\
-    write_back_data
+    write_back_data, read_data_from_file, get_ground_truth_subset_100_iterator
+import copy
 sys.path.append('./../../')
-
-
 
 def get_gptwosample_data_for_model(prediction_model, condition, Y_dict, gene_index):
     if prediction_model == reconstruct_model_id:
@@ -43,16 +40,16 @@ def get_gptwosample_priors(dim, prediction_model):
     covar_priors_common = []
     covar_priors_individual = [] 
     # SECF amplitude
-    covar_priors_common.append([lnpriors.lnGammaExp, [1, 1]])
-    covar_priors_individual.append([lnpriors.lnGammaExp, [1, 1]])
+    covar_priors_common.append([lnpriors.lnGammaExp, [3, .8]])
+    covar_priors_individual.append([lnpriors.lnGammaExp, [3, .8]])
     # lengthscale
     for i in range(dim):
         covar_priors_common.append([lnpriors.lnGammaExp, [6, 2]])
         covar_priors_individual.append([lnpriors.lnGammaExp, [6, 2]])
     # fixedCF amplitude
     if prediction_model == covariance_model_id:
-        covar_priors_common.append([lnpriors.lnGammaExp, [1, .06]])
-        covar_priors_individual.append([lnpriors.lnGammaExp, [1, .06]])
+        covar_priors_common.append([lnpriors.lnGammaExp, [3, .8]])
+        covar_priors_individual.append([lnpriors.lnGammaExp, [3, .8]])
     #noise
     for i in range(1):
         covar_priors_common.append([lnpriors.lnGammaExp, [1, .6]])
@@ -86,10 +83,23 @@ def get_gptwosample_covariance_function(Y_dict, prediction_model, dim):
     
     return CovFun_gplvm
 
-def run_both_prediction_models_and_standard_prediction(cond1_file, cond2_file, **kwargs):
-    run_demo(cond1_file, cond2_file, prediction_model=covariance_model_id, **kwargs)
-    run_demo(cond1_file, cond2_file, prediction_model=reconstruct_model_id, **kwargs)
-    gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, **kwargs)
+def run_both_prediction_models_and_standard_prediction(Y_dict = {}, **kwargs):
+    kwargs.update({"Y_dict":copy.deepcopy(Y_dict),"prediction_model":covariance_model_id})
+    Thread(group=None,
+           target=run_demo,
+           name="run_demo: %s"%(covariance_model_id), 
+           args=(), 
+           kwargs=kwargs, 
+           verbose=False).start()
+#    kwargs.update({"Y_dict":copy.deepcopy(Y_dict),"prediction_model":reconstruct_model_id})
+#    Thread(group=None,
+#           target=run_demo,
+#           name="run_demo: %s"%(reconstruct_model_id), 
+#           args=(), 
+#           kwargs=kwargs, 
+#           verbose=False).start()
+#    run_demo(Y_dict, prediction_model=reconstruct_model_id, **kwargs)
+#    gptwosample_confounders_standard_prediction.run_demo(Y_dict, **kwargs)
 
 def run_gptwosample_and_write_back_threaded(csv_lock, still_to_go, prediction_model, CovFun, priors, Y_dict, csv_out_GPLVM, csv_out_file_GPLVM, T1, T2, Tpredict, gene_name):
     if gene_name == "input":
@@ -112,7 +122,7 @@ def run_gptwosample_and_write_back_threaded(csv_lock, still_to_go, prediction_mo
     write_back_data(twosample_object_gplvm, gene_name, csv_out_GPLVM, csv_out_file_GPLVM)
     csv_lock.release()
 
-def run_demo(cond1_file, cond2_file, fraction=0.1, 
+def run_demo(Y_dict, 
              confounder_model=linear_covariance_model_id, 
              confounder_learning_model=linear_covariance_model_id, 
              prediction_model=reconstruct_model_id, components=4):
@@ -124,10 +134,10 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
     logging.basicConfig(level=logging.INFO)
     # how many confounders to learn?
     components = 4
-    
+            
     # get all data needed into Y_dict:
     # This method will construct ans simulate confounded data, if there is not pickle saved.
-    Y_dict = get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components)
+    Y_dict = get_data(Y_dict, confounder_model, confounder_learning_model, components)
 
     # hyperparamters
     dim = 1
@@ -144,7 +154,7 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
     # priors to start with:
     priors = get_gptwosample_priors(dim, prediction_model)
     
-    twosample_object_gplvm = GPTwoSample_individual_covariance(CovFun_gplvm, priors=priors)
+#    twosample_object_gplvm = GPTwoSample_individual_covariance(CovFun_gplvm, priors=priors)
 
     T1 = Y_dict['T'][Y_dict['condition'] == 0]
     T2 = Y_dict['T'][Y_dict['condition'] == 1]
@@ -153,7 +163,7 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
 
     # get ground truth genes for comparison:
     gt_names = {}
-    for [name, val] in get_ground_truth_iterator():
+    for [name, val] in get_ground_truth_subset_100_iterator():
 #    for [name, val] in csv.reader(open("../examples/ground_truth_balanced_set_of_100.csv", 'r')):
         gt_names[name.upper()] = val
     
@@ -183,8 +193,8 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
 #            write_back_data(twosample_object_pca, gene_name, csv_out_PCA)
 #            plot_and_save_figure(T1, twosample_object_pca, gene_name, savename=os.path.join(out_path, "plots", "%s_%s-PCA.png" % (gene_name, prediction_model)))
             
-            while(threading.active_count()>150):
-                time.sleep(1)
+            while(threading.active_count()>16):
+                pass
             
             Thread(group=None, target=run_gptwosample_and_write_back_threaded, name=gene_name, args=(csv_lock, still_to_go, prediction_model, CovFun_gplvm, priors, Y_dict, csv_out_GPLVM, csv_out_file_GPLVM, T1, T2, Tpredict, gene_name)).start()
             
@@ -201,18 +211,24 @@ def run_demo(cond1_file, cond2_file, fraction=0.1,
 if __name__ == '__main__':
     cond1_file = './../examples/warwick_control.csv'
     cond2_file = '../examples/warwick_treatment.csv'
-    fraction = .2
+    fraction = 1
     components = 4
+    
+    Y_dict = None    
     
     for confounder_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
         for confounder_learning_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
 #            run_demo(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, reconstruct_model_id, 4)
+            if (not os.path.exists("%s.pickle"%get_path_for_pickle(confounder_model, confounder_learning_model, components)) 
+                and Y_dict==None):
+                Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
             Thread(target=run_both_prediction_models_and_standard_prediction, 
-                   name="%s>%s" % (confounder_model, confounder_learning_model), args=(cond1_file, cond2_file),
+                   name="%s>%s" % (confounder_model, confounder_learning_model), 
+                   args=(),
                    kwargs={'confounder_model':confounder_model,
                            'confounder_learning_model':confounder_learning_model,
-                           'fraction':fraction,
-                           'components':components
+                           'components':components,
+                           'Y_dict':copy.deepcopy(Y_dict)
                            }, verbose=False).start()
 #            thread.start_new_thread(f, (cond1_file, cond2_file),
 #                                    {'confounder_model':confounder_model, 

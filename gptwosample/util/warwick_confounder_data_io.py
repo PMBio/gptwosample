@@ -17,7 +17,7 @@ import sys
 
 
 def get_path_for_pickle(confounder_model, confounder_learning_model, components):
-    return 'strict_priors/sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
+    return 'loose_priors/sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
 
 def find_gene_name_hit(Y_dict, gene_name):
     """Searches for the right index of given gene_name in Y_dict, returns -1 if no gene was hit"""
@@ -53,25 +53,28 @@ def prepare_csv_out(CovFun, out_path, out_file):
     csv_out_confounded.writerow(header)
     return csv_out_confounded, csv_out_file_confounded
 
-def get_data(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, components):
+def get_data(Y_dict, confounder_model, confounder_learning_model, components):
     dump_file = "%s.pickle" % get_path_for_pickle(confounder_model, confounder_learning_model, components)
     explained_variance = .5
     if (not os.path.exists(dump_file)) or 'recalc' in sys.argv:
-        print "recalculating simulations and reading data"
-        Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
-        # simulation model:
-        gp_conf_model = Confounder_Model(confounder_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
-        Y_dict = add_simulated_confounders(Y_dict, gp_conf_model, components=components)
-        # learning model:
-        gp_conf_model = Confounder_Model(confounder_learning_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
-        Y_dict['X'], Y_dict['Y_reconstruct'] = gp_conf_model.learn_confounder_matrix(Y_dict['Y_confounded'])
-        # save data:
-        cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
+        print "calculating simulations and reading data"
+        if(not os.path.exists(os.path.dirname(dump_file))):
+            os.makedirs(os.path.dirname(dump_file))
+        Y_dict = add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, components, dump_file, explained_variance)
     else:
         print "loading data and simulations from file: %s" % (dump_file)
         # data already exists
         Y_dict = cPickle.load(open(dump_file, 'r'))
         #gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=explained_variance)
+    return Y_dict
+
+def add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, components, dump_file, explained_variance):
+    # simulation model:
+    gp_conf_model = Confounder_Model(confounder_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
+    Y_dict = add_simulated_confounders(Y_dict, gp_conf_model, components=components) # learning model:
+    gp_conf_model = Confounder_Model(confounder_learning_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
+    Y_dict['X'], Y_dict['Y_reconstruct'] = gp_conf_model.learn_confounder_matrix(Y_dict['Y_confounded']) # save data:
+    cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
     return Y_dict
 
 def read_data_from_file(cond1_file, cond2_file, fraction=1.0):
@@ -131,6 +134,9 @@ def plot_and_save_figure(T1, twosample_object, gene_name, savename=None):
     
 def get_ground_truth_iterator():
     return csv.reader(open("../examples/ground_truth_random_genes.csv", 'r'))
+
+def get_ground_truth_subset_100_iterator():
+    return csv.reader(open("../examples/ground_truth_balanced_set_of_100.csv", 'r'))
 
 def add_simulated_confounders(Ydict, gp_conf_model, components=4, **kw_args):
     """add simulated confounded expression data to dict"""
