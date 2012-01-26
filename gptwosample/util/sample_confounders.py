@@ -14,7 +14,7 @@ def sample_GP(covariance, covar_hyperparams, X, Nsamples):
     K += sigma * SP.eye(K.shape[0])
     cholK = cholesky(K)
     #left multiply indepnendet confounding matrix with cholesky:
-    Ys = SP.dot(cholK, SP.randn(K.shape[0], Nsamples))
+    Ys = SP.dot(SP.randn(Nsamples,K.shape[0]),cholK).T
     return Ys
     
 def sample_confounders_linear(components, gene_names, n_replicates, gene_length):

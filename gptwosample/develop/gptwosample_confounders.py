@@ -216,8 +216,8 @@ if __name__ == '__main__':
     
     Y_dict = None    
     
-    for confounder_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
-        for confounder_learning_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
+    for confounder_model in [product_linear_covariance_model_id]:#, linear_covariance_model_id]:
+        for confounder_learning_model in [product_linear_covariance_model_id]:#, linear_covariance_model_id]:
 #            run_demo(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, reconstruct_model_id, 4)
             if (not os.path.exists("%s.pickle"%get_path_for_pickle(confounder_model, confounder_learning_model, components)) 
                 and Y_dict==None):
