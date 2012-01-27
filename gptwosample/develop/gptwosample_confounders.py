@@ -196,7 +196,17 @@ def run_demo(Y_dict,
             while(threading.active_count()>16):
                 pass
             
-            Thread(group=None, target=run_gptwosample_and_write_back_threaded, name=gene_name, args=(csv_lock, still_to_go, prediction_model, CovFun_gplvm, priors, Y_dict, csv_out_GPLVM, csv_out_file_GPLVM, T1, T2, Tpredict, gene_name)).start()
+            Thread(group=None,
+                   target=run_gptwosample_and_write_back_threaded,
+                   name=gene_name,
+                   args=(csv_lock, still_to_go,
+                         prediction_model,
+                         CovFun_gplvm, priors,
+                         Y_dict, csv_out_GPLVM,
+                         csv_out_file_GPLVM,
+                         T1, T2,
+                         Tpredict,
+                         gene_name)).start()
             
 #            run_gptwosample_on_data(twosample_object_gplvm, Tpredict, T1, T2, get_gptwosample_data_for_model(prediction_model, 0, Y_dict, gene_index), get_gptwosample_data_for_model(prediction_model, 1, Y_dict, gene_index))
 #            write_back_data(twosample_object_gplvm, gene_name, csv_out_GPLVM, csv_out_file_GPLVM)
@@ -216,10 +226,12 @@ if __name__ == '__main__':
     
     Y_dict = None    
     
-    for confounder_model in [product_linear_covariance_model_id]:#, linear_covariance_model_id]:
-        for confounder_learning_model in [product_linear_covariance_model_id]:#, linear_covariance_model_id]:
+    for confounder_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
+        for confounder_learning_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
 #            run_demo(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, reconstruct_model_id, 4)
-            if (not os.path.exists("%s.pickle"%get_path_for_pickle(confounder_model, confounder_learning_model, components)) 
+            if (not os.path.exists("%s.pickle"%get_path_for_pickle(confounder_model,
+                                                                   confounder_learning_model,
+                                                                   components)) 
                 and Y_dict==None):
                 Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
             Thread(target=run_both_prediction_models_and_standard_prediction, 

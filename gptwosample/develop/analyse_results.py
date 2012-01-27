@@ -18,7 +18,6 @@ def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_trut
     standard_not_done = True
                 
     for f in os.listdir(root_dir):
-        import pdb; pdb.set_trace()
         if f.startswith('sampledfrom') and os.path.isdir(os.path.join(root_dir,f)):
             [sampledfrom, learnedby, conf] = map(lambda x: x.split('-')[1], f.split("_"))
             if sampled_from == sampledfrom:
@@ -41,11 +40,11 @@ def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_trut
                             standard_not_done = False
                             plots.append(plot)
                             
-    
-    sort = scipy.argsort(legends)
-    legends = scipy.array(legends)
-    plots = scipy.array(plots)
-    pylab.legend(plots[sort], legends[sort], loc=4)
+    if(len(plots)>0):
+        sort = scipy.argsort(legends)
+        legends = scipy.array(legends)
+        plots = scipy.array(plots)
+        pylab.legend(plots[sort], legends[sort], loc=4)
 
 
 if __name__ == '__main__':
@@ -54,8 +53,8 @@ if __name__ == '__main__':
         root_dir=sys.argv[1]
     else:
         root_dir='./'
-    for sample_model in [product_linear_covariance_model_id]:#,linear_covariance_model_id]:
-        for prediction_model in [covariance_model_id]:#, gptwosample_confounders.reconstruct_model_id]:
+    for sample_model in [product_linear_covariance_model_id,linear_covariance_model_id]:
+        for prediction_model in [covariance_model_id, gptwosample_confounders.reconstruct_model_id]:
             pylab.figure()
             plot_roc_curves_for_sample_model(sample_model,
                                              prediction_model,
