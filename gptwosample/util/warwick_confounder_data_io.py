@@ -17,7 +17,7 @@ import sys
 
 
 def get_path_for_pickle(confounder_model, confounder_learning_model, components):
-    return 'loose_priors/sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
+    return 'correlation_analyses/sampledfrom-%s_learnedby-%s_conf-%i' % (confounder_model, confounder_learning_model, components)
 
 def find_gene_name_hit(Y_dict, gene_name):
     """Searches for the right index of given gene_name in Y_dict, returns -1 if no gene was hit"""
@@ -73,7 +73,7 @@ def add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, co
     gp_conf_model = Confounder_Model(confounder_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
     Y_dict = add_simulated_confounders(Y_dict, gp_conf_model, components=components) # learning model:
     gp_conf_model = Confounder_Model(confounder_learning_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
-    Y_dict['X'], Y_dict['Y_reconstruct'] = gp_conf_model.learn_confounder_matrix(Y_dict['Y_confounded']) # save data:
+    Y_dict['learning_X'], Y_dict['X'], Y_dict['Y_reconstruct'] = gp_conf_model.learn_confounder_matrix(Y_dict['Y_confounded']) # save data:
     cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
     return Y_dict
 
@@ -150,6 +150,8 @@ def add_simulated_confounders(Ydict, gp_conf_model, components=4, **kw_args):
                       gp_conf_model.get_prediction_X(),
                       Ydict['Y'].shape[1])
 
+    Ydict['confounder_X'] = gp_conf_model.get_prediction_X()
     Ydict['confounder'] = Yconf
     Ydict['Y_confounded'] = Ydict['Y'] + Yconf
+    
     return Ydict

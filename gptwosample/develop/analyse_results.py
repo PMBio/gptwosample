@@ -5,14 +5,14 @@ Created on Nov 8, 2011
 '''
 from gptwosample.data.data_analysis import plot_roc_curve
 import os
-import pylab
+import matplotlib.pyplot as plt
 import scipy
-import gptwosample_confounders
-from gptwosample.util.confounder_constants import *
 import sys
+from gptwosample.util.confounder_constants import covariance_model_id,\
+    product_linear_covariance_model_id, linear_covariance_model_id
 
 def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_truth, root_dir='./', upper=False):
-    pylab.title("Sampled from %s, %s" % (sampled_from, prediction_model))
+    plt.title("Sampled from %s, %s" % (sampled_from, prediction_model))
     plots = []
     legends = []
     standard_not_done = True
@@ -30,7 +30,7 @@ def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_trut
                             [plot, auc] = plot_roc_curve(result_file, ground_truth, upper=upper)
                             legends.append("%s %s: %.3f" % (learnedby, prop, auc))
                             plots.append(plot)
-                        if(prop == 'ideal' and prediction_model == confounder_constants.covariance_model_id):
+                        if(prop == 'ideal' and prediction_model == covariance_model_id):
                             [plot, auc] = plot_roc_curve(result_file, ground_truth, upper=upper)
                             legends.append("%s ideal: %.3f" % (learnedby, auc))
                             plots.append(plot)
@@ -44,7 +44,7 @@ def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_trut
         sort = scipy.argsort(legends)
         legends = scipy.array(legends)
         plots = scipy.array(plots)
-        pylab.legend(plots[sort], legends[sort], loc=4)
+        plt.legend(legends[sort], loc=4)
 
 
 if __name__ == '__main__':
@@ -54,12 +54,12 @@ if __name__ == '__main__':
     else:
         root_dir='./'
     for sample_model in [product_linear_covariance_model_id,linear_covariance_model_id]:
-        for prediction_model in [covariance_model_id, gptwosample_confounders.reconstruct_model_id]:
-            pylab.figure()
+        for prediction_model in [covariance_model_id]:#, reconstruct_model_id]:
+            plt.figure()
             plot_roc_curves_for_sample_model(sample_model,
                                              prediction_model,
                                              ground_truth,
                                              root_dir=root_dir,
                                              upper=True)
-            pylab.savefig('%s/%s %s.png' % (root_dir, sample_model, prediction_model))
-            pylab.close("all")
+            plt.savefig('%s/%s %s.png' % (root_dir, sample_model, prediction_model))
+            #plt.close("all")

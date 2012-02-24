@@ -6,7 +6,9 @@ Created on Sep 14, 2011
 from gptwosample.data.data_base import get_model_structure
 from gptwosample.twosample.twosample_compare import \
     GPTwoSample_individual_covariance
-from gptwosample.util.confounder_constants import *
+from gptwosample.util.confounder_constants import covariance_model_id,\
+    linear_covariance_model_id, reconstruct_model_id,\
+    product_linear_covariance_model_id
 from pygp.covar import se, noise, fixed
 from pygp.covar.combinators import SumCF
 from pygp.priors import lnpriors
@@ -19,7 +21,7 @@ import threading
 from gptwosample.util.warwick_confounder_data_io import get_ground_truth_iterator,\
     get_path_for_pickle, prepare_csv_out, get_data, find_gene_name_hit,\
     write_back_data, read_data_from_file, get_ground_truth_subset_100_iterator
-import copy
+import copy 
 sys.path.append('./../../')
 
 def get_gptwosample_data_for_model(prediction_model, condition, Y_dict, gene_index):
@@ -221,7 +223,7 @@ def run_demo(Y_dict,
 if __name__ == '__main__':
     cond1_file = './../examples/warwick_control.csv'
     cond2_file = '../examples/warwick_treatment.csv'
-    fraction = 1
+    fraction = .05
     components = 4
     
     Y_dict = None    
@@ -229,10 +231,11 @@ if __name__ == '__main__':
     for confounder_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
         for confounder_learning_model in [product_linear_covariance_model_id, linear_covariance_model_id]:
 #            run_demo(cond1_file, cond2_file, fraction, confounder_model, confounder_learning_model, reconstruct_model_id, 4)
-            if (not os.path.exists("%s.pickle"%get_path_for_pickle(confounder_model,
+            if (Y_dict == None 
+                and (not os.path.exists("%s.pickle"%get_path_for_pickle(confounder_model,
                                                                    confounder_learning_model,
                                                                    components)) 
-                and Y_dict==None):
+                     or 'recalc' in sys.argv)):
                 Y_dict = read_data_from_file(cond1_file, cond2_file, fraction)
             Thread(target=run_both_prediction_models_and_standard_prediction, 
                    name="%s>%s" % (confounder_model, confounder_learning_model), 
@@ -242,11 +245,8 @@ if __name__ == '__main__':
                            'components':components,
                            'Y_dict':copy.deepcopy(Y_dict)
                            }, verbose=False).start()
-#            thread.start_new_thread(f, (cond1_file, cond2_file),
-#                                    {'confounder_model':confounder_model, 
-#                                     'confounder_learning_model':confounder_learning_model, 
-#                                     'fraction':fraction
-#                                     }
-#                                    )
 #    gptwosample_confounders_standard_prediction.run_demo(cond1_file=cond1_file, cond2_file=cond2_file, confounder_model=confounder_model, confounder_learning_model=confounder_learning_model, prediction_model=prediction_model)
-#            run_demo(cond1_file = './../examples/ToyCondition1.csv', cond2_file = './../examples/ToyCondition2.csv')
+#            run_demo(Y_dict, 
+#             confounder_model=confounder_model, 
+#             confounder_learning_model=confounder_learning_model, 
+#             prediction_model=covariance_model_id, components=4)

@@ -31,17 +31,17 @@ class Confounder_Model():
         likelihood = GaussLikISO()
         bounds = {'lik': scipy.array([[-5., 5.]] * self._number_of_time_points)}
     
-        g = GPLVM(gplvm_dimensions=xrange(1, 1 + self._components),
+        g = GPLVM(gplvm_dimensions=xrange(0, self._components),
                   covar_func=self._learning_covariance,
                   likelihood=likelihood,
                   x=self._learning_X,
                   y=Y)
         
         opt_hyperparams, opt_f = opt_hyper(g, self._learning_hyperparams, None, 10000, False, bounds)
-        print "%s found optimum of F=%s"%(threading.current_thread().getName(), opt_f)
+        print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
         # self._lvm_covariance.K(self._lvm_filter_hyperparams(opt_hyperparams), self._lvm_filter_X(g.x))
         
-        return self.get_prediction_covariance().K(self.get_prediction_hyperparams(opt_hyperparams)['covar'], self.get_prediction_X(g.x)), g.predict(opt_hyperparams, g.x, output=scipy.arange(Y.shape[1]), var=False)
+        return self.get_prediction_X(g.x), self.get_prediction_covariance().K(self.get_prediction_hyperparams(opt_hyperparams)['covar'], self.get_prediction_X(g.x)), g.predict(opt_hyperparams, g.x, output=scipy.arange(Y.shape[1]), var=False)
 
     def get_prediction_covariance(self):
         return self._lvm_covariance
@@ -51,72 +51,49 @@ class Confounder_Model():
         return self._lvm_filter_hyperparams(hyperparams)
     def get_prediction_X(self, X=None):
         if(X == None):
-            X = self._learning_X[:, :self._components]
+            X = self._learning_X
         return self._lvm_filter_X(X)
 
     def __construct_confounder_model_product_linear(self, T, conditions, explained_variance=1.0):
-        self._lvm_covariance = ProductCF((LinearCFISO(n_dimensions=self._components, dimension_indices=xrange(0, self._components)),
-                                    SqexpCFARD(n_dimensions=1, dimension_indices=[self._components])), n_dimensions=self._components + 1)
-        self._lvm_filter_hyperparams = lambda x: {'covar':x['covar'][[0,2,3]], 'lik':x['lik']}
-        self._learning_hyperparams = {'covar': scipy.log([explained_variance, 1, 1.5, 10]), 'lik':scipy.array([0.3])}        
-        
-        self._learning_covariance = ProductCF(
-                                              (
-                                               SumCF(
-                                                     (
-                                                      LinearCFISO(n_dimensions=self._components, 
-                                                                  dimension_indices=xrange(0, self._components))
-                                                      ,
-                                                      delta.DeltaCFISO(n_dimensions=1, 
-                                                                    dimension_indices=[self._components + 1])
-                                                      )
-                                                     )
-                                               ,
-                                               SqexpCFARD(n_dimensions=1, 
-                                                          dimension_indices=[self._components])
-                                               )
-                                              )
+        self._lvm_covariance = SumCF((
+                                      LinearCFISO(n_dimensions=self._components, dimension_indices=xrange(0, self._components))
+                                      ,
+                                      ProductCF((
+                                                 delta.DeltaCFISO(n_dimensions=1,
+                                                                  dimension_indices=[self._components + 1])
+                                                 ,
+                                                 SqexpCFARD(n_dimensions=1, dimension_indices=[self._components]))
+                                                )
+                                      )
+                                     ) 
+        self._lvm_filter_hyperparams = lambda x: x
+        self._learning_hyperparams = {'covar': scipy.log([explained_variance, 1, 1.5, 5]), 'lik':scipy.array([0.3])} 
+        self._learning_covariance = SumCF((
+                                          LinearCFISO(n_dimensions=self._components, dimension_indices=xrange(0, self._components))
+                                          ,
+                                          ProductCF((
+                                                     delta.DeltaCFISO(n_dimensions=1,
+                                                                      dimension_indices=[self._components + 1])
+                                                     ,
+                                                     SqexpCFARD(n_dimensions=1, dimension_indices=[self._components]))
+                                                    )
+                                          )
+                                         )
+       
+
         self._learning_X = scipy.concatenate((
                                scipy.random.randn(T.shape[0], self._components), # Random initialization for confounders, due to delta included 
-                               conditions, # Conditions for seperation of conditions  
-                               T), # Time points for lvm time covariance 
+                               T, # Time points for lvm time covariance 
+                               conditions # Conditions for seperation of conditions  
+                               ),
+                              # Time points for lvm time covariance 
                               axis=1)
-
-#        self._learning_hyperparams = {'covar': scipy.log([explained_variance, 1, 1, 1, 1, 1]), 'lik':scipy.array([0.1])}        
-#        
-#        self._learning_covariance = SumCF(
-#                                          (
-#                                           ProductCF(
-#                                                     (
-#                                                      LinearCFISO(n_dimensions=self._components, 
-#                                                                  dimension_indices=xrange(0, self._components))
-#                                                      ,
-#                                                      SqexpCFARD(n_dimensions=1, 
-#                                                                 dimension_indices=[self._components + 2])
-#                                                      )
-#                                                     )
-#                                           ,
-#                                           ProductCF(
-#                                                     (
-#                                                      delta.DeltaCFISO(n_dimensions=1,
-#                                                                       dimension_indices=[self._components + 1])
-#                                                      ,
-#                                                      SqexpCFARD(n_dimensions=1, 
-#                                                                 dimension_indices=[self._components + 2])
-#                                                      )
-#                                                     )
-#                                           )
-#                                          )
-#        self._learning_X = scipy.concatenate((
-#                               scipy.random.randn(T.shape[0], self._components), # Random initialization for confounders, due to delta included 
-#                               T, # Time points for lvm time covariance 
-#                               conditions, # Conditions for seperation of conditions  
-#                               T), # Time points for lvm time covariance 
-#                              axis=1)
-        self._lvm_filter_X = lambda x:scipy.concatenate((x, T), axis=1)
+         
+        self._lvm_filter_X = lambda x:x
        
         #optimization over the latent dimension only (1. Dimension is time, 2. Dimension is )
         self._learning_hyperparams['x'] = self._learning_X[:, :self._components].copy()
+    
                 
     def __construct_confounder_model_linear(self, T, conditions, explained_variance=1.0):
         """
@@ -124,24 +101,15 @@ class Confounder_Model():
         """
         self._lvm_covariance = LinearCFISO(n_dimensions=self._components, dimension_indices=xrange(0, self._components))
         self._lvm_filter_hyperparams = lambda x: {'covar':[x['covar'][0]], 'lik':x['lik']}
-        self._learning_hyperparams = {'covar': scipy.log([explained_variance, 1, 1.5, 10]), 'lik':scipy.array([0.3])} 
-        self._learning_covariance = SumCF((
-                                 LinearCFISO(n_dimensions=self._components, dimension_indices=xrange(0, self._components))
-                                 ,
-                                 ProductCF((
-                                            delta.DeltaCFISO(n_dimensions=1,
-                                                             dimension_indices=[self._components + 1])
-                                            ,
-                                            SqexpCFARD(n_dimensions=1, dimension_indices=[self._components]))
-                                           )
-                                 )
-                                )
+        self._learning_hyperparams = {'covar': scipy.log([explained_variance]), 'lik':scipy.array([0.3])} 
+        self._learning_covariance = LinearCFISO(n_dimensions=self._components, dimension_indices=xrange(0, self._components))
             
         self._learning_X = scipy.concatenate((
                                scipy.random.randn(T.shape[0], self._components), # Random initialization for confounders, due to delta included 
-                               T, # Time points for lvm time covariance 
-                               conditions, # Conditions for seperation of conditions  
-                               T),
+#                               T, # Time points for lvm time covariance 
+#                               conditions, # Conditions for seperation of conditions  
+#                               T
+                               ),
                               # Time points for lvm time covariance 
                               axis=1)
          
