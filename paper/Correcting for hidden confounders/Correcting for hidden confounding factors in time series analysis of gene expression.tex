@@ -1,0 +1,177 @@
+% !TEX encoding = UTF-8 Unicode
+\documentclass[11pt,a4paper,titlepage,twoside,tablecaptionabove]{article}
+
+% Schriftart:
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{palatino}
+
+\usepackage{MnSymbol, xcolor}
+\usepackage{geometry}
+\geometry{a4paper,left=30mm,right=35mm, top=40mm, bottom=40mm}
+
+% section styles
+\newcommand{\changefont}[3]{
+  \fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont}
+\newcommand\bigheading{\changefont{cmbr}{bx}{n}}
+\newcommand\littleheading{\changefont{cmbr}{b}{n}}
+\newcommand\TODO[1]{{\sc \color{red}{Todo: #1}}}
+
+\usepackage{sectsty}
+\chapterfont{\huge\bigheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
+\sectionfont{\Large\littleheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
+\subsectionfont{\large\littleheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
+\subsubsectionfont{\littleheading}
+
+% spacing
+\usepackage{setspace}
+
+\definecolor{lightgray}{rgb}{.0,.0,.0} \usepackage[%
+colorlinks, citecolor=lightgray, linkcolor=lightgray,%
+filecolor=lightgray, pagecolor=lightgray,%
+urlcolor=lightgray,breaklinks]{hyperref}
+
+% Caption Settings:
+\usepackage[margin=10pt,font=small,labelfont=bf,hang]{caption}
+\DeclareCaptionLabelFormat{bez}{#2}
+
+\begin{document}
+
+\begin{titlepage}
+  \changefont{cmbr}{m}{n}
+  \begin{center}
+    {\LARGE Max-Planck-Institute T\"ubingen}\\[5cm]
+    {\huge \bfseries{Correcting for hidden confounding factors in time
+        series analysis of gene expression\\[1.5cm]}}
+    {\large Oliver Stegle, Max Zwießele, Nicol\'o Fusi}\\[0.5cm]
+    \today\\[3cm]
+  \end{center}
+\end{titlepage}
+
+\begin{abstract}
+  Differential gene expression time series studies facilitate immense
+  insights into gene activity and genetic interaction. It studies
+  differences of gene expression in the course of time of two or more
+  treatments of an organism. Often there is no evidence for wether a
+  set of experiments fundamentally differ in their expression over
+  time, or results are consequences of differing experimental methods
+  and technical conditions. There are a variety of normalizing
+  methods, which try to solve technical and biological confounding
+  factors prior to analyses. We invent a new way of using Gaussian
+  Process Latent Variable Models (GPLVM) to correct for intra and
+  inter experiment hidden latent variable confounding factors of time
+  series experiments. GPLVM is a statistical method based on Gaussian
+  Processes to find key features in a multidimensional dataset. As
+  this method can not only detect these features but report their
+  significance, we are able to correct for common confounding factors
+  over arbitrary dimensions.  We examined a dataset \TODO{dataset} to
+  find and eliminate such confounding factors, correcting for hidden
+  multidimensional features. Our method can find \TODO{result}.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introductions}
+
+In gene expression time series experiments (see a review
+\cite{bar2004analyzing}) temporal changes in gene expression are
+measured. These temporal changes lead to distinguish pathogenic
+responses of an organism to a particular treatment. One usually has
+two experiments at a time, one untreated, mostly healthy control and
+one treatment. The organism is treated by one (or more) pathogenic
+substances and in continuous time steps their gene expression is
+measured. Each experiment has to be normalized within and between
+control and treatment to provide comparable results. Many normalizing
+methods tackle these problems using house-keeping genes as an anchor
+for other time series to fit onto
+\cite{vandesompele2002accurate,aach2001aligning} or building
+statistical models for variation in gene expression measurement errors
+\cite{rocke2001model}. However, there is no evidence for these methods
+to correct for inter experimental confounders, which are not based on
+one particular run of gene expression measurement. Thus, correcting
+for hidden confounders in gene expression time series can provide a
+huge boost in accuracy of differential gene expression detection. We
+believe these hidden confounders to arrise due to experiments being
+done by different experimenters, in different laboratories or even at
+different day times.
+
+Gene expression time series experiments can give insights into genetic
+inter relationships of {\it cis} and {\it trans} regulatory
+effects. Inferring these effects lead to transcriptional gene
+regulatory networks describing the temporal effects of genetic
+variation caused by the pathogenic substances the organism is treated
+with. Clusters of differentially expressed genes regulated similarly
+(in time and pattern) give rise to detecting {\it trans} regulatory
+effects \cite{stegle2010robust}. In contrast to detecting time
+dependent relationships in differentially expressed genes, we detect
+common confounding factors using probabilistic principal component
+analysis modeled by gaussian process latent variable models (GPLVM)
+\cite{lawrence2004gaussian}. This probabilistic approach to detect low
+dimensional significant features can be interpreted as detecting
+common confounding factors in time series experiments by applying
+GPLVM in advance to two-sample tests \cite{stegle2010robust} on the
+whole dataset. Two-sample tests on Gaussian Processes decide
+differential expression as the bayes factor of marginal probabilities
+for control and treatment being modeled by one common or two separate
+underlying function(s). As GPLVM is based on Gaussian Processes it
+provides a covariance structure of confounders in the dataset. We take
+this covariance structure between features to build up a two-sample
+Gaussian Process model taking confounding factors throughout the
+dataset into account.
+
+\section{Building a Gaussian Process model taking confounding factors
+  into account}
+\label{sec:build-gauss-proc}
+
+In probabilistic models for gene expression time series we are given
+for $N$ genes $D$-dimensional, centered expression levels $\{{\bf
+  y}_n\}_{n=1}^N$ for each input (series of time points) ${\bf
+  x}_n$. Under the Gaussian Process model \cite{rasmussen2004gaussian}
+we write the distribution over gene expression time series as
+\begin{equation}
+  \label{eq:1}
+  p({\bf Y}|{\bf X},\beta) = \mathcal N(0, {\bf K_\beta})\enspace,
+\end{equation}
+where ${\bf X,Y}$ are concatenations of ${\bf x}_n$ and $\{{\bf
+  y}_n\}_{n=1}^N$, respectively and ${\bf K}$ is the covariance matrix
+of all pairwise covariances; ${\bf K}_{i,j} = k({\bf x}_i, {\bf
+  x}_j;\beta)$.
+
+In GPLVM, instead of learning the hyperparamters $\beta$ a subset of
+the inputs ${\bf X}$, referred to as the latent space, are learned and
+reported as ${\bf X}_{i=1}^q$. With this setting learning $\bf X$ can
+be written as
+\begin{equation}
+  \label{eq:2}
+  {\bf X} = {\bf U}_q{\bf LV}^T\enspace,
+\end{equation}
+which leads the learned ${\bf X}$ to be the probabilistic
+interpretation of the $q$ most significant principal components
+\cite{lawrence2004gaussian}. Using this interpretation, we learn ${\bf
+  X_{\text{GPLVM}}}$ on the whole dataset with an arbitrary chosen $q$
+by GPLVM to use it in the two-sample model as correction in
+covariance. The model for two-sample comparison may then be written as
+\begin{equation}
+  \label{eq:3}
+  p({\bf Y}|{\bf X},\theta) = \mathcal N(0, {\bf K_\theta} +
+  \alpha {\bf X_\text{GPLVM}}\bf X_\text{GPLVM}^T\enspace, 
+\end{equation}
+${\bf K}_\theta$ is again the covariance matrix between each ${\bf
+  x}_n$, respectively, parameterized by $\theta$.
+
+To be able to decide wether a gene is differentially expressed or not,
+we build a score based on the Bayes Factor on two models. One model
+assumes treatment and control to come from one underlying function and
+the other assumes one underlying function for treatment and control,
+respectively. With that the Bayes Factor score can be written as
+\begin{equation}
+  \label{eq:4}
+  \text{BF-Score}: \log\frac{p({\bf Y}^\text{t}|{\bf
+      X}^\text{t},\theta^\text{t})\cdot p({\bf Y}^\text{c}|{\bf X}^\text{c},\theta^\text{c})}{p({\bf Y}|{\bf X},\theta)}\enspace,
+\end{equation}
+where t and c indicate only the part of data set which correspond to
+treatment and control, respectively.
+
+\bibliographystyle{alpha} \bibliography{../Papers}
+% \addcontentsline{toc}{chapter}{References}
+
+\end{document}
