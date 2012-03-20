@@ -150,7 +150,7 @@ def add_simulated_confounders(Ydict, gp_conf_model, components=4, **kw_args):
                       gp_conf_model.get_prediction_X(),
                       Ydict['Y'].shape[1])
 
-    Ydict['confounder_X'] = gp_conf_model.get_prediction_X()
+    Ydict['confounder_X'] = gp_conf_model.get_prediction_X()[:components]
     Ydict['confounder'] = Yconf
     Ydict['Y_confounded'] = Ydict['Y'] + Yconf
     

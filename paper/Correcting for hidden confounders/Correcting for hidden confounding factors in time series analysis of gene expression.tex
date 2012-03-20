@@ -147,9 +147,10 @@ be written as
 which leads the learned ${\bf X}$ to be the probabilistic
 interpretation of the $q$ most significant principal components
 \cite{lawrence2004gaussian}. Using this interpretation, we learn ${\bf
-  X_{\text{GPLVM}}}$ on the whole dataset with an arbitrary chosen $q$
-by GPLVM to use it in the two-sample model as correction in
-covariance. The model for two-sample comparison may then be written as
+  X}_{\text{GPLVM}}$, further called confounders, on the whole dataset
+with an arbitrary chosen $q$ by GPLVM to use it in the two-sample
+model as correction in covariance. The model for two-sample comparison
+may then be written as
 \begin{equation}
   \label{eq:3}
   p({\bf Y}|{\bf X},\theta) = \mathcal N(0, {\bf K_\theta} +
@@ -169,7 +170,64 @@ respectively. With that the Bayes Factor score can be written as
       X}^\text{t},\theta^\text{t})\cdot p({\bf Y}^\text{c}|{\bf X}^\text{c},\theta^\text{c})}{p({\bf Y}|{\bf X},\theta)}\enspace,
 \end{equation}
 where t and c indicate only the part of data set which correspond to
-treatment and control, respectively.
+treatment and control, respectively. Thus, if positive this score
+indicates at one function for each condition, whereas if negative it
+is more probable that both conditions come from the same underlying
+function.
+
+\subsection{Confounder learning}
+\label{sec:confounder-learning}
+
+Learning confounders ${\bf X}_\text{GPLVM}$ incorporates a covariance
+function into the probabilistic interpretation of PCA. We use
+the structure of different covariance functions to explicitly model
+structure of gene expression time series. The first and most simple
+covariance function is the linear one, which is the one Lawrence {\it
+  et al.} \cite{lawrence2004gaussian} introduced. Another covariance
+function takes the time series aspect into account, while yet
+another one even goes a step further, modeling condition dependent
+time patterns explicitly.
+
+\subsubsection{Linear covariance for confounders}
+\label{sec:line-covar-conf}
+
+The linear covariance function is
+\begin{equation}
+  \label{eq:5}
+  k_\text{lin}({\bf X},{\bf X'}) = \alpha {\bf X}{\bf X'}^T\enspace,
+\end{equation}
+such that the contribution of principal components comes from the
+whole dataset linearly. These components should reflect the fact that
+we are using two separate conditions in at least one of the $q$
+confounders. 
+
+\subsubsection{Linear confounder covariance with explicit time model}
+\label{sec:line-conf-covar}
+
+Studying time series data we can make use of the fact that the data is
+well structured in input space, namely it is time. With this knowledge
+we are able to incorporate time into covariance structure, which
+explains one common attribute in data, the linearity of time. For
+simplicity we write the time model dependent on the time line $\bf
+t$. With that we can write the covariance structure for explicit time
+modeling in the following way. We use a squared exponential covariance
+function for modeling the time, such that the time points are more dependent
+on each other, if nearby and vice versa:
+\begin{align}
+  \label{eq:6}
+  k_t(t,t') & =
+  A\cdot\exp\left(-\frac{||t-t'||^2}{2L^2}\right)\enspace,\text{
+    with}\\
+  \{{\bf K}_{\bf t,t'}\}_{i,j} = k_t(t_i,t_j)
+\end{align}
+where $A$ and $L$ are hyperparameters explaining the magnitude and
+smoothness of the underlying function, respectively. In the setting of
+learning confounders we write the covariance for confounders
+\begin{equation}
+  \label{eq:7}
+  k_\text{time}({\bf X},{\bf X'},{\bf t,t'}) = k_\text{lin}({\bf
+    X,X'}) + {\bf K_{\bf t,t'}}
+\end{equation}
 
 \bibliographystyle{alpha} \bibliography{../Papers}
 % \addcontentsline{toc}{chapter}{References}
