@@ -7,6 +7,8 @@
 \usepackage{palatino}
 
 \usepackage{MnSymbol, xcolor}
+\usepackage{amsmath}
+
 \usepackage{geometry}
 \geometry{a4paper,left=30mm,right=35mm, top=40mm, bottom=40mm}
 
@@ -218,7 +220,7 @@ on each other, if nearby and vice versa:
   k_t(t,t') & =
   A\cdot\exp\left(-\frac{||t-t'||^2}{2L^2}\right)\enspace,\text{
     with}\\
-  \{{\bf K}_{\bf t,t'}\}_{i,j} = k_t(t_i,t_j)
+  \{{\bf K}_{\bf t,t'}\}_{i,j} & = k_t(t_i,t_j)
 \end{align}
 where $A$ and $L$ are hyperparameters explaining the magnitude and
 smoothness of the underlying function, respectively. In the setting of
@@ -228,6 +230,42 @@ learning confounders we write the covariance for confounders
   k_\text{time}({\bf X},{\bf X'},{\bf t,t'}) = k_\text{lin}({\bf
     X,X'}) + {\bf K_{\bf t,t'}}
 \end{equation}
+
+\subsubsection{Linear confounders taking time and conditional dat structure into account}
+\label{sec:line-conf-taking}
+
+As stated above we are working with time series comparing two
+conditions to each other, i.e treatment and control. We make use of
+this knowledge by incorporating this structure into the covariance structure for 
+confounders. We denote the conditions by an indicator vector $\bf c$ with
+\begin{equation}
+  \label{eq:8}
+  c_i =
+  \begin{cases}
+    0,\quad\text{ if }{\bf y}_i \text{ corresponds to the control group}\\
+    1,\quad\text{ otherwise.}
+  \end{cases}
+\end{equation}
+We define a covariance based on a kronecker delta comparison between
+conditions, such that the time based covariance is only incorporated
+if the compared inputs correspond to the same condition:
+\begin{equation}
+  \label{eq:10}
+  k_\delta(c,c') = \delta_{c,c'}
+\end{equation}
+This means that the confounders are only learned for non conditional
+and time dependent connections between the inputs.
+We can incorporate the conditions into the covariance
+function of learning confounders by
+\begin{equation}
+  \label{eq:9}
+  k_\text{cond}({\bf X,X',t,t',c,c'}) = k_\text{lin}({\bf
+    X,X'}) + {\bf K_{\bf t,t'}} \cdot {\bf K_{\bf c,c'}}\enspace,
+\end{equation}
+where $\{ {\bf K_{c,c'}} \}_{i,j}=k_\delta(c_i,c_j)$.
+With this covariance structure we avoid learning time and condition
+dependent confounders.
+
 
 \bibliographystyle{alpha} \bibliography{../Papers}
 % \addcontentsline{toc}{chapter}{References}
