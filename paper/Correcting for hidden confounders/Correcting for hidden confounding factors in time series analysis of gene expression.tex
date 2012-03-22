@@ -8,6 +8,7 @@
 
 \usepackage{MnSymbol, xcolor}
 \usepackage{amsmath}
+\usepackage{graphicx}
 
 \usepackage{geometry}
 \geometry{a4paper,left=30mm,right=35mm, top=40mm, bottom=40mm}
@@ -231,7 +232,7 @@ learning confounders we write the covariance for confounders
     X,X'}) + {\bf K_{\bf t,t'}}
 \end{equation}
 
-\subsubsection{Linear confounders taking time and conditional dat structure into account}
+\subsubsection{Linear confounders taking time and conditional data structure into account}
 \label{sec:line-conf-taking}
 
 As stated above we are working with time series comparing two
@@ -266,6 +267,29 @@ where $\{ {\bf K_{c,c'}} \}_{i,j}=k_\delta(c_i,c_j)$.
 With this covariance structure we avoid learning time and condition
 dependent confounders.
 
+\section{Results}
+\label{sec:results}
+
+We apply two-sample tests on a simulated dataset. We used a ground
+truth to generate ROC plots of the result. We simulated confounders from a
+Gaussian distribution with linear covariance \eqref{eq:5}. We compared
+results from three different approaches. One is to run a standard
+Gaussian Process, without learning confounders, second is to
+put in the simulated confounder covariance as fixed and third learning
+the confounders. We compare linear covariance model with the model
+taking time and conditional data structure into account (called 'time
+x linear covariance'). See figure \ref{fig:ROC_linear} for the
+resulting ROC curves. 
+
+\begin{figure}[tps]
+  \centering
+  \includegraphics[width=.7\textwidth]{images/linear covariance learned confounders as covariance.png}
+  \caption{ROC plot of two-sample test taking confounders into
+    account. linear covariance corresponds to \eqref{eq:5} as
+    covariance, time x linear corresponds to \eqref{eq:9}. standard is
+    the result for applying standard Gaussian Process to the
+    confounded data.\label{fig:ROC_linear}}
+\end{figure}
 
 \bibliographystyle{alpha} \bibliography{../Papers}
 % \addcontentsline{toc}{chapter}{References}

@@ -8,11 +8,11 @@ import os
 import matplotlib.pyplot as plt
 import scipy
 import sys
-from gptwosample.util.confounder_constants import covariance_model_id,\
-    product_linear_covariance_model_id, linear_covariance_model_id
+from gptwosample.confounder.confounder_model import covariance_model_id,\
+    linear_covariance_model_id, product_linear_covariance_model_id
 
 def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_truth, root_dir='./', upper=False):
-    plt.title("Sampled from %s, %s" % (sampled_from, prediction_model))
+    #plt.title("Sampled from %s, %s" % (sampled_from, prediction_model))
     plots = []
     legends = []
     standard_not_done = True
@@ -29,23 +29,24 @@ def plot_roc_curves_for_sample_model(sampled_from, prediction_model, ground_trut
                         if(prediction_model == predictionmodel):
                             [plot, auc] = plot_roc_curve(result_file, ground_truth, upper=upper)
                             legends.append("%s %s: %.3f" % (learnedby, prop, auc))
-                            plots.append(plot)
+                            plots.append(plot[0])
                         if(prop == 'ideal' and prediction_model == covariance_model_id):
                             [plot, auc] = plot_roc_curve(result_file, ground_truth, upper=upper)
                             legends.append("%s ideal: %.3f" % (learnedby, auc))
-                            plots.append(plot)
+                            plots.append(plot[0])
                         if(prop == 'standard' and standard_not_done):
                             [plot, auc] = plot_roc_curve(result_file, ground_truth, upper=upper)
                             legends.append("standard: %.3f" % (auc))
                             standard_not_done = False
-                            plots.append(plot)
+                            plots.append(plot[0])
                             
     if(len(plots)>0):
         sort = scipy.argsort(legends)
         legends = scipy.array(legends)
-        plots = scipy.array(plots)
-        plt.legend(legends[sort], loc=4)
+        plots = scipy.array(plots).flatten()
+        plt.legend(plots[sort],legends[sort], loc=4)
 
+    plt.show()
 
 if __name__ == '__main__':
     ground_truth = '../examples/ground_truth_random_genes.csv'
