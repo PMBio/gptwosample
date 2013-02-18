@@ -21,6 +21,7 @@ from gptwosample.data.data_base import get_model_structure, common_id, \
     individual_id
 from matplotlib import cm
 from copy import deepcopy
+from matplotlib.pyplot import jet
 
 def plot_results(twosample_object,
                  xlabel="input", ylabel="ouput", title=None,
@@ -85,7 +86,7 @@ def plot_results(twosample_object,
             first = True
             for i in range(number_of_groups):
                 col_num = (i / (2. * number_of_groups))
-                col = cm.jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
+                col = jet(col_num)#(i/number_of_groups,i/number_of_groups,.8)
                 data = twosample_object.get_data(name, i)
                 replicate_length = len(SP.unique(data[0]))
                 number_of_replicates = len(data[0]) / replicate_length
@@ -117,7 +118,7 @@ def plot_results(twosample_object,
                     legend_names.append("%s %i" % (name, i + 1))
                     #first=False
         else:
-            col = cm.jet(1.)
+            col = jet(1.)
             #data = twosample_object.get_data(name, interval_indices=interval_indices)   
             #PLOT.plot_training_data(
             #        data[0], data[1],

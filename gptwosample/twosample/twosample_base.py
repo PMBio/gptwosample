@@ -216,7 +216,23 @@ class GPTwoSample(object):
             return self._models[model].getData()[:, interval_indices[model]].squeeze()
         else:
             return self._models[model].getData()[index][:, interval_indices[model]].squeeze()
+    
+    def set_covariance_for_model(model, covar):
+        """
+        Set the covariance function for the model with name model
         
+        **parameters:**
+        model: String
+            name of the model; for standard model names see 
+                
+                :py:class:`gptwosample.data.individual_id`
+                :py:class:`gptwosample.data.common_id`
+                
+        covar: :py:class:`pygp.covar`
+            the covariance function of choice for this model
+        """
+        
+    
 ######### PRIVATE ##############
     def _init_twosample_model(self, covar):
         """
