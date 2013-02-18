@@ -10,6 +10,7 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
                    delimiter_1=',',delimiter_2=',',
                    xlabel="False positive rate",
                    ylabel="True positive rate",
+                   upper=False,
                    **kwargs):
     """
     Plot roc curve for given results and ground truth. 
@@ -19,21 +20,24 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     **Parameters:**
 
     path_to_result_file : String
-        has to be in training_data_structure (see :py:class:`gptwosample.data.data_base` for details)
+        has to be in training_data_structure (see :py:class:`gptwosample.data.data_base` for details).
 
     ground_truth : String
         file has to have following structure: 
             first column contains gene_names, 
-            second column contains 1 for positive, 0 for negative truth
+            second column contains 1 for positive, 0 for negative truth.
             
     delimiter_i : char
-        delimiter for result file and ground truth file, respectively
+        delimiter for result file and ground truth file, respectively.
         
     xlabel, ylabel: string
-        The x/ylabel for the plot. See matplotlib for details
+        The x/ylabel for the plot. See matplotlib for details.
+    
+    upper : boolean
+        True, if all names shall be upper converted. 
     
     kwargs:
-        matplotlib kwargs, for adjusting the plot
+        matplotlib kwargs, for adjusting the plot.
     """
     result_data = get_data_from_csv(path_to_result,delimiter=delimiter_1)
     result_data_header = result_data.pop('input')
@@ -44,7 +48,9 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     result_names = []
     result_results = []
     for gene_name,result in result_data.iteritems():
-        result_names.append(gene_name.upper())
+        if(upper):
+            gene_name = gene_name.upper()
+        result_names.append(gene_name)
         result_results.append(scipy.ndarray.flatten(result)[0])
     result_names_sorting = scipy.argsort(result_names)
     result_names=scipy.array(result_names)[result_names_sorting]
@@ -52,7 +58,9 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     ground_truth_names = []
     ground_truth_results = []
     for gene_name,truth in ground_truth_data.iteritems():
-        ground_truth_names.append(gene_name.upper())
+        if(upper):
+            gene_name = gene_name.upper()
+        ground_truth_names.append(gene_name)
         ground_truth_results.append(scipy.ndarray.flatten(truth)[0])
     ground_truth_sorting = scipy.argsort(ground_truth_names)
     ground_truth_names=scipy.array(ground_truth_names)[ground_truth_sorting]

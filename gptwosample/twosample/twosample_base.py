@@ -2,7 +2,7 @@
 GPTwoSample Base Class
 ======================
 
-All classes ahndling GPTwoSample tasks should extend this class.
+All classes handling GPTwoSample tasks should extend this class.
 
 Created on Mar 18, 2011
 
@@ -12,7 +12,7 @@ from gptwosample.data import DataStructureError, get_model_structure
 from gptwosample.data.data_base import input_id, output_id, individual_id, \
     common_id, has_model_structure
 from pygp.optimize import opt_hyper
-import scipy as SP
+import scipy
     
 class GPTwoSample(object):
     """
@@ -55,7 +55,7 @@ class GPTwoSample(object):
             for name, prior in self._priors.iteritems():
                 if prior.has_key('covar'):
                     #logarithmize the right hyperparameters for the covariance
-                    logtheta = SP.array([p[1][0] * p[1][1] for p in prior['covar']], dtype='float')
+                    logtheta = scipy.array([p[1][0] * p[1][1] for p in prior['covar']], dtype='float')
                     # out since version 1.0.0
                     # logtheta[covar.get_Iexp(logtheta)] = SP.log(logtheta[covar.get_Iexp(logtheta)])
                     self._initial_hyperparameters[name]['covar'] = logtheta
@@ -64,7 +64,7 @@ class GPTwoSample(object):
         elif initial_hyperparameters is not None:
             self._initial_hyperparameters = get_model_structure(initial_hyperparameters, initial_hyperparameters)
         else:
-            self._initial_hyperparameters = get_model_structure({'covar':SP.zeros(covar.get_number_of_parameters())}, {'covar':SP.zeros(covar.get_number_of_parameters())})
+            self._initial_hyperparameters = get_model_structure({'covar':scipy.zeros(covar.get_number_of_parameters())}, {'covar':scipy.zeros(covar.get_number_of_parameters())})
 
         self._invalidate_cache()
     
@@ -73,7 +73,7 @@ class GPTwoSample(object):
         # set individual model's data
         self._models[individual_id].setData(X, Y)
         # set common model's data
-        self._models[common_id].setData(SP.concatenate(X), SP.concatenate(Y))
+        self._models[common_id].setData(scipy.concatenate(X), scipy.concatenate(Y))
     
     def set_data(self, training_data):
         """
@@ -167,9 +167,11 @@ class GPTwoSample(object):
         if(hyperparams is None):
             hyperparams = self._learned_hyperparameters
         self._predicted_mean_variance = get_model_structure()
+        if(not has_model_structure(interpolation_interval)):
+            interpolation_interval = get_model_structure(interpolation_interval, interpolation_interval)
         for name, model in self._models.iteritems():
             model.set_active_set_indices(interval_indices[name])
-            prediction = model.predict(hyperparams[name], interpolation_interval, var=True, *args, **kwargs)
+            prediction = model.predict(hyperparams[name], interpolation_interval[name], var=True, *args, **kwargs)
             self._predicted_mean_variance[name] = {'mean':prediction[0], 'var':prediction[1]}
 
         self._interpolation_interval_cache = interpolation_interval
