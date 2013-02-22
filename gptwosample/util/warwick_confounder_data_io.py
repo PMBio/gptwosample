@@ -11,7 +11,6 @@ from gptwosample import plot
 import csv
 from gptwosample.data.data_base import common_id, individual_id
 import os
-from gptwosample.util.confounder_model import Confounder_Model
 from gptwosample.util.sample_confounders import sample_GP
 import sys
 
@@ -53,29 +52,29 @@ def prepare_csv_out(CovFun, out_path, out_file):
     csv_out_confounded.writerow(header)
     return csv_out_confounded, csv_out_file_confounded
 
-def get_data(Y_dict, confounder_model, confounder_learning_model, components):
-    dump_file = "%s.pickle" % get_path_for_pickle(confounder_model, confounder_learning_model, components)
-    explained_variance = .5
-    if (not os.path.exists(dump_file)) or 'recalc' in sys.argv:
-        print "calculating simulations and reading data"
-        if(not os.path.exists(os.path.dirname(dump_file))):
-            os.makedirs(os.path.dirname(dump_file))
-        Y_dict = add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, components, dump_file, explained_variance)
-    else:
-        print "loading data and simulations from file: %s" % (dump_file)
-        # data already exists
-        Y_dict = cPickle.load(open(dump_file, 'r'))
-        #gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=explained_variance)
-    return Y_dict
+#def get_data(Y_dict, confounder_model, confounder_learning_model, components):
+#    dump_file = "%s.pickle" % get_path_for_pickle(confounder_model, confounder_learning_model, components)
+#    explained_variance = .5
+#    if (not os.path.exists(dump_file)) or 'recalc' in sys.argv:
+#        print "calculating simulations and reading data"
+#        if(not os.path.exists(os.path.dirname(dump_file))):
+#            os.makedirs(os.path.dirname(dump_file))
+#        Y_dict = add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, components, dump_file, explained_variance)
+#    else:
+#        print "loading data and simulations from file: %s" % (dump_file)
+#        # data already exists
+#        Y_dict = cPickle.load(open(dump_file, 'r'))
+#        #gpmodel = construct_gp_model(Y_dict, model=confounder_model, components=components, explained_variance=explained_variance)
+#    return Y_dict
 
-def add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, components, dump_file, explained_variance):
-    # simulation model:
-    gp_conf_model = Confounder_Model(confounder_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
-    Y_dict = add_simulated_confounders(Y_dict, gp_conf_model, components=components) # learning model:
-    gp_conf_model = Confounder_Model(confounder_learning_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
-    Y_dict['learning_X'], Y_dict['X'], Y_dict['Y_reconstruct'] = gp_conf_model.learn_confounder_matrix(Y_dict['Y_confounded']) # save data:
-    cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
-    return Y_dict
+#def add_confounder_stuff(Y_dict, confounder_model, confounder_learning_model, components, dump_file, explained_variance):
+#    # simulation model:
+#    gp_conf_model = Confounder_Model(confounder_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
+#    Y_dict = add_simulated_confounders(Y_dict, gp_conf_model, components=components) # learning model:
+#    gp_conf_model = Confounder_Model(confounder_learning_model, Y_dict['T'], Y_dict['condition'].reshape(-1, 1), components, explained_variance)
+#    Y_dict['learning_X'], Y_dict['X'], Y_dict['Y_reconstruct'] = gp_conf_model.learn_confounder_matrix(Y_dict['Y_confounded']) # save data:
+#    cPickle.dump(Y_dict, open(dump_file, 'wb'), -1)
+#    return Y_dict
 
 def read_data_from_file(cond1_file, cond2_file, fraction=1.0):
     """read raw data and return dict with all data"""

@@ -21,18 +21,16 @@ class GPTwoSample_share_covariance(GPTwoSample):
     see :py:class:`GPTwoSample.src.GPTwoSample` for detailed description of provided methods.
     
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, covar, *args, **kwargs):
         """
         see :py:class:`GPTwoSample.src.GPTwoSample`
         """
         super(GPTwoSample_share_covariance, self).__init__(*args, **kwargs)
-
-
-    def _init_twosample_model(self, covar, **kwargs):
         gpr1 = GP(covar)
         gpr2 = GP(covar)
         individual_model = GroupGP([gpr1,gpr2])
         common_model = GP(covar)
+        self.covar = covar
         # set models for this GPTwoSample Test
         self._models = {individual_id:individual_model,common_id:common_model}
         
@@ -44,17 +42,18 @@ class GPTwoSample_individual_covariance(GPTwoSample):
     
     Note that this model will need one covariance function for each model, respectively!
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, covar_individual_1, covar_individual_2, covar_common, *args, **kwargs):
         """
         see :py:class:`GPTwoSample.src.GPTwoSample`
         """
         super(GPTwoSample_individual_covariance, self).__init__(*args, **kwargs)
-
-
-    def _init_twosample_model(self, covar, individual_args=None, common_args=None, **kwargs):
-        gpr1 = GP(covar[0])
-        gpr2 = GP(covar[1])
+        gpr1 = GP(covar_individual_1)
+        gpr2 = GP(covar_individual_2)
         individual_model = GroupGP([gpr1,gpr2])
-        common_model = GP(covar[2])
+        common_model = GP(covar_common)
+        self.covar_individual_1 = covar_individual_1
+        self.covar_individual_2 = covar_individual_2
+        self.covar_common = covar_common
         # set models for this GPTwoSample Test
         self._models = {individual_id:individual_model,common_id:common_model}
+    

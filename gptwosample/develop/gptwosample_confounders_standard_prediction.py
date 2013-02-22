@@ -13,10 +13,10 @@ from gptwosample.util.warwick_confounder_data_io import write_back_data,\
     get_ground_truth_iterator, prepare_csv_out, get_path_for_pickle,\
     get_ground_truth_subset_100_iterator
 import scipy
-from gptwosample.util.confounder_constants import reconstruct_model_id,\
+from threading import Thread
+from gptwosample.confounder.confounder_model import reconstruct_model_id,\
     covariance_model_id, linear_covariance_model_id,\
     product_linear_covariance_model_id
-from threading import Thread
 
 
 def run_demo(Y_dict, confounder_model, confounder_learning_model, fraction=0.1, components=4):

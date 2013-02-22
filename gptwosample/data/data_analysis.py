@@ -79,6 +79,8 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     auroc_curve = auroc(tp=roc_curve[0], fp=roc_curve[1])
     
     # plot the curve into existing pylab environment
+    if 'label' in kwargs.keys():
+        kwargs['label'] = "{0}: AUC={1:.3g}".format(kwargs['label'], auroc_curve)
     plot = pylab.plot(roc_curve[1],roc_curve[0],**kwargs)
     pylab.xlabel(xlabel)
     pylab.ylabel(ylabel)

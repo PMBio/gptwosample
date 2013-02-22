@@ -106,9 +106,9 @@ def run_demo(cond1_file, cond2_file):
                                                     y1.reshape(-1,1), y2.reshape(-1,1))
         
         # First, GPTwoSample_individual_covariance:
-        gptwosample_object = GPTwoSample_individual_covariance([combinators.SumCF((shiftCFInd1,noiseCF)),
+        gptwosample_object = GPTwoSample_individual_covariance(combinators.SumCF((shiftCFInd1,noiseCF)),
                                           combinators.SumCF((shiftCFInd2,noiseCF)),
-                                          combinators.SumCF((shiftCFCom,noiseCF))],
+                                          combinators.SumCF((shiftCFCom,noiseCF)),
                                          priors=priors)
         
         gptwosample_object.predict_model_likelihoods(training_data=training_data)

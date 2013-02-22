@@ -16,15 +16,15 @@
 % section styles
 \newcommand{\changefont}[3]{
   \fontfamily{#1}\fontseries{#2}\fontshape{#3}\selectfont}
-\newcommand\bigheading{\changefont{cmbr}{bx}{n}}
-\newcommand\littleheading{\changefont{cmbr}{b}{n}}
+%\newcommand\bigheading{\changefont{cmbr}{bx}{n}}
+%\newcommand\littleheading{\changefont{cmbr}{b}{n}}
 \newcommand\TODO[1]{{\sc \color{red}{Todo: #1}}}
 
-\usepackage{sectsty}
-\chapterfont{\huge\bigheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
-\sectionfont{\Large\littleheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
-\subsectionfont{\large\littleheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
-\subsubsectionfont{\littleheading}
+%\usepackage{sectsty}
+%\chapterfont{\huge\bigheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
+%\sectionfont{\Large\littleheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
+%\subsectionfont{\large\littleheading\renewcommand\it{\changefont{pplx}{bx}{it}}}
+%\subsubsectionfont{\littleheading}
 
 % spacing
 \usepackage{setspace}
@@ -182,14 +182,13 @@ function.
 \label{sec:confounder-learning}
 
 Learning confounders ${\bf X}_\text{GPLVM}$ incorporates a covariance
-function into the probabilistic interpretation of PCA. We use
-the structure of different covariance functions to explicitly model
+function into the probabilistic interpretation of PCA. We use the
+structure of different covariance functions to explicitly model
 structure of gene expression time series. The first and most simple
-covariance function is the linear one, which is the one Lawrence {\it
-  et al.} \cite{lawrence2004gaussian} introduced. Another covariance
-function takes the time series aspect into account, while yet
-another one even goes a step further, modeling condition dependent
-time patterns explicitly.
+covariance function is the linear one (see
+\ref{sec:line-covar-conf}). Another covariance function takes the time
+series aspect into account, while yet another one even goes a step
+further, modeling condition dependent time patterns explicitly.
 
 \subsubsection{Linear covariance for confounders}
 \label{sec:line-covar-conf}
@@ -204,33 +203,33 @@ whole dataset linearly. These components should reflect the fact that
 we are using two separate conditions in at least one of the $q$
 confounders. 
 
-\subsubsection{Linear confounder covariance with explicit time model}
-\label{sec:line-conf-covar}
+% \subsubsection{Linear confounder covariance with explicit time model}
+% \label{sec:line-conf-covar}
 
-Studying time series data we can make use of the fact that the data is
-well structured in input space, namely it is time. With this knowledge
-we are able to incorporate time into covariance structure, which
-explains one common attribute in data, the linearity of time. For
-simplicity we write the time model dependent on the time line $\bf
-t$. With that we can write the covariance structure for explicit time
-modeling in the following way. We use a squared exponential covariance
-function for modeling the time, such that the time points are more dependent
-on each other, if nearby and vice versa:
-\begin{align}
-  \label{eq:6}
-  k_t(t,t') & =
-  A\cdot\exp\left(-\frac{||t-t'||^2}{2L^2}\right)\enspace,\text{
-    with}\\
-  \{{\bf K}_{\bf t,t'}\}_{i,j} & = k_t(t_i,t_j)
-\end{align}
-where $A$ and $L$ are hyperparameters explaining the magnitude and
-smoothness of the underlying function, respectively. In the setting of
-learning confounders we write the covariance for confounders
-\begin{equation}
-  \label{eq:7}
-  k_\text{time}({\bf X},{\bf X'},{\bf t,t'}) = k_\text{lin}({\bf
-    X,X'}) + {\bf K_{\bf t,t'}}
-\end{equation}
+% Studying time series data we can make use of the fact that the data is
+% well structured in input space, namely it is time. With this knowledge
+% we are able to incorporate time into covariance structure, which
+% explains one common attribute in data, the linearity of time. For
+% simplicity we write the time model dependent on the time line $\bf
+% t$. With that we can write the covariance structure for explicit time
+% modeling in the following way. We use a squared exponential covariance
+% function for modeling the time, such that the time points are more dependent
+% on each other, if nearby and vice versa:
+% \begin{align}
+%   \label{eq:6}
+%   k_t(t,t') & =
+%   A\cdot\exp\left(-\frac{||t-t'||^2}{2L^2}\right)\enspace,\text{
+%     with}\\
+%   \{{\bf K}_{\bf t,t'}\}_{i,j} & = k_t(t_i,t'_j)
+% \end{align}
+% where $A$ and $L$ are hyperparameters explaining the magnitude and
+% smoothness of the underlying function, respectively. In the setting of
+% learning confounders we write the covariance for confounders
+% \begin{equation}
+%   \label{eq:7}
+%   k_\text{time}({\bf X},{\bf X'},{\bf t,t'}) = k_\text{lin}({\bf
+%     X,X'}) + {\bf K_{\bf t,t'}}
+% \end{equation}
 
 \subsubsection{Linear confounders taking time and conditional data structure into account}
 \label{sec:line-conf-taking}

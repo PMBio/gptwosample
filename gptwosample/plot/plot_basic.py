@@ -18,10 +18,9 @@ import pygp.plot.gpr_plot as PLOT
 import pylab as PL
 import scipy as SP
 from gptwosample.data.data_base import get_model_structure, common_id, \
-    individual_id, has_model_structure
-from matplotlib import cm
+    individual_id
 from copy import deepcopy
-from matplotlib.pyplot import jet
+from matplotlib.cm import jet #@UnresolvedImport
 
 def plot_results(twosample_object,
                  xlabel="input", ylabel="ouput", title=None,

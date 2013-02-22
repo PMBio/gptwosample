@@ -18,8 +18,7 @@ class GPTwoSample(object):
     """
     Perform GPTwoSample with the given covariance function covar.
     """
-    def __init__(self, covar,
-                 learn_hyperparameters=True,
+    def __init__(self, learn_hyperparameters=True,
                  priors=None,
                  initial_hyperparameters=None, **kwargs):
         """
@@ -40,7 +39,6 @@ class GPTwoSample(object):
         """
 
         self._learn_hyperparameters = learn_hyperparameters
-        self._covar = covar
         if has_model_structure(priors):
             self._priors = priors
         else:
@@ -48,7 +46,6 @@ class GPTwoSample(object):
             
         
         self._models = dict()
-        self._init_twosample_model(covar, **kwargs)
         
         if initial_hyperparameters is None:
             self._initial_hyperparameters = get_model_structure({}, {});
@@ -64,7 +61,7 @@ class GPTwoSample(object):
         elif initial_hyperparameters is not None:
             self._initial_hyperparameters = get_model_structure(initial_hyperparameters, initial_hyperparameters)
         else:
-            self._initial_hyperparameters = get_model_structure({'covar':scipy.zeros(covar.get_number_of_parameters())}, {'covar':scipy.zeros(covar.get_number_of_parameters())})
+            self._initial_hyperparameters = get_model_structure()
 
         self._invalidate_cache()
     
@@ -219,7 +216,7 @@ class GPTwoSample(object):
         else:
             return self._models[model].getData()[index][:, interval_indices[model]].squeeze()
     
-    def set_covariance_for_model(model, covar):
+    def set_covariance_for_model(self, model, covar):
         """
         Set the covariance function for the model with name model
         
@@ -236,13 +233,13 @@ class GPTwoSample(object):
         
     
 ######### PRIVATE ##############
-    def _init_twosample_model(self, covar):
-        """
-        The initialization of the twosample model with
-        the given covariance function covar
-        """
-        print("please implement twosample model")
-        pass
+#    def _init_twosample_model(self, covar):
+#        """
+#        The initialization of the twosample model with
+#        the given covariance function covar
+#        """
+#        print("please implement twosample model")
+#        pass
 
     def _invalidate_cache(self):
         # self._learned_hyperparameters = dict([name,None for name in self._models.keys()])
