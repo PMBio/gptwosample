@@ -1,33 +1,35 @@
 '''
-GPTwoSample Base Class
+AbstractGPTwoSampleBase Base Class
 ======================
 
-All classes handling GPTwoSample tasks should extend this class.
+All classes handling AbstractGPTwoSampleBase tasks should extend this class.
 
 Created on Mar 18, 2011
 
 @author: Max Zwiessele, Oliver Stegle
 '''
-from gptwosample.data import DataStructureError, get_model_structure
 from gptwosample.data.data_base import input_id, output_id, individual_id, \
-    common_id, has_model_structure
-from pygp.optimize import opt_hyper
+    common_id, has_model_structure, get_model_structure, DataStructureError
 import scipy
+from pygp.gp.gp_base import GP
+from pygp.gp.composite import GroupGP
+from pygp.optimize.optimize_base import opt_hyper
+import numpy
     
-class GPTwoSample(object):
+class AbstractGPTwoSampleBase(object):
     """
-    Perform GPTwoSample with the given covariance function covar.
+    AbstractGPTwoSampleBase object with the given covariance function covar.
     """
     def __init__(self, learn_hyperparameters=True,
                  priors=None,
                  initial_hyperparameters=None, **kwargs):
         """
-        Perform GPTwoSample with the given covariance function covar.
+        Perform AbstractGPTwoSampleBase with the given covariance function covar.
 
         **Parameters**:
 
             covar : :py:class:`pygp.covar.CovarianceFunction`
-                The covariance function this GPTwoSample class works with.
+                The covariance function this AbstractGPTwoSampleBase class works with.
 
             learn_hyperparameters : bool
                 Specifies whether or not to optimize the hyperparameters for the given data
@@ -44,14 +46,13 @@ class GPTwoSample(object):
         else:
             self._priors = get_model_structure(priors, priors)
             
-        
         self._models = dict()
         
         if initial_hyperparameters is None:
             self._initial_hyperparameters = get_model_structure({}, {});
             for name, prior in self._priors.iteritems():
                 if prior.has_key('covar'):
-                    #logarithmize the right hyperparameters for the covariance
+                    # logarithmize the right hyperparameters for the covariance
                     logtheta = scipy.array([p[1][0] * p[1][1] for p in prior['covar']], dtype='float')
                     # out since version 1.0.0
                     # logtheta[covar.get_Iexp(logtheta)] = SP.log(logtheta[covar.get_Iexp(logtheta)])
@@ -66,7 +67,11 @@ class GPTwoSample(object):
         self._invalidate_cache()
     
     def set_data_by_xy_data(self, x1, x2, y1, y2):
-        X = [x1, x2]; Y = [y1, y2]
+        not_missing = (numpy.isfinite(x1) * numpy.isfinite(x2) * numpy.isfinite(y1) * numpy.isfinite(y2)).flatten()
+        x1, x2 = x1[not_missing], x2[not_missing]
+        y1, y2 = y1[not_missing], y2[not_missing]
+        
+        X = numpy.array([x1, x2]); Y = numpy.array([y1, y2])
         # set individual model's data
         self._models[individual_id].setData(X, Y)
         # set common model's data
@@ -94,7 +99,7 @@ class GPTwoSample(object):
                                      training_data[output_id]['group_1'],
                                      training_data[output_id]['group_2'])
         except KeyError:
-            #print """Please validate training data given. \n
+            # print """Please validate training data given. \n
             #    training_data must have following structure: \n
             #    {'input' : {'group 1':[double] ... 'group n':[double]},
             #    'output' : {'group 1':[double] ... 'group n':[double]}}"""
@@ -113,7 +118,7 @@ class GPTwoSample(object):
             If not given, training data must be given previously by 
             :py:class:`gptwosample.twosample.basic.set_data`.
 
-        interval_indices: :py:class:`gptwosample.data.get_model_structure()`
+        interval_indices: :py:class:`gptwosample.data.data_base.get_model_structure()`
             interval indices, which assign data to individual or common model,
             respectively.
 
@@ -130,10 +135,16 @@ class GPTwoSample(object):
         for name, model in self._models.iteritems():
             model.set_active_set_indices(interval_indices[name])
             if(self._learn_hyperparameters):
-                self._learned_hyperparameters[name] = opt_hyper(model,
-                                                                self._initial_hyperparameters[name],
-                                                                priors=self._priors[name],
-                                                                *args, **kwargs)[0]
+                opt_hyperparameters = opt_hyper(model,
+                                                self._initial_hyperparameters[name],
+                                                priors=self._priors[name],
+                                                *args, **kwargs)[0]
+                self._learned_hyperparameters[name] = opt_hyperparameters
+#                elif not isinstance(self._learned_hyperparameters[name], list):
+#                    self._learned_hyperparameters[name] = [self._learned_hyperparameters[name]]
+#                    self._learned_hyperparameters[name].append(opt_hyperparameters)
+#                else:
+#                    self._learned_hyperparameters[name].append(opt_hyperparameters)
             self._model_likelihoods[name] = model.LML(self._learned_hyperparameters[name],
                                                       priors=self._priors, *args, **kwargs)
 
@@ -192,8 +203,14 @@ class GPTwoSample(object):
         return  model_likelihoods[common_id] - model_likelihoods[individual_id]
 
     def get_model_likelihoods(self):
-        return self._model_likelihood
+        """
+        Returns all calculated likelihoods in model structure. If not calculated returns None in model structure.
+        """
+        return self._model_likelihoods
     def get_learned_hyperparameters(self):
+        """
+        Returns learned hyperparameters in model structure, if already learned.
+        """
         return self._learned_hyperparameters
     def get_predicted_mean_variance(self):
         """
@@ -216,21 +233,6 @@ class GPTwoSample(object):
         else:
             return self._models[model].getData()[index][:, interval_indices[model]].squeeze()
     
-    def set_covariance_for_model(self, model, covar):
-        """
-        Set the covariance function for the model with name model
-        
-        **parameters:**
-        model: String
-            name of the model; for standard model names see 
-                
-                :py:class:`gptwosample.data.individual_id`
-                :py:class:`gptwosample.data.common_id`
-                
-        covar: :py:class:`pygp.covar`
-            the covariance function of choice for this model
-        """
-        
     
 ######### PRIVATE ##############
 #    def _init_twosample_model(self, covar):
@@ -247,5 +249,47 @@ class GPTwoSample(object):
         self._learned_hyperparameters = get_model_structure()
         self._interpolation_interval_cache = None
         self._predicted_mean_variance = None
-        #self._training_data_cache = {'input': {'group_1':None,'group_2':None},
-        #                             'output': {'group_1':None,'group_2':None}}
+
+class GPTwoSample_share_covariance(AbstractGPTwoSampleBase):
+    """
+    This class provides comparison of two Timeline Groups to each other.
+
+    see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase` for detailed description of provided methods.
+    
+    """
+    def __init__(self, covar, *args, **kwargs):
+        """
+        see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase`
+        """
+        super(GPTwoSample_share_covariance, self).__init__(*args, **kwargs)
+        gpr1 = GP(covar)
+        gpr2 = GP(covar)
+        individual_model = GroupGP([gpr1,gpr2])
+        common_model = GP(covar)
+        self.covar = covar
+        # set models for this AbstractGPTwoSampleBase Test
+        self._models = {individual_id:individual_model,common_id:common_model}
+        
+class GPTwoSample_individual_covariance(AbstractGPTwoSampleBase):
+    """
+    This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively
+
+    see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase` for detailed description of provided methods.
+    
+    Note that this model will need one covariance function for each model, respectively!
+    """
+    def __init__(self, covar_individual_1, covar_individual_2, covar_common, **kwargs):
+        """
+        see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase`
+        """
+        super(GPTwoSample_individual_covariance, self).__init__(**kwargs)
+        gpr1 = GP(covar_individual_1)
+        gpr2 = GP(covar_individual_2)
+        individual_model = GroupGP([gpr1,gpr2])
+        common_model = GP(covar_common)
+        self.covar_individual_1 = covar_individual_1
+        self.covar_individual_2 = covar_individual_2
+        self.covar_common = covar_common
+        # set models for this AbstractGPTwoSampleBase Test
+        self._models = {individual_id:individual_model,common_id:common_model}
+    

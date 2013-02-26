@@ -63,16 +63,16 @@ def hinton(W,X,maxWeight=None):
     reenable = False
     if P.isinteractive():
         P.ioff()
+        reenable = True
     #P.clf()
-    height,  = W.shape
-    width = P.xlim()[1]
-    x0    = P.xlim()[0]
+    height, width  = W.shape
+    #x0    = P.xlim()[0]
     #x0    = 0
     
     if not maxWeight:
         maxWeight = 2**N.ceil(N.log(N.max(N.abs(W)))/N.log(2))
         
-    P.fill(N.array([x0,width,width,x0]),N.array([0,0,height,height]),'gray')
+    P.fill(N.array([0,width,width,0]),N.array([0,0,height,height]),'gray')
     P.axis('off')
     P.axis('equal')
     for x in xrange(W.shape[1]):
@@ -87,4 +87,5 @@ def hinton(W,X,maxWeight=None):
                 _blob(_x - 0.5, height - _y + 0.5, min(1,-w/maxWeight),'black')
     if reenable:
         P.ion()
-    P.ylim([0,1])
+        P.draw()
+    #P.ylim([0,1])

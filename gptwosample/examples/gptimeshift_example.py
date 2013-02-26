@@ -15,7 +15,6 @@ Created on Apr 28, 2011
 from gptwosample.data.data_base import get_training_data_structure, \
     get_model_structure, common_id
 from gptwosample.plot.plot_basic import plot_results
-from gptwosample.twosample.twosample_compare import GPTwoSample_share_covariance, GPTwoSample_individual_covariance
 from pygp.covar import se, noise, combinators
 from pygp.priors import lnpriors
 import logging as LG
@@ -23,6 +22,8 @@ import numpy.random as random
 import pylab as PL
 import scipy as SP
 from gptwosample.data.dataIO import get_data_from_csv
+from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance,\
+    GPTwoSample_share_covariance
 
 def run_demo(cond1_file, cond2_file):
     LG.basicConfig(level=LG.INFO)
@@ -45,7 +46,7 @@ def run_demo(cond1_file, cond2_file):
     gene_names = sorted(cond1.keys()) 
     assert gene_names == sorted(cond2.keys())
     
-    n_genes = len(gene_names)
+    #n_genes = len(gene_names)
     n_replicates = cond1[gene_names[0]].shape[0]
     gene_length = len(T1)
     

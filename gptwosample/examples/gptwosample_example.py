@@ -19,8 +19,10 @@ import scipy as SP
 from gptwosample.plot.plot_basic import plot_results
 
 
-def run_demo(cond1_file, cond2_file):
-    #full debug info:
+if __name__ == '__main__':
+    cond1_file = './ToyCondition1.csv'; cond2_file = './ToyCondition2.csv'
+    
+        #full debug info:
     LG.basicConfig(level=LG.INFO)
 
     #1. read csv file
@@ -28,7 +30,7 @@ def run_demo(cond1_file, cond2_file):
     cond2 = get_data_from_csv(cond2_file, delimiter=",")
 
     #range where to create time local predictions ? 
-    #note: this need to be [T x 1] dimensional: (newaxis)
+    #note: this needs to be [T x 1] dimensional: (newaxis)
     Tpredict = SP.linspace(cond1["input"].min(), cond1["input"].max(), 100)[:, SP.newaxis]
     T1 = cond1["input"]
     T2 = cond2["input"]
@@ -62,6 +64,3 @@ def run_demo(cond1_file, cond2_file):
         PL.show()
 
         pass
-
-if __name__ == '__main__':
-    run_demo(cond1_file = './ToyCondition1.csv', cond2_file = './ToyCondition2.csv')
