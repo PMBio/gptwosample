@@ -304,20 +304,20 @@ def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, 
     #note; there is no need for the time points to be aligned for all replicates
     #creates score and time local predictions
     twosample_object.set_data_by_xy_data(T1, T2, Y0.reshape(-1, 1), Y1.reshape(-1, 1))
-    twosample_object.predict_model_likelihoods()
+    twosample_object.predict_model_likelihoods(messages=False)
     twosample_object.predict_mean_variance(Tpredict)
 
-    pylab.figure(1)
-    pylab.clf()
-    plot_results(twosample_object,
-		 title='%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
-		 shift=None,
-		 draw_arrows=1)
-    pylab.xlim(T1.min(), T1.max())
+    #pylab.figure(1)
+    #pylab.clf()
+    #plot_results(twosample_object,
+    #     title='%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()),
+    #	 shift=None,
+    #	 draw_arrows=1)
+    #pylab.xlim(T1.min(), T1.max())
     
-    if savename is None:
-        savename=gene_name
-    pylab.savefig("%s"%(savename))
+    #if savename is None:
+    #    savename=gene_name
+    #pylab.savefig("%s"%(savename))
     
 def sample_confounders_from_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams, T):
         # or draw from a GP:
