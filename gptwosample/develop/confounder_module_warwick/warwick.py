@@ -31,7 +31,10 @@ def finished(s, process=None):
         while p.is_alive():
             p.terminate()
             p.join(1)
-    sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
+    try:
+        sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
+    except:
+        sys.stdout.write(s + " done            \n")
     sys.stdout.flush()
     
 def start_mill(s):
