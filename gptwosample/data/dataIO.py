@@ -57,6 +57,7 @@ def get_data_from_csv(path_to_file,delimiter=',',count=-1):
 #            out.write("#"*(step_ahead-step))
 #            step = step_ahead
     out.flush()
+    out.write("Reading File {1:s}: {0:.2%}".format(1, os.path.basename(path_to_file)) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '\n')
     for name,expr in data.iteritems():
         try:
             data[name] = SP.array(expr,dtype='float')
