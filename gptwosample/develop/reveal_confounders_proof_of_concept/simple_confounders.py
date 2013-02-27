@@ -384,6 +384,7 @@ def read_files_and_pickle(cond1_file, cond2_file, root, D='all'):
     if D=='all':
         Y1 = numpy.array(cond1.values())
         Y2 = numpy.array(cond2.values())
+        gene_names = gene_names_all
     else:
         Y1 = numpy.zeros((D, n_replicates_1, T1.shape[0]))
         Y2 = numpy.zeros((D, n_replicates_2, T2.shape[0]))
