@@ -317,7 +317,7 @@ def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, 
     
     if savename is None:
         savename=gene_name
-    pylab.savefig("%s.png"%(savename))
+    pylab.savefig("%s"%(savename))
     
 def sample_confounders_from_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams, T):
         # or draw from a GP:
