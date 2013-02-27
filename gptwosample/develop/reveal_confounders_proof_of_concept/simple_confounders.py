@@ -272,7 +272,8 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         
         out_conf_file.close()
         out_normal_file.close()
-      
+        out_predict_file.close()
+        
     if "plot_roc" in sys.argv:
         pylab.figure()
         plot_roc_curve(out_conf_file_name, gt_file_name, label="conf")
