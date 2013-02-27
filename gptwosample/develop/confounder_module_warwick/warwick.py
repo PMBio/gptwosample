@@ -38,16 +38,18 @@ def finished(s, process=None):
     sys.stdout.flush()
     
 def start_mill(s):
-    mill_symb = {0:'-',1:'\\',2:"|",3:'/'}
-    def mill():
-        i=-1
-        while True:
-            i = (i+1)%4
-            sys.stdout.flush()
-            sys.stdout.write("{}{}\r".format(s,mill_symb[i]))
-            time.sleep(.3)
-    p = Process(target=mill)
-    p.start()
+    sys.stdout.flush()
+    sys.stdout.write("{}\r".format(s))
+#    mill_symb = {0:'-',1:'\\',2:"|",3:'/'}
+#    def mill():
+#        i=-1
+#        while True:
+#            i = (i+1)%4
+#            sys.stdout.flush()
+#            sys.stdout.write("{}{}\r".format(s,mill_symb[i]))
+#            time.sleep(.3)
+#    p = Process(target=mill)
+    #p.start()
     return p
 
 s = "loading data..."
