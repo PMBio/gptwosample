@@ -203,7 +203,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if not os.path.exists(plots_out_dir):
         os.mkdir(plots_out_dir)
 
-    gt_file_name = "../../examples/ground_truth_balanced_set_of_100.csv"
+    gt_file_name = "../../examples/ground_truth_random_genes.csv"
     out_conf_file_name = os.path.join(results_out_dir,"conf.csv")
     out_normal_file_name = os.path.join(results_out_dir,"normal.csv")
     out_predict_file_name = os.path.join(results_out_dir,"predict.csv")
@@ -379,7 +379,7 @@ def read_files_and_pickle(cond1_file, cond2_file, root, D='all'):
     
     # data merging and stuff
     gt_names = []
-    for [name,_] in csv.reader(open("../../examples/ground_truth_balanced_set_of_100.csv",'r')):
+    for [name,_] in csv.reader(open("../../examples/ground_truth_random_genes.csv.csv",'r')):
         gt_names.append(name)
     
     if D=='all':
