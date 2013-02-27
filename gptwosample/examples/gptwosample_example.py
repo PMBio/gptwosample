@@ -55,7 +55,7 @@ if __name__ == '__main__':
                                                               Y0.reshape(-1, 1),
                                                               Y1.reshape(-1, 1)))
         twosample_object.predict_model_likelihoods()
-        twosample_object.predict_mean_variance(Tpredict)
+        twosample_object.predict_mean_variance_iter(Tpredict)
         plot_results(twosample_object,title=r'%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()))
         PL.xlim(T1.min(), T1.max())
         

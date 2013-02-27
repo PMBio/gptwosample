@@ -10,8 +10,9 @@ Created on Jun 9, 2011
 """
 
 import csv, scipy as SP, sys
+import os
 
-def get_data_from_csv(path_to_file,delimiter=','):
+def get_data_from_csv(path_to_file,delimiter=',',count=-1):
     '''
     Return data from csv file with delimiter delimiter in form of a dictionary.
     The file format has to fullfill following formation:
@@ -32,12 +33,13 @@ def get_data_from_csv(path_to_file,delimiter=','):
 
     Returns: {"input":[x1,...,xl], "Gene Name 1":[[y1 replicate 1, ... yl replicate 1], ... ,[y1 replicate k, ..., yl replikate k]]}
     '''
-    end = count_lines(path_to_file)
+    end = float(count_lines(path_to_file))
     out_file = open(path_to_file,"Urb")
     reader = csv.reader(out_file,delimiter=str(delimiter))
     out = sys.stdout
-    progress = 0; step = 0
-    out.write("Reading Progress: ")
+    current_line = 0
+    message = lambda x:"Reading File {1:s}: {0:.2%}\r".format(x, os.path.basename(path_to_file))
+    out.write(message(0))
     data = {"input":reader.next()[1:]}
     for line in reader:
         if line:
@@ -46,20 +48,21 @@ def get_data_from_csv(path_to_file,delimiter=','):
                 data[gene_name].append(line[1:])
             else:
                 data[gene_name]=[line[1:]]
-        progress += 1
-        step_ahead = int((1.*progress/end)*60.)
-        if(step_ahead > step):
-            out.write("#"*(step_ahead-step))
-            step = step_ahead
+        current_line += 1
         out.flush()
-    out.write("\n")
+        out.write(message(current_line/end))
+#        progress += 1
+#        step_ahead = int((1.*progress/end)*60.)
+#        if(step_ahead > step):
+#            out.write("#"*(step_ahead-step))
+#            step = step_ahead
     out.flush()
     for name,expr in data.iteritems():
         try:
             data[name] = SP.array(expr,dtype='float')
         except:
             if(name == 'input'):
-                print "input is header and cannot be converted, this is NO error"
+                print "input is header and cannot be converted, this is NO error \r",
             else:
                 print "Caught Failure on dataset with name %s: " % (name)
                 print sys.exc_info()[0]
