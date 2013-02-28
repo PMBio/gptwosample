@@ -161,9 +161,9 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if __debug and "plot_confounder" in sys.argv:
         pylab.ion()
         pylab.close('all')
-        pylab.title("Simulated Covariance Matrix:")
         fig = pylab.figure()
         im = pylab.imshow(K_sim)
+        pylab.title("Simulated Covariance Matrix:")
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
@@ -175,8 +175,8 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         pylab.savefig(os.path.join(root,"simulated_confounder_matrix.pdf"))
         
         fig = pylab.figure()
-        pylab.title("Predicted Confounder Matrix:")
         pylab.imshow(K_learned)
+        pylab.title("Predicted Confounder Matrix:")
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
@@ -188,8 +188,8 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         
         fig = pylab.figure()
         MSD = ((K_sim - K_learned)**2).mean()
-        pylab.title("Difference: MSD={0:.4G}".format(MSD))
         pylab.imshow(K_sim - K_learned)
+        pylab.title("Difference: MSD={0:.4G}".format(MSD))
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)

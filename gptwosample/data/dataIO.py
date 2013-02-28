@@ -63,7 +63,7 @@ def get_data_from_csv(path_to_file,delimiter=',',count=-1):
             data[name] = SP.array(expr,dtype='float')
         except:
             if(name == 'input'):
-                print "input is header and cannot be converted, this is NO error \r",
+                print "input is header and cannot be converted, this is NO error"
             else:
                 print "Caught Failure on dataset with name %s: " % (name)
                 print sys.exc_info()[0]
