@@ -77,9 +77,12 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if not os.path.exists(K_conf_file_name) or "regplvm" in sys.argv:
         if "condition_model" in sys.argv:
             gplvm_model_function = conditional_linear_gplvm_confounder
+            print "conditional model"
         elif "time_model" in sys.argv:
             gplvm_model_function = time_linear_gplvm_confounder
+            print "time model"
         else:
+            print "linear model"
             gplvm_model_function = linear_gplvm_confounder
         K_learned, hyperparams_gplvm, gplvm_model = gplvm_model_function(Y_confounded, T, components)
         K_conf_file = open(K_conf_file_name, 'w')
