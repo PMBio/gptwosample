@@ -127,30 +127,34 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         del covar_ideal, X_ideal, g_ideal, hyper_ideal, M_ideal, S_ideal, fig, ax1, ax2
 
     
-    Y_subtract_file_name = os.path.join(root,"toy_data_predicted_confounders.pickle")
-    if "repredict" in sys.argv or not os.path.exists(Y_subtract_file_name):
-        # Predict confounder matrix:
-        M = numpy.zeros_like(Y)
-        S = numpy.zeros_like(Y)
-        for i in xrange(Y.shape[1]):
-            sys.stdout.flush()
-            sys.stdout.write("predicting: {}/{}".format(i,Y.shape[1]))
-            mi, si = gplvm_model.predict(hyperparams_gplvm, gplvm_model.x, output=i)
-            M[:,i] = mi
-            S[:,i] = si
-            sys.stdout.write("\r")    
-        Y_subtracted = Y-M
-        Y_subtract_file = open(Y_subtract_file_name, 'w')
-        pickle.dump(M, Y_subtract_file)
-    else:
-        Y_subtract_file = open(Y_subtract_file_name, 'r')
-        M = pickle.load(Y_subtract_file)
-        Y_subtracted = Y-M
-    Y_subtract_file.close()
-    print "finished predicting"
-    
+#    Y_subtract_file_name = os.path.join(root,"toy_data_predicted_confounders.pickle")
+#    if "repredict" in sys.argv or not os.path.exists(Y_subtract_file_name):
+#        # Predict confounder matrix:
+#        M = numpy.zeros_like(Y)
+#        S = numpy.zeros_like(Y)
+#        for i in xrange(Y.shape[1]):
+#            sys.stdout.flush()
+#            sys.stdout.write("predicting: {}/{}".format(i,Y.shape[1]))
+#            mi, si = gplvm_model.predict(hyperparams_gplvm, gplvm_model.x, output=i)
+#            M[:,i] = mi
+#            S[:,i] = si
+#            sys.stdout.write("\r")    
+#        Y_subtracted = Y-M
+#        Y_subtract_file = open(Y_subtract_file_name, 'w')
+#        pickle.dump(M, Y_subtract_file)
+#    else:
+#        Y_subtract_file = open(Y_subtract_file_name, 'r')
+#        M = pickle.load(Y_subtract_file)
+#        Y_subtracted = Y-M
+#    Y_subtract_file.close()
+#    print "finished predicting"
+#    
     # get Y values for all genes        
-    Y_dict = dict([[name, {'subtracted': Y_subtracted[:,i],'confounded':Y_confounded[:,i],'raw':Y[:,i]}] for i,name in enumerate(gene_names)])
+    Y_dict = dict([[name, {
+                           #'subtracted': Y_subtracted[:,i],
+                           'confounded':Y_confounded[:,i],
+                           'raw':Y[:,i]
+                           }] for i,name in enumerate(gene_names)])
     
     
     if __debug and "plot_confounder" in sys.argv:
@@ -206,16 +210,19 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     gt_file_name = "../../examples/ground_truth_random_genes.csv"
     out_conf_file_name = os.path.join(results_out_dir,"conf.csv")
     out_normal_file_name = os.path.join(results_out_dir,"normal.csv")
-    out_predict_file_name = os.path.join(results_out_dir,"predict.csv")
+#    out_predict_file_name = os.path.join(results_out_dir,"predict.csv")
     
-    if "retwosample" in sys.argv or not os.path.exists(out_conf_file_name) or not os.path.exists(out_normal_file_name) or not os.path.exists(out_predict_file_name):
+    if "retwosample" in sys.argv \
+        or not os.path.exists(out_conf_file_name) \
+        or not os.path.exists(out_normal_file_name):
+        #or not os.path.exists(out_predict_file_name):
         # get csv files to write to
         out_conf_file = open(out_conf_file_name,'wb')
         out_conf = csv.writer(out_conf_file)
         out_normal_file = open(out_normal_file_name,'wb')
         out_normal = csv.writer(out_normal_file)
-        out_predict_file = open(out_predict_file_name,'wb')
-        out_predict = csv.writer(out_predict_file)
+#        out_predict_file = open(out_predict_file_name,'wb')
+#        out_predict = csv.writer(out_predict_file)
     
         first_line = ["gene name","bayes factor"]
         first_line.extend(map(lambda x:"Common: "+x,covar_conf_common.get_hyperparameter_names()))
@@ -225,10 +232,10 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         first_line.extend(map(lambda x:"Common: "+x,covar_normal.get_hyperparameter_names()))
         first_line.extend(map(lambda x:"Individual: "+x,covar_normal.get_hyperparameter_names()))
         out_normal.writerow(first_line)
-        first_line = ["gene name","bayes factor"]
-        first_line.extend(map(lambda x:"Common: "+x,covar_conf_common.get_hyperparameter_names()))
-        first_line.extend(map(lambda x:"Individual: "+x,covar_conf_r1.get_hyperparameter_names()))
-        out_predict.writerow(first_line)
+#        first_line = ["gene name","bayes factor"]
+#        first_line.extend(map(lambda x:"Common: "+x,covar_conf_common.get_hyperparameter_names()))
+#        first_line.extend(map(lambda x:"Individual: "+x,covar_conf_r1.get_hyperparameter_names()))
+#        out_predict.writerow(first_line)
         
         # get ground truth genes for comparison:
         gt_names = []
@@ -260,25 +267,25 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                                         gene_name,os.path.join(plots_out_dir,gene_name+"_normal"))
                 write_back_data(twosample_object_normal, gene_name, out_normal)
 
-                twosample_object_subtract = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
-                run_gptwosample_on_data(twosample_object_subtract, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
-                                        Y_dict[gene_name]['subtracted'][:len(T1)],
-                                        Y_dict[gene_name]['subtracted'][len(T1):], 
-                                        gene_name,os.path.join(plots_out_dir,gene_name+"_predict"))
-                write_back_data(twosample_object_subtract, gene_name, out_predict)
+#                twosample_object_subtract = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
+#                run_gptwosample_on_data(twosample_object_subtract, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
+#                                        Y_dict[gene_name]['subtracted'][:len(T1)],
+#                                        Y_dict[gene_name]['subtracted'][len(T1):], 
+#                                        gene_name,os.path.join(plots_out_dir,gene_name+"_predict"))
+#                write_back_data(twosample_object_subtract, gene_name, out_predict)
             
             still_to_go -= 1
             # pdb.set_trace()
         
         out_conf_file.close()
         out_normal_file.close()
-        out_predict_file.close()
+#        out_predict_file.close()
         
     if "plot_roc" in sys.argv:
         pylab.figure()
         plot_roc_curve(out_conf_file_name, gt_file_name, label="conf")
         plot_roc_curve(out_normal_file_name, gt_file_name, label="normal")
-        plot_roc_curve(out_predict_file_name, gt_file_name, label="predict")
+#        plot_roc_curve(out_predict_file_name, gt_file_name, label="predict")
         pylab.legend()
     
 def write_back_data(twosample_object, gene_name, csv_out):
@@ -379,29 +386,27 @@ def read_files_and_pickle(cond1_file, cond2_file, root, D='all'):
     
     # data merging and stuff
     gt_names = []
-    for [name,_] in csv.reader(open("../../examples/ground_truth_random_genes.csv.csv",'r')):
+    for [name,_] in csv.reader(open("../../examples/ground_truth_random_genes.csv",'r')):
         gt_names.append(name)
     
     if D=='all':
-        Y1 = numpy.array(cond1.values())
-        Y2 = numpy.array(cond2.values())
-        gene_names = gene_names_all
-    else:
-        Y1 = numpy.zeros((D, n_replicates_1, T1.shape[0]))
-        Y2 = numpy.zeros((D, n_replicates_2, T2.shape[0]))
+        D = len(gene_names_all)
         
-        for i,name in enumerate(gt_names):
-            gene_names_all.remove(name.upper())
-            gene_names.append(name.upper())
-            Y1[i] = cond1.pop(name.upper())
-            Y2[i] = cond2.pop(name.upper())
-        
-        # get random entries not from ground truth, to fill until D:
-        gt_len = len(gt_names)
-        for i,name in enumerate(numpy.random.permutation(gene_names_all)[:D-gt_len]):
-            Y1[i+gt_len] = cond1.pop(name.upper())
-            Y2[i+gt_len] = cond2.pop(name.upper())
-            gene_names.append(name.upper())
+    Y1 = numpy.zeros((D, n_replicates_1, T1.shape[0]))
+    Y2 = numpy.zeros((D, n_replicates_2, T2.shape[0]))
+    
+    for i,name in enumerate(gt_names):
+        gene_names_all.remove(name.upper())
+        gene_names.append(name.upper())
+        Y1[i] = cond1.pop(name.upper())
+        Y2[i] = cond2.pop(name.upper())
+    
+    # get random entries not from ground truth, to fill until D:
+    gt_len = len(gt_names)
+    for i,name in enumerate(numpy.random.permutation(gene_names_all)[:D-gt_len]):
+        Y1[i+gt_len] = cond1.pop(name.upper())
+        Y2[i+gt_len] = cond2.pop(name.upper())
+        gene_names.append(name.upper())
     
     Y = numpy.concatenate((Y1,Y2),1).reshape(Y1.shape[0],-1)    
     
