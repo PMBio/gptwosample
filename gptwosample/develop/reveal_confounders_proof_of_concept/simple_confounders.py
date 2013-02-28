@@ -175,7 +175,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         pylab.savefig(os.path.join(root,"simulated_confounder_matrix.pdf"))
         
         fig = pylab.figure()
-        pylab.imshow(K_learned)
+        im = pylab.imshow(K_learned)
         pylab.title("Predicted Confounder Matrix:")
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
@@ -188,7 +188,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         
         fig = pylab.figure()
         MSD = ((K_sim - K_learned)**2).mean()
-        pylab.imshow(K_sim - K_learned)
+        im = pylab.imshow(K_sim - K_learned)
         pylab.title("Difference: MSD={0:.4G}".format(MSD))
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
