@@ -70,7 +70,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if not os.path.exists(plots_out_dir):
         os.mkdir(plots_out_dir)
 
-    gt_file_name = "../../examples/ground_truth_balanced_set_of_100.csv"
+    gt_file_name = "../../examples/ground_truth_random_genes.csv"
     out_normal_file_name = os.path.join(results_out_dir,"raw.csv")
     
     if "retwosample" in sys.argv or not os.path.exists(out_normal_file_name):

@@ -162,8 +162,11 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         pylab.ion()
         pylab.close('all')
         fig = pylab.figure()
-        pylab.imshow(K_sim)
-        pylab.colorbar()
+        im = pylab.imshow(K_sim)
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
         pylab.title(r"Simulated Covariance Matrix:")
         try:
             fig.tight_layout()
@@ -173,7 +176,9 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         
         fig = pylab.figure()
         pylab.imshow(K_learned)
-        pylab.colorbar()
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
         pylab.title(r"Predicted Confounder Matrix:")
         try:
             fig.tight_layout()
@@ -183,7 +188,9 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         
         fig = pylab.figure()
         pylab.imshow(K_sim - K_learned)
-        pylab.colorbar()
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
         MSD = ((K_sim - K_learned)**2).mean()
         try:
             fig.tight_layout()
