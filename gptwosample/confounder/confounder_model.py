@@ -6,7 +6,7 @@ Created on Jan 9, 2012
 from pygp.likelihood.likelihood_base import GaussLikISO
 from pygp.gp.gplvm import GPLVM
 from pygp.optimize.optimize_base import opt_hyper
-from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance,\
+from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance, \
     AbstractGPTwoSampleBase
 from gptwosample.data.data_base import get_model_structure
 import numpy
@@ -20,7 +20,7 @@ import sys
 
 class Confounder_Model(GPTwoSample_individual_covariance):
     
-    def __init__(self, T, Y, components=4, 
+    def __init__(self, T, Y, components=4,
                  lvm_covariance=None, initial_hyperparameters=None, **kwargs):
         """
         **Parameters**:
@@ -34,7 +34,7 @@ class Confounder_Model(GPTwoSample_individual_covariance):
         if lvm_covariance is not None:
             self._lvm_covariance = lvm_covariance
         else:
-            sample_structure = numpy.append(numpy.ones(self.r * self.t), numpy.zeros(self.r * self.t))[:,None]
+            sample_structure = numpy.append(numpy.ones(self.r * self.t), numpy.zeros(self.r * self.t))[:, None]
             sample_struct = numpy.dot(sample_structure, sample_structure.T)
             sample_struct += numpy.dot(sample_structure[::-1], sample_structure[::-1].T)
             self._lvm_covariance = SumCF([LinearCF(n_dimensions=components), FixedCF(sample_struct), NoiseCFISO()])
@@ -42,20 +42,30 @@ class Confounder_Model(GPTwoSample_individual_covariance):
         if initial_hyperparameters is None:
             initial_hyperparameters = numpy.zeros(self._lvm_covariance.get_number_of_parameters())
 
-        self._components = components
+        self.components = components
         self._initialized = False
         super(Confounder_Model, self).__init__(None, None, None, initial_hyperparameters=get_model_structure(), **kwargs)
         
-    def learn_confounder_matrix(self):
+    def learn_confounder_matrix(self, ard_indices=None):
+        """
+        Learn confounder matrix with this model.
+        
+        **Parameters**:
+        ard_indices : [indices]
+            If you provided an own lvm_covariance, give the ard indices of the covariance here,
+            to be able to use the correct hyperparameters for calculating the confounder covariance matrix.
+        """
+        if ard_indices is None:
+            ard_indices = slice(0, self.components)
         self._check_data()
         likelihood = GaussLikISO()
-        #bounds = {'lik': scipy.array([[-5., 5.]] * (self.r * self.t))}
+        # bounds = {'lik': scipy.array([[-5., 5.]] * (self.r * self.t))}
         
-        Y = self.Y.reshape(numpy.prod(self.n*self.r*self.t), self.Y.shape[3])
+        Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
         p = PCA(Y)
-        self.X = p.project(Y, self._components)
+        self.X = p.project(Y, self.components)
     
-        g = GPLVM(gplvm_dimensions=xrange(0, self._components),
+        g = GPLVM(gplvm_dimensions=xrange(0, self.components),
                   covar_func=self._lvm_covariance,
                   likelihood=likelihood,
                   x=self.X,
@@ -67,13 +77,13 @@ class Confounder_Model(GPTwoSample_individual_covariance):
                  'covar':numpy.zeros(self._lvm_covariance.get_number_of_parameters())
                  }
         
-        lvm_hyperparams, _ = opt_hyper(g, hyper, 
-                                       Ifilter=None, maxiter=10000, 
-                                       gradcheck=False, bounds=None, 
+        lvm_hyperparams, _ = opt_hyper(g, hyper,
+                                       Ifilter=None, maxiter=10000,
+                                       gradcheck=False, bounds=None,
                                        messages=False)
         
         self._init_conf_matrix(lvm_hyperparams)
-        #print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
+        # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
 
     def set_data_by_xy_data(self, x1, x2, y1, y2):
         raise NotImplementedError("Set data by calling set_data(T, Y)")
@@ -101,7 +111,7 @@ class Confounder_Model(GPTwoSample_individual_covariance):
             raise ValueError("Expression must be given as [n x r x t x d] matrix!")
         assert numpy.prod(T.shape) == numpy.prod(Y.shape[:3]), 'Shape mismatch, must be one nrt timepoints per gene.'
 
-    def predict_model_likelihoods(self, interval_indices=get_model_structure(), message="Predicting Likelihoods:",*args, **kwargs):
+    def predict_model_likelihoods(self, interval_indices=get_model_structure(), message="Predicting Likelihoods:", *args, **kwargs):
         self._check_data()
         assert self._initialized, "confounder matrix not yet learned, try using learn_confounder_matrix() first"
         
@@ -109,7 +119,7 @@ class Confounder_Model(GPTwoSample_individual_covariance):
         self._hyperparameters = list()
         for i in xrange(self.d):
             sys.stdout.flush()
-            sys.stdout.write("{1:s}{0:.2%}           \r".format(float(i)/self.d,message))
+            sys.stdout.write("{1:s}{0:.2%}           \r".format(float(i) / self.d, message))
             T0, T1, Y0, Y1 = self._get_data_for(i)
             super(Confounder_Model, self).set_data_by_xy_data(T0, T1, Y0, Y1)
             try:
@@ -117,12 +127,12 @@ class Confounder_Model(GPTwoSample_individual_covariance):
             except ValueError:
                 self._likelihoods.append(numpy.NaN)
             self._hyperparameters.append(self._learned_hyperparameters.copy())
-        sys.stdout.write("{1:s}{0:.2%}        \r".format(float(i)/self.d,message))
+        sys.stdout.write("{1:s}{0:.2%}        \r".format(float(i) / self.d, message))
         return self._likelihoods
         
 
-    def predict_mean_variance_iter(self, interpolation_interval, 
-        hyperparams=None, 
+    def predict_mean_variance_iter(self, interpolation_interval,
+        hyperparams=None,
         *args, **kwargs):
         """
         Iterate through all predicted mean variances
@@ -177,27 +187,31 @@ class Confounder_Model(GPTwoSample_individual_covariance):
             raise ValueError("Data has not been set or is None, use set_data(Y,T) to set data")
 
     def _get_data_for(self, i):
-        return self.T[0,:,:].ravel()[:,None], \
-            self.T[1,:,:].ravel()[:,None], \
-            self.Y[0,:,:,i].ravel()[:,None], \
-            self.Y[1,:,:,i].ravel()[:,None]
+        return self.T[0, :, :].ravel()[:, None], \
+            self.T[1, :, :].ravel()[:, None], \
+            self.Y[0, :, :, i].ravel()[:, None], \
+            self.Y[1, :, :, i].ravel()[:, None]
         
         
-    def _init_conf_matrix(self, lvm_hyperparams):
+    def _init_conf_matrix(self, lvm_hyperparams, ard_indices):
+        """
+        """
         self._initialized = True
         self.X = lvm_hyperparams['x']
         self._lvm_hyperparams = lvm_hyperparams
+        ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
         
-        K = self._lvm_covariance.K(lvm_hyperparams['covar'], self.X)
+        # K = self._lvm_covariance.K(lvm_hyperparams['covar'], self.X)
+        K = numpy.dot(self.X * ard, self.X.T)
         
         covar_common = SumCF([SqexpCFARD(1), FixedCF(K), NoiseCFISO()])
-        covar_individual_1 = SumCF([SqexpCFARD(1), FixedCF(K[:self.r*self.t,:self.r*self.t]), NoiseCFISO()])
-        covar_individual_2 = SumCF([SqexpCFARD(1), FixedCF(K[self.r*self.t:,self.r*self.t:]), NoiseCFISO()])        
+        covar_individual_1 = SumCF([SqexpCFARD(1), FixedCF(K[:self.r * self.t, :self.r * self.t]), NoiseCFISO()])
+        covar_individual_2 = SumCF([SqexpCFARD(1), FixedCF(K[self.r * self.t:, self.r * self.t:]), NoiseCFISO()])        
         initial_hyperparameters = \
-            get_model_structure(individual={'covar':numpy.zeros(covar_common.get_number_of_parameters())}, 
+            get_model_structure(individual={'covar':numpy.zeros(covar_common.get_number_of_parameters())},
                                 common={'covar':numpy.zeros(covar_individual_1.get_number_of_parameters())})
-        super(Confounder_Model, self).__init__(covar_individual_1, covar_individual_2, 
-                                               covar_common, 
+        super(Confounder_Model, self).__init__(covar_individual_1, covar_individual_2,
+                                               covar_common,
                                                initial_hyperparameters=initial_hyperparameters)
         self._initialized = True
         self.X = lvm_hyperparams['x']

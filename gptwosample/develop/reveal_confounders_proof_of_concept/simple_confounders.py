@@ -204,8 +204,8 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
             pass
         pylab.savefig(os.path.join(root,"difference_confounder_matrix.pdf"))
         
-        print "mean squared distance: {0:.3G}".format(MSD)
-        print "Y.var()={}, Conf.var()={}".format(Y.var(),simulated_confounders.var())
+    print "mean squared distance: {0:.3G}".format(MSD)
+    print "Y.var()={}, Conf.var()={}".format(Y.var(),simulated_confounders.var())
         
     # X = X_sim
     dim = 1    
