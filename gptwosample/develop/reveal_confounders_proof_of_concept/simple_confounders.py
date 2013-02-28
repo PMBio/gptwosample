@@ -246,12 +246,14 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         still_to_go = len(gt_names)
         
         #loop through genes
+        lgt_names = len(gt_names)
         for gene_name in gt_names:
             if gene_name is "input":
                 continue
             gene_name = gene_name.upper()
             if gene_name in Y_dict.keys():
-                print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
+                sys.stdout.flush()
+                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(still_to_go)/lgt_names))
         
                 twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1, covar_conf_r2, covar_conf_common, priors=priors_conf)
                 run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
