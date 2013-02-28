@@ -25,6 +25,7 @@ from gptwosample.twosample.twosample_base import GPTwoSample_individual_covarian
     GPTwoSample_share_covariance
 from gptwosample.develop.reveal_confounders_proof_of_concept.gplvm_models import conditional_linear_gplvm_confounder,\
     linear_gplvm_confounder
+import itertools
 
 # Private variables:
 __debug = 1
@@ -160,22 +161,34 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if __debug and "plot_confounder" in sys.argv:
         pylab.ion()
         pylab.close('all')
-        pylab.figure()
+        fig = pylab.figure()
         pylab.imshow(K_sim)
         pylab.colorbar()
         pylab.title(r"Simulated Covariance Matrix:")
+        try:
+            fig.tight_layout()
+        except:
+            pass
         pylab.savefig(os.path.join(root,"simulated_confounder_matrix.pdf"))
         
-        pylab.figure()
+        fig = pylab.figure()
         pylab.imshow(K_learned)
         pylab.colorbar()
         pylab.title(r"Predicted Confounder Matrix:")
+        try:
+            fig.tight_layout()
+        except:
+            pass
         pylab.savefig(os.path.join(root,"predicted_confounder_matrix.pdf"))
         
-        pylab.figure()
+        fig = pylab.figure()
         pylab.imshow(K_sim - K_learned)
         pylab.colorbar()
         MSD = ((K_sim - K_learned)**2).mean()
+        try:
+            fig.tight_layout()
+        except:
+            pass
         pylab.title("Difference: MSD={0:.4G}".format(MSD))
         pylab.savefig(os.path.join(root,"difference_confounder_matrix.pdf"))
         
@@ -243,7 +256,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         for [name,_] in csv.reader(gt_file):
             gt_names.append(name)
         gt_file.close()
-        still_to_go = len(gt_names)
+        current = itertools.count()
         
         #loop through genes
         lgt_names = len(gt_names)
@@ -253,8 +266,8 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
             gene_name = gene_name.upper()
             if gene_name in Y_dict.keys():
                 sys.stdout.flush()
-                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(still_to_go)/lgt_names))
-        
+                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(current.next())/lgt_names))
+                
                 twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1, covar_conf_r2, covar_conf_common, priors=priors_conf)
                 run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                         Y_dict[gene_name]['confounded'][:len(T1)],
@@ -275,9 +288,6 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
 #                                        Y_dict[gene_name]['subtracted'][len(T1):], 
 #                                        gene_name,os.path.join(plots_out_dir,gene_name+"_predict"))
 #                write_back_data(twosample_object_subtract, gene_name, out_predict)
-            
-            still_to_go -= 1
-            # pdb.set_trace()
         
         out_conf_file.close()
         out_normal_file.close()
