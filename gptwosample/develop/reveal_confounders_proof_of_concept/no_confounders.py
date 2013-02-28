@@ -16,6 +16,7 @@ import pylab
 import scipy as SP
 import sys
 from gptwosample.twosample.twosample_base import GPTwoSample_share_covariance
+import itertools
 
 # Private variables:
 __debug = 1
@@ -88,7 +89,9 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         for [name,val] in csv.reader(gt_file):
             gt_names.append(name)
         gt_file.close()
-        still_to_go = len(gt_names)
+
+        current = itertools.count()
+        lgt_names = len(gt_names)
         
         #loop through genes
         for gene_name in gt_names:
@@ -96,8 +99,9 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                 continue
             gene_name = gene_name.upper()
             if gene_name in Y_dict.keys():
-                print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
-        
+                sys.stdout.flush()
+                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(current.next())/lgt_names))
+
                 twosample_object_normal = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
                 run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                         Y_dict[gene_name]['raw'][:len(T1)],
@@ -105,9 +109,6 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                                         gene_name,os.path.join(plots_out_dir,gene_name+"_raw"))
                 write_back_data(twosample_object_normal, gene_name, out_normal)
             
-            still_to_go -= 1
-            # pdb.set_trace()
-        
         out_normal_file.close()
       
     if "plot_roc" in sys.argv:

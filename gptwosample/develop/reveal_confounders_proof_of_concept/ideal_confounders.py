@@ -18,6 +18,7 @@ import pylab
 from gptwosample.data.data_analysis import plot_roc_curve
 import ipdb
 from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance
+import itertools
 
 
 def run_demo(cond1_file, cond2_file, components = 4, root='.'):
@@ -97,10 +98,12 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         # get ground truth genes for comparison:
         gt_names = []
         gt_file = open(gt_file_name,'r')
-        for [name,val] in csv.reader(gt_file):
+        for [name,_] in csv.reader(gt_file):
             gt_names.append(name)
         gt_file.close()
-        still_to_go = len(gt_names)
+        
+        current = itertools.count()
+        lgt_names = len(gt_names)
         
         #loop through genes
         for gene_name in gt_names:
@@ -108,8 +111,9 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                 continue
             gene_name = gene_name.upper()
             if gene_name in Y_dict.keys():
-                print 'processing %s, genes still to come: %i' % (gene_name, still_to_go)
-        
+                sys.stdout.flush()
+                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(current.next())/lgt_names))
+                
                 twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1, covar_conf_r2, covar_conf_common, priors=priors_conf)
                 run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
                                         Y_dict[gene_name]['confounded'][:len(T1)],
@@ -117,8 +121,6 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                                         gene_name,os.path.join(plots_out_dir,gene_name+"_ideal"))
                 write_back_data(twosample_object_conf, gene_name, out_conf)
                 out_conf_file.flush()
-            still_to_go -= 1
-            # pdb.set_trace()
             
         out_conf_file.close()
     if "plot_roc" in sys.argv:
