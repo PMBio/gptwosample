@@ -85,6 +85,12 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     pylab.xlabel(xlabel)
     pylab.ylabel(ylabel)
 
+    try:
+        fig = pylab.gcf()
+        fig.tight_layout()
+    except:
+        pass
+
     return [plot,auroc_curve]
     
 
