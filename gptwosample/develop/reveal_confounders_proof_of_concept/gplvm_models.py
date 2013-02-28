@@ -37,7 +37,7 @@ def run_gplvm_with_convariance(Y, T, components, lvm_covariance):
     
 def linear_gplvm_confounder(Y, T, components=4):
     __doc__ = __doc
-    linear_cf = LinearCF(n_dimensions=components,dimension_indices=numpy.arange(1,1+components))
+    linear_cf = LinearCF(n_dimensions=components)
     mu_cf = BiasCF()
     lvm_covariance = SumCF((linear_cf,mu_cf))
     return run_gplvm_with_convariance(Y, T, components, lvm_covariance)
@@ -59,7 +59,7 @@ def conditional_linear_gplvm_confounder(Y, T, components=4):
 
 def time_linear_gplvm_confounder(Y, T, components=4):
     __doc__ = __doc
-    linear_cf = LinearCF(n_dimensions=components,dimension_indices=numpy.arange(1,1+components))
+    linear_cf = LinearCF(n_dimensions=components)
     mu_cf = BiasCF()
     se_cf = SqexpCFARD(n_dimensions=1,dimension_indices=numpy.array([0]))
     # Get fixed cf encoding twosample structure:
