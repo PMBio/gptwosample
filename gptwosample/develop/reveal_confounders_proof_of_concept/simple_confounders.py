@@ -161,13 +161,13 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if __debug and "plot_confounder" in sys.argv:
         pylab.ion()
         pylab.close('all')
+        pylab.title("Simulated Covariance Matrix:")
         fig = pylab.figure()
         im = pylab.imshow(K_sim)
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
-        pylab.title(r"Simulated Covariance Matrix:")
         try:
             fig.tight_layout()
         except:
@@ -175,11 +175,11 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         pylab.savefig(os.path.join(root,"simulated_confounder_matrix.pdf"))
         
         fig = pylab.figure()
+        pylab.title("Predicted Confounder Matrix:")
         pylab.imshow(K_learned)
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
-        pylab.title(r"Predicted Confounder Matrix:")
         try:
             fig.tight_layout()
         except:
@@ -187,16 +187,16 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         pylab.savefig(os.path.join(root,"predicted_confounder_matrix.pdf"))
         
         fig = pylab.figure()
+        MSD = ((K_sim - K_learned)**2).mean()
+        pylab.title("Difference: MSD={0:.4G}".format(MSD))
         pylab.imshow(K_sim - K_learned)
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
-        MSD = ((K_sim - K_learned)**2).mean()
         try:
             fig.tight_layout()
         except:
             pass
-        pylab.title("Difference: MSD={0:.4G}".format(MSD))
         pylab.savefig(os.path.join(root,"difference_confounder_matrix.pdf"))
         
         print "mean squared distance: {0:.3G}".format(MSD)
