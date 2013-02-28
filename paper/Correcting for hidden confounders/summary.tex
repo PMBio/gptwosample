@@ -5,12 +5,12 @@
 \usepackage{MnSymbol,amsmath}
 \usepackage[autolanguage]{numprint}
 
-\usepackage{graphicx,xcolor}
+\usepackage{graphicx,subfigure,xcolor}
 
 \usepackage{geometry} \geometry{a4paper,left=30mm,right=35mm,
   top=40mm, bottom=40mm}
 
-\newcommand{\matr}[1]{\ensuremath{\boldsymbol{\mathbf #1}}}
+\newcommand{\matr}[1]{\ensuremath{\mathbf{#1}}}
 \newcommand{\T}{\ensuremath{^\top}}
 
 \begin{document}
@@ -53,7 +53,7 @@ where in the linear case the confounders are
   \matr C = \matr{XW}
 \end{equation}
 
-\section{Confounder Modelling}
+\section{Confounder Simulation}
 \label{sec:confounder-modelling}
 
 \subsection{Linear}
@@ -65,10 +65,76 @@ where in the linear case the confounders are
   \matr{C} & = \matr{XW}
 \end{align}
 
-\section{Model Ideas:}
+
+\section{Confounder Learning}
+\label{sec:confounder-learning}
+
+GPLVM: $p(\matr Y|X,t,t',\matr\theta) = \mathcal N(\matr Y|\matr 0,
+\matr K(X,t,t',\matr\theta))$
+In the following we will discuss different choices of $\matr K(X,t,t',\matr\theta)$
+
+\subsection{Linear Confounders}
+\label{sec:linear-confounders}
+
+Learn confounders with linear covariance:
+\begin{equation}
+  \label{eq:4}
+  K = \matr{XAX}\T + \sigma^2\matr I,\enspace\text{ where}
+\end{equation}
+$\matr A$ has dimensional weights on diagonal and $\matr X$ are linear
+learned confounders. See Figure \ref{fig:linear-conf-matr} for results.
+
+\begin{figure}[h]
+  \centering
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/simulated_confounder_matrix.pdf}}\hspace{\fill}
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/predicted_confounder_matrix.pdf}}
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/difference_confounder_matrix.pdf}}\hfill
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/roc.pdf}}
+  \caption{\subsectionname}
+  \label{fig:linear-conf-matr}
+\end{figure}
+
+\subsection{Condition specific linear Confounders}
+\label{sec:linear-confounders}
+
+Learn confounders with linear covariance and condition matrix:
+\begin{equation}
+  \label{eq:4}
+  K = \matr{XAX}\T + \matr K_c + \sigma^2\matr I,\enspace\text{ where}
+\end{equation}
+$\matr A$ has dimensional weights on diagonal, $\matr X$ are linear
+learned confounders and $\matr K_c$ depicts the condition structure of
+the data:
+\begin{equation}
+  \label{eq:8}
+  \left(
+  \begin{matrix}
+    1&\hdots&1&0&\hdots&0\\
+    &\vdots&&&\vdots&\\
+    1&\hdots&1&0&\hdots&0\\
+    0&\hdots&0&1&\hdots&1\\
+    &\vdots&&&\vdots&\\
+    0&\hdots&0&1&\hdots&1
+  \end{matrix}
+  \right)
+\end{equation}
+See Figure \ref{fig:linear-conf-matr} for results.
+
+\begin{figure}[h]
+  \centering
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/simulated_confounder_matrix.pdf}}\hfill
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/predicted_confounder_matrix.pdf}}
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/difference_confounder_matrix.pdf}}\hfill
+  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/roc.pdf}}
+  \caption{\subsectionname}
+  \label{fig:linear-conf-matr}
+\end{figure}
+
+
+\section{GPTwoSample Model Ideas:}
 \label{sec:model-ideas}
 
-\subsection{Model 1: Covariance Confounders}
+\subsection{Model 1: Confounders included in Confounders (Currently used)}
 \label{sec:model-1:-covariance}
 
 Learn confounders $\matr{X}$ through GPLVM. Include Condounders as
@@ -104,26 +170,26 @@ Learn confounders $\matr X_1$ and $\matr X_2$ on condition $\matr Y_1$
 and $\matr Y_2$, respectively. Then either predict or incorporate
 confounders as covariance into GPTwoSample.
 
-\section{Proof of concept}
-\label{sec:proof-concept}
+% \section{Proof of concept}
+% \label{sec:proof-concept}
 
-To proof the concept of taking confounder into account we take an
-ideal confounder model into account: Put simulated confounders $\matr
-X_\text{sim}$ into model and run GPTwoSample with that. The ideal
-model should have a similar AUC as the raw model does, because the
-confounding variance should be explained by the simulated confounder
-matrix and everything other is the same as in raw.
+% To proof the concept of taking confounder into account we take an
+% ideal confounder model into account: Put simulated confounders $\matr
+% X_\text{sim}$ into model and run GPTwoSample with that. The ideal
+% model should have a similar AUC as the raw model does, because the
+% confounding variance should be explained by the simulated confounder
+% matrix and everything other is the same as in raw.
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=.7\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/roc.pdf}
-  \caption{ROC plot for different approaches: conf$\rightarrow$Model
-    1, normal$\rightarrow$GPTwoSample applied to confounded
-    expression, without confounder correction,
-    predict$\rightarrow$Model 2, raw$\rightarrow$GPTwoSample applied
-    to non confounded expression, ideal$\rightarrow$ideal
-    confounders.}
-\end{figure}
+% \begin{figure}[h]
+%   \centering
+%   \includegraphics[width=.7\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept//roc.pdf}
+%   \caption{ROC plot for different approaches: conf$\rightarrow$Model
+%     1, normal$\rightarrow$GPTwoSample applied to confounded
+%     expression, without confounder correction,
+%     predict$\rightarrow$Model 2, raw$\rightarrow$GPTwoSample applied
+%     to non confounded expression, ideal$\rightarrow$ideal
+%     confounders.}
+% \end{figure}
 
 % $\Rightarrow$ As the raw model severely outperforms the ideal model, it might not be a good idea to put the learnt covariance directly into GPTwoSample prediction?\\
 % $\Rightarrow$ Model 2 proof of concept:\\
