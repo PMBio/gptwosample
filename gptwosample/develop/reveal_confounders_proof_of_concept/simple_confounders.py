@@ -313,7 +313,7 @@ def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, 
     #creates score and time local predictions
     twosample_object.set_data_by_xy_data(T1, T2, Y0.reshape(-1, 1), Y1.reshape(-1, 1))
     twosample_object.predict_model_likelihoods(messages=False)
-    twosample_object.predict_mean_variance(Tpredict)
+    #twosample_object.predict_mean_variance(Tpredict)
 
     #pylab.figure(1)
     #pylab.clf()
