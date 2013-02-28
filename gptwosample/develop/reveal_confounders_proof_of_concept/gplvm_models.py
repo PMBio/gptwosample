@@ -49,7 +49,6 @@ def conditional_linear_gplvm_confounder(Y, T, components=4):
     except IndexError:
         raise IndexError("Error: Shape of Timepoints must be [Samples x Replicates x Timepoints] -> [2, R, T] in twosample cases")        
     condition_indicators = numpy.vstack([numpy.hstack([numpy.ones([ls]*T.shape[0])*(i+1)%2, numpy.ones([ls]*T.shape[0])*i%2]) for i in range(T.shape[0])])
-    import ipdb;ipdb.set_trace()
     #lvm_covariance = SumCF((mu_cf, ProductCF([FixedCF(condition_indicators),linear_cf])))
     lvm_covariance = SumCF((mu_cf, FixedCF(condition_indicators), linear_cf))
     #lvm_covariance = ProductCF([FixedCF(condition_indicators),linear_cf])
