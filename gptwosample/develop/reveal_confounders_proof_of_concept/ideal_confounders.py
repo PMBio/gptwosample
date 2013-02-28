@@ -62,10 +62,10 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     SECF = se.SqexpCFARD(dim)
     noiseCF = noise.NoiseCFISO()
     
-    priors_normal = get_priors(dim, confounders = False)
+#    priors_normal = get_priors(dim, confounders = False)
     priors_conf = get_priors(dim, confounders = True)
 
-    covar_normal = SumCF((SECF, noiseCF))
+#    covar_normal = SumCF((SECF, noiseCF))
     covar_conf_common = SumCF((SECF, FixedCF(K_sim), noiseCF))
 
     r1t = T1.shape[0] * n_replicates_1

@@ -24,7 +24,7 @@ from gptwosample.data.dataIO import get_data_from_csv
 from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance,\
     GPTwoSample_share_covariance
 from gptwosample.develop.reveal_confounders_proof_of_concept.gplvm_models import conditional_linear_gplvm_confounder,\
-    linear_gplvm_confounder
+    linear_gplvm_confounder, time_linear_gplvm_confounder
 import itertools
 
 # Private variables:
@@ -77,6 +77,8 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
     if not os.path.exists(K_conf_file_name) or "regplvm" in sys.argv:
         if "condition_model" in sys.argv:
             gplvm_model_function = conditional_linear_gplvm_confounder
+        elif "time_model" in sys.argv:
+            gplvm_model_function = time_linear_gplvm_confounder
         else:
             gplvm_model_function = linear_gplvm_confounder
         K_learned, hyperparams_gplvm, gplvm_model = gplvm_model_function(Y_confounded, T, components)

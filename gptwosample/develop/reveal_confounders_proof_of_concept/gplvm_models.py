@@ -11,6 +11,7 @@ from pygp.gp import gplvm
 from pygp.optimize.optimize_base import opt_hyper
 from pygp.covar.fixed import FixedCF
 from pygp.likelihood.likelihood_base import GaussLikISO
+from pygp.covar.se import SqexpCFARD
 
 __doc = """
 Y: Expression matrix [NRT x D]
@@ -52,4 +53,13 @@ def conditional_linear_gplvm_confounder(Y, T, components=4):
     #lvm_covariance = SumCF((mu_cf, ProductCF([FixedCF(condition_indicators),linear_cf])))
     lvm_covariance = SumCF((mu_cf, FixedCF(condition_indicators), linear_cf))
     #lvm_covariance = ProductCF([FixedCF(condition_indicators),linear_cf])
+    return run_gplvm_with_convariance(Y, T, components, lvm_covariance)
+
+def time_linear_gplvm_confounder(Y, T, components=4):
+    __doc__ = __doc
+    linear_cf = LinearCF(n_dimensions=components)
+    mu_cf = BiasCF()
+    se_cf = SqexpCFARD(n_dimensions=1,dimension_indices=numpy.array([0]))
+    # Get fixed cf encoding twosample structure:
+    lvm_covariance = SumCF((mu_cf, se_cf, linear_cf))
     return run_gplvm_with_convariance(Y, T, components, lvm_covariance)
