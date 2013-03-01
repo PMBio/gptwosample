@@ -52,7 +52,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     #            LOAD DATA               #
     ######################################
     if not os.path.exists(os.path.join(data, "toy_data.pickle")):
-        read_files_and_pickle(cond1_file, cond2_file, root)
+        read_files_and_pickle(cond1_file, cond2_file, data)
         
     data_file_name = os.path.join(data, "toy_data.pickle")
     (Y, Tpredict, T1, T2, gene_names, n_replicates_1, n_replicates_2,
