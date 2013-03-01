@@ -226,7 +226,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     out_raw_file_name = os.path.join(data, "raw.csv")
     out_ideal_file_name = os.path.join(data, "ideal.csv")
 
-    conf = not os.path.exists(out_conf_file_name)
+    conf = not os.path.exists(out_conf_file_name) or "retwosample" in sys.argv
     redata = "redata" in sys.argv
     normal = not os.path.exists(out_normal_file_name) or redata
     raw = not os.path.exists(out_raw_file_name) or redata
@@ -262,8 +262,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
         run_event = Event()
         run_event.set()
         
-        if "retwosample" in sys.argv \
-            or conf or raw or normal or ideal:
+        if conf or raw or normal or ideal:
             # or not os.path.exists(out_predict_file_name):
             # get csv files to write to
     
@@ -290,13 +289,13 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     
             # loop through genes asynchronously
             if conf:
-                out_conf_queue, out_conf_process = setup_queue(out_conf_file, "conf")
+                out_conf_queue, out_conf_process = setup_queue(out_conf_file, "conf", NUM_PROCS)
             if normal:
-                out_normal_queue, out_normal_process = setup_queue(out_normal_file, "normal")
+                out_normal_queue, out_normal_process = setup_queue(out_normal_file, "normal", NUM_PROCS)
             if raw:
-                out_raw_queue, out_raw_process = setup_queue(out_raw_file, "raw")
+                out_raw_queue, out_raw_process = setup_queue(out_raw_file, "raw", NUM_PROCS)
             if ideal:
-                out_ideal_queue, out_ideal_process = setup_queue(out_ideal_file, "ideal")
+                out_ideal_queue, out_ideal_process = setup_queue(out_ideal_file, "ideal", NUM_PROCS)
     
             # out_normal_process = Process(target=write_csv_file, name="normal_write_out", args=(out_normal_file,out_normal_queue))
             iter_lock = Lock()
@@ -436,12 +435,12 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
             pass
         pylab.savefig(os.path.join(plots_out_dir,'roc.pdf'))
 
-def setup_queue(out_file, name):
+def setup_queue(out_file, name, NUM_PROCS):
     out_conf_queue = Queue()
-    out_conf_process = Thread(target=write_csv_file_asynchronous, name="{}_write_out".format(name), args=(out_file, out_conf_queue))
+    out_conf_process = Thread(target=write_csv_file_asynchronous, name="{}_write_out".format(name), args=(out_file, out_conf_queue, NUM_PROCS))
     return out_conf_queue, out_conf_process
 
-def write_csv_file_asynchronous(out_file, q):
+def write_csv_file_asynchronous(out_file, q, NUM_PROCS):
     for _ in range(NUM_PROCS):
         for twosample_object, gene_name in iter(q.get, "STOP"):
             # print gene_name, twosample_object.bayes_factor()
