@@ -3,13 +3,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>GPTwoSample plot &mdash; GPTwoSample v0.7.0 documentation</title>
+    <title>GPTwoSample plot &mdash; GPTwoSample 0.7.0 documentation</title>
+    
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -22,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GPTwoSample v0.7.0 documentation" href="index.html" />
+    <link rel="top" title="GPTwoSample 0.7.0 documentation" href="index.html" />
     <link rel="next" title="Package for data handling" href="data.html" />
     <link rel="prev" title="Package for using GPTwoSample" href="base.html" /> 
   </head>
@@ -42,7 +45,7 @@
         <li class="right" >
           <a href="base.html" title="Package for using GPTwoSample"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GPTwoSample v0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -73,9 +76,9 @@ experiment. You can give interval indices for plotting, if u chose</p>
 <dd>GPTwoSample object, on which already &#8216;predict&#8217; was called.</dd>
 </dl>
 <p><strong>Differential Groups:</strong></p>
-<img alt="_images/plotGPTwoSampleDifferential5.png" src="_images/plotGPTwoSampleDifferential5.png" style="height: 8cm;" />
+<img alt="_images/plotGPTwoSampleDifferential.png" src="_images/plotGPTwoSampleDifferential.png" style="height: 8cm;" />
 <p><strong>Non-Differential Groups:</strong></p>
-<img alt="_images/plotGPTwoSampleSame5.png" src="_images/plotGPTwoSampleSame5.png" style="height: 8cm;" />
+<img alt="_images/plotGPTwoSampleSame.png" src="_images/plotGPTwoSampleSame.png" style="height: 8cm;" />
 <dl class="docutils">
 <dt>Returns:</dt>
 <dd>Proper rectangles for use in pylab.legend().</dd>
@@ -83,25 +86,9 @@ experiment. You can give interval indices for plotting, if u chose</p>
 </dd></dl>
 
 </div>
-<span class="target" id="module-gptwosample.plot.interval"></span><div class="section" id="plotting-gptwosampleinterval-results">
-<h2>Plotting GPTwoSampleInterval Results<a class="headerlink" href="#plotting-gptwosampleinterval-results" title="Permalink to this headline">¶</a></h2>
-<p>Created on Feb 18, 2011</p>
-<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
-<dl class="function">
-<dt id="gptwosample.plot.interval.plot_results_interval">
-<tt class="descclassname">gptwosample.plot.interval.</tt><tt class="descname">plot_results_interval</tt><big>(</big><em>twosample_interval_object</em>, <em>xlabel='Time/hr'</em>, <em>ylabel='expression level'</em>, <em>title=''</em>, <em>legend=False</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.plot.interval.plot_results_interval" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot results of resampling of a (subclass of) 
-<a class="reference internal" href="base.html#gptwosample.twosample.interval_smooth.GPTwoSampleInterval" title="gptwosample.twosample.interval_smooth.GPTwoSampleInterval"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.interval_smooth.GPTwoSampleInterval</span></tt></a>.
-This method will predict some data new, for plotting purpose.</p>
-<p><strong>Parameters:</strong></p>
-<dl class="docutils">
-<dt>twosample_interval_object: <a class="reference internal" href="base.html#module-gptwosample.twosample.interval_smooth" title="gptwosample.twosample.interval_smooth"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.interval_smooth</span></tt></a></dt>
-<dd>The GPTwosample resample object, from which to take the results.</dd>
-</dl>
-</dd></dl>
-
 </div>
-</div>
+<p>#  .. automodule:: gptwosample.plot.interval
+#    :members:</p>
 
 
           </div>
@@ -113,7 +100,6 @@ This method will predict some data new, for plotting purpose.</p>
   <ul>
 <li><a class="reference internal" href="#">GPTwoSample plot</a><ul>
 <li><a class="reference internal" href="#plot-gptwosample-predictions">Plot GPTwoSample predictions</a></li>
-<li><a class="reference internal" href="#plotting-gptwosampleinterval-results">Plotting GPTwoSampleInterval Results</a></li>
 </ul>
 </li>
 </ul>
@@ -127,7 +113,7 @@ This method will predict some data new, for plotting purpose.</p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" size="18" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
@@ -156,12 +142,12 @@ This method will predict some data new, for plotting purpose.</p>
         <li class="right" >
           <a href="base.html" title="Package for using GPTwoSample"
              >previous</a> |</li>
-        <li><a href="index.html">GPTwoSample v0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>
 </html>

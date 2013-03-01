@@ -1,6 +1,6 @@
 '''
-AbstractGPTwoSampleBase Base Class
-======================
+Classes to apply GPTwoSample to data
+====================================
 
 All classes handling AbstractGPTwoSampleBase tasks should extend this class.
 
@@ -389,12 +389,11 @@ class GPTwoSample_share_covariance(AbstractGPTwoSampleBase):
     """
     This class provides comparison of two Timeline Groups to each other.
 
-    see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase` for detailed description of provided methods.
-    
+    see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase` for detailed description of provided methods.
     """
     def __init__(self, covar, *args, **kwargs):
         """
-        see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase`
+        see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase`
         """
         super(GPTwoSample_share_covariance, self).__init__(*args, **kwargs)
         gpr1 = GP(covar)
@@ -409,13 +408,13 @@ class GPTwoSample_individual_covariance(AbstractGPTwoSampleBase):
     """
     This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively
 
-    see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase` for detailed description of provided methods.
+    see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase` for detailed description of provided methods.
     
     Note that this model will need one covariance function for each model, respectively!
     """
     def __init__(self, covar_individual_1, covar_individual_2, covar_common, **kwargs):
         """
-        see :py:class:`AbstractGPTwoSampleBase.src.AbstractGPTwoSampleBase`
+        see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase`
         """
         super(GPTwoSample_individual_covariance, self).__init__(**kwargs)
         gpr1 = GP(covar_individual_1)

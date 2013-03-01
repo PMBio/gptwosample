@@ -3,13 +3,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Package for data handling &mdash; GPTwoSample v0.7.0 documentation</title>
+    <title>Package for data handling &mdash; GPTwoSample 0.7.0 documentation</title>
+    
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
@@ -22,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GPTwoSample v0.7.0 documentation" href="index.html" />
+    <link rel="top" title="GPTwoSample 0.7.0 documentation" href="index.html" />
     <link rel="prev" title="GPTwoSample plot" href="plot.html" /> 
   </head>
   <body>
@@ -38,7 +41,7 @@
         <li class="right" >
           <a href="plot.html" title="GPTwoSample plot"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GPTwoSample v0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -96,7 +99,7 @@ Make sure to use this method if you want to use the model structure in this pack
 <p>&#64;author: Max Zwiessele, Oliver Stegle</p>
 <dl class="function">
 <dt id="gptwosample.data.dataIO.get_data_from_csv">
-<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em>, <em>count=-1</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return data from csv file with delimiter delimiter in form of a dictionary.
 The file format has to fullfill following formation:</p>
 <table border="1" class="docutils">
@@ -107,44 +110,44 @@ The file format has to fullfill following formation:</p>
 <col width="33%" />
 </colgroup>
 <thead valign="bottom">
-<tr><th class="head"><em>arbitrary</em></th>
+<tr class="row-odd"><th class="head"><em>arbitrary</em></th>
 <th class="head">x1</th>
 <th class="head">...</th>
 <th class="head">xl</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr><td>Gene Name 1</td>
+<tr class="row-even"><td>Gene Name 1</td>
 <td>y1 replicate 1</td>
 <td>...</td>
 <td>yl replicate 1</td>
 </tr>
-<tr><td>...</td>
+<tr class="row-odd"><td>...</td>
 <td>...</td>
 <td>...</td>
 <td>...</td>
 </tr>
-<tr><td>Gene Name 1</td>
+<tr class="row-even"><td>Gene Name 1</td>
 <td>y1 replicate k1</td>
 <td>...</td>
 <td>yl replicate k1</td>
 </tr>
-<tr><td>...</td>
+<tr class="row-odd"><td>...</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr><td>Gene Name n</td>
+<tr class="row-even"><td>Gene Name n</td>
 <td>y1 replicate 1</td>
 <td>...</td>
 <td>yl replicate 1</td>
 </tr>
-<tr><td>...</td>
+<tr class="row-odd"><td>...</td>
 <td>...</td>
 <td>...</td>
 <td>...</td>
 </tr>
-<tr><td>Gene Name n</td>
+<tr class="row-even"><td>Gene Name n</td>
 <td>y1 replicate kn</td>
 <td>...</td>
 <td>yl replicate kn</td>
@@ -152,6 +155,24 @@ The file format has to fullfill following formation:</p>
 </tbody>
 </table>
 <p>Returns: {&#8220;input&#8221;:[x1,...,xl], &#8220;Gene Name 1&#8221;:[[y1 replicate 1, ... yl replicate 1], ... ,[y1 replicate k, ..., yl replikate k]]}</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gptwosample.data.dataIO.write_data_to_csv">
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">write_data_to_csv</tt><big>(</big><em>data</em>, <em>path_to_file</em>, <em>header='GPTwoSample'</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.write_data_to_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write given data in training_data_structure (see <a class="reference internal" href="#module-gptwosample.data.data_base" title="gptwosample.data.data_base"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.data.data_base</span></tt></a> for details)
+into file for path_to_file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>data to write in training_data_structure</dd>
+<dt>path_to_file <span class="classifier-delimiter">:</span> <span class="classifier">String</span></dt>
+<dd>The path to the file to write to</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">String</span></dt>
+<dd>Name of the table</dd>
+<dt>delimiter <span class="classifier-delimiter">:</span> <span class="classifier">character</span></dt>
+<dd>delimiter for the csv file</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -178,7 +199,7 @@ The file format has to fullfill following formation:</p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" size="18" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
@@ -204,12 +225,12 @@ The file format has to fullfill following formation:</p>
         <li class="right" >
           <a href="plot.html" title="GPTwoSample plot"
              >previous</a> |</li>
-        <li><a href="index.html">GPTwoSample v0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>
 </html>

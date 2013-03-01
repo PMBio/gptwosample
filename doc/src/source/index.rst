@@ -12,7 +12,7 @@ expression detection.
 Contents:
 
 .. toctree:: 
-   :maxdepth: 2
+   :maxdepth: 4
 
    GPTwoSample Comparing two timelines to each other <base>
    Generate beautiful plots with gptwosample.plot <plot>
