@@ -33,7 +33,7 @@ import time
 
 # Private variables:
 __debug = 1
-NUM_PROCS = cpu_count()
+NUM_CPUS = cpu_count()
 STOP = "STOP"
 
 def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
@@ -228,6 +228,8 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     normal = not os.path.exists(out_normal_file_name) or redata
     raw = not os.path.exists(out_raw_file_name) or redata
     ideal = not os.path.exists(out_ideal_file_name) or redata
+
+    NUM_PROCS = max(1, NUM_CPUS-(conf+normal+raw+ideal))
 
     dim = 1
     SECF = se.SqexpCFARD(dim)
