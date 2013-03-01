@@ -32,9 +32,9 @@ from multiprocessing import cpu_count
 
 # Private variables:
 __debug = 1
+NUM_PROCS = cpu_count()
 
-
-def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
+def run_demo(cond1_file, cond2_file, components = 4, root='.', data='data'):
     logging.basicConfig(level=logging.INFO)
 
     plots_out_dir = os.path.join(root,"plots/")
@@ -214,54 +214,62 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
         
     print "mean squared distance: {0:.3G}".format(MSD)
     print "Y.var()={}, Conf.var()={}".format(Y.var(),simulated_confounders.var())
-        
-    # X = X_sim
+            
+    gt_file_name = "../../examples/ground_truth_random_genes.csv"
+#    gt_file_name = "../../examples/ground_truth_balanced_set_of_100.csv"
+    out_conf_file_name = os.path.join(results_out_dir,"conf.csv")
+    out_normal_file_name = os.path.join(data,"normal.csv")
+    out_raw_file_name = os.path.join(data,"raw.csv")
+    out_ideal_file_name = os.path.join(data,"ideal.csv")
+    
+    normal = not os.path.exists(out_normal_file_name)
+    raw = not os.path.exists(out_raw_file_name)
+    ideal = not os.path.exists(out_ideal_file_name)
+    conf = not os.path.exists(out_conf_file_name)
+    
     dim = 1    
     SECF = se.SqexpCFARD(dim)
     noiseCF = noise.NoiseCFISO()
     
-    #priors_normal = lambda: get_priors(dim, confounders = False)
+    priors_normal = lambda: get_priors(dim, confounders = False)
     priors_conf = lambda: get_priors(dim, confounders = True)
 
-    #covar_normal = lambda: SumCF((SECF, noiseCF))
+    covar_normal = lambda: SumCF((SECF, noiseCF))
     covar_conf_common = lambda: SumCF((SECF, FixedCF(K_learned), noiseCF))
     
     r1t = T1.shape[0] * n_replicates_1
     covar_conf_r1 = lambda: SumCF((SECF, FixedCF(K_learned[:r1t, :r1t]), noiseCF))
     covar_conf_r2 = lambda: SumCF((SECF, FixedCF(K_learned[r1t:, r1t:]), noiseCF))
 
+    if ideal:
+        covar_ideal_common = lambda: SumCF((SECF, FixedCF(K_sim), noiseCF))
+        covar_ideal_r1 = lambda: SumCF((SECF, FixedCF(K_sim[:r1t, :r1t]), noiseCF))
+        covar_ideal_r2 = lambda: SumCF((SECF, FixedCF(K_sim[r1t:, r1t:]), noiseCF))
+
     T1 = numpy.tile(T1, n_replicates_1).reshape(-1, 1)
     T2 = numpy.tile(T2, n_replicates_2).reshape(-1, 1)
+
     
-#    gt_file_name = "../../examples/ground_truth_random_genes.csv"
-    gt_file_name = "../../examples/ground_truth_balanced_set_of_100.csv"
-    out_conf_file_name = os.path.join(results_out_dir,"conf.csv")
-    out_normal_file_name = os.path.join(results_out_dir,"normal.csv")
 #    out_predict_file_name = os.path.join(results_out_dir,"predict.csv")
     
     if "retwosample" in sys.argv \
-        or not os.path.exists(out_conf_file_name) \
-        or not os.path.exists(out_normal_file_name):
+        or conf or raw or normal or ideal:
         #or not os.path.exists(out_predict_file_name):
         # get csv files to write to
-        out_conf_file = open(out_conf_file_name,'w')
-        out_normal_file = open(out_normal_file_name,'w')
         
-#        out_predict_file = open(out_predict_file_name,'wb')
-#        out_predict = csv.writer(out_predict_file)
-    
-        first_line = ["gene name","bayes factor"]
-        first_line.extend(map(lambda x:"Common: "+x,covar_conf_common().get_hyperparameter_names()))
-        first_line.extend(map(lambda x:"Individual: "+x,covar_conf_r1().get_hyperparameter_names()))
-        out_conf_file.write(",".join(first_line)+os.linesep)
-        #first_line = ["gene name","bayes factor"]
-        #first_line.extend(map(lambda x:"Common: "+x,covar_normal().get_hyperparameter_names()))
-        #first_line.extend(map(lambda x:"Individual: "+x,covar_normal().get_hyperparameter_names()))
-        #out_normal_file.write(",".join(first_line)+os.linesep)
-#        first_line = ["gene name","bayes factor"]
-#        first_line.extend(map(lambda x:"Common: "+x,covar_conf_common.get_hyperparameter_names()))
-#        first_line.extend(map(lambda x:"Individual: "+x,covar_conf_r1.get_hyperparameter_names()))
-#        out_predict.writerow(first_line)
+        if conf:
+            out_conf_file = open(out_conf_file_name,'w')
+            write_header(covar_conf_common, covar_conf_r1, out_conf_file)
+        if normal:
+            out_normal_file = open(out_normal_file_name,'w')
+            write_header(covar_normal, covar_normal, out_normal_file)
+        if raw:
+            out_raw_file = open(out_raw_file_name,'w')
+            write_header(covar_normal, covar_normal, out_raw_file)
+        if ideal:
+            out_ideal_file = open(out_ideal_file_name,'w')
+            write_header(covar_conf_common, covar_conf_r1, out_ideal_file)
+            
         
         # get ground truth genes for comparison:
         gt_names = []
@@ -272,15 +280,15 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
         lgt_names = len(gt_names)
 
         #loop through genes asynchronously
-        out_conf_queue = Queue()
-        #out_normal_queue = Queue()
+        if conf:
+            out_conf_queue, out_conf_process = setup_queue(out_conf_file, "conf")
+        if normal:
+            out_normal_queue, out_normal_process = setup_queue(out_normal_file, "normal")
+        if raw:
+            out_raw_queue, out_raw_process = setup_queue(out_raw_file, "raw")
+        if ideal:
+            out_ideal_queue, out_ideal_process = setup_queue(out_ideal_file, "ideal")
         
-        def write_csv_file(out_file, q):
-            for twosample_object, gene_name in iter(q.get, "STOP"):
-                #print gene_name, twosample_object.bayes_factor()
-                write_back_data(twosample_object, gene_name, out_file)
-        
-        out_conf_process = Thread(target=write_csv_file, name="conf_write_out", args=(out_conf_file,out_conf_queue))
         #out_normal_process = Process(target=write_csv_file, name="normal_write_out", args=(out_normal_file,out_normal_queue))
         iter_lock = Lock()
         gene_names_iter = iter(gt_names)
@@ -294,8 +302,14 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
                         gene_name = gene_names_iter.next()
                         current = current_iter.next()
                     except StopIteration:
-                        out_conf_queue.put("STOP")
-                        #out_normal_queue.put("STOP")
+                        if conf:
+                            out_conf_queue.put("STOP")
+                        if normal:
+                            out_normal_queue.put("STOP")
+                        if raw:
+                            out_raw_queue.put("STOP")
+                        if ideal:
+                            out_raw_queue.put("STOP")
                         return
                     finally:
                         iter_lock.release()
@@ -303,18 +317,54 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
                         continue
                     gene_name = gene_name.upper()
                     if gene_name in Y_dict.keys():
-#                        sys.stdout.flush()
-#                        sys.stdout.write('processing {0:s} {1:.3%}                  \r'.format(gene_name, float(current) / lgt_names))
-                        print 'processing {0:s} {1:.3%}                  \r'.format(gene_name, float(current) / lgt_names)
-                        twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1(), covar_conf_r2(), covar_conf_common(), priors=priors_conf())
-                        run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, Y_dict[gene_name]['confounded'][:len(T1)], Y_dict[gene_name]['confounded'][len(T1):], gene_name, os.path.join(plots_out_dir, gene_name + "_conf"))
-                        out_conf_queue.put([twosample_object_conf, gene_name])
+                        sys.stdout.flush()
+                        sys.stdout.write('processing {0:s} {1:.3%}                  \r'.format(gene_name, float(current) / lgt_names))
+                        inner_processes = []
+                        if conf:
+                            def gptwosample_fun():
+                                twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1(), covar_conf_r2(), covar_conf_common(), priors=priors_conf())
+                                run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, 
+                                                        n_replicates_1, n_replicates_2, 
+                                                        Y_dict[gene_name]['confounded'][:len(T1)], 
+                                                        Y_dict[gene_name]['confounded'][len(T1):], 
+                                                        gene_name, os.path.join(plots_out_dir, gene_name + "_conf"))
+                                out_conf_queue.put([twosample_object_conf, gene_name])
+                            inner_processes.append(Thread(target=gptwosample_fun(), name="inner conf"))
+                        if normal:
+                            def gptwosample_fun():
+                                twosample_object_normal = GPTwoSample_share_covariance(covar_normal(), priors=priors_normal())
+                                run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2, 
+                                                        n_replicates_1, n_replicates_2, 
+                                                        Y_dict[gene_name]['confounded'][:len(T1)], 
+                                                        Y_dict[gene_name]['confounded'][len(T1):], 
+                                                        gene_name, os.path.join(plots_out_dir, gene_name + "_normal"))
+                                out_normal_queue.put([twosample_object_normal, gene_name])
+                            inner_processes.append(Thread(target=gptwosample_fun(), name="inner normal"))
+                        if raw:
+                            def gptwosample_fun():
+                                twosample_object_raw = GPTwoSample_share_covariance(covar_normal(), priors=priors_normal())
+                                run_gptwosample_on_data(twosample_object_raw, Tpredict, T1, T2, 
+                                                        n_replicates_1, n_replicates_2, 
+                                                        Y_dict[gene_name]['raw'][:len(T1)], 
+                                                        Y_dict[gene_name]['raw'][len(T1):], 
+                                                        gene_name, os.path.join(plots_out_dir, gene_name + "_raw"))
+                                out_raw_queue.put([twosample_object_raw, gene_name])
+                            inner_processes.append(Thread(target=gptwosample_fun(), name="inner raw"))
+                        if ideal:
+                            def gptwosample_fun():
+                                twosample_object_ideal = GPTwoSample_individual_covariance(covar_ideal_r1(), covar_ideal_r2(), covar_ideal_common(), priors=priors_conf())
+                                run_gptwosample_on_data(twosample_object_ideal, Tpredict, T1, T2, 
+                                                        n_replicates_1, n_replicates_2, 
+                                                        Y_dict[gene_name]['confounded'][:len(T1)], 
+                                                        Y_dict[gene_name]['confounded'][len(T1):], 
+                                                        gene_name, os.path.join(plots_out_dir, gene_name + "_ideal"))
+                                out_ideal_queue.put([twosample_object_ideal, gene_name])
+                            inner_processes.append(Thread(target=gptwosample_fun(), name="inner ideal"))
+                        for p in inner_processes:
+                            p.start()
+                        for p in inner_processes:
+                            p.join()
                         
-                        #twosample_object_normal = GPTwoSample_share_covariance(covar_normal(), priors=priors_normal())
-                        #run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2, n_replicates_1, n_replicates_2, Y_dict[gene_name]['confounded'][:len(T1)], Y_dict[gene_name]['confounded'][len(T1):], gene_name, os.path.join(plots_out_dir, gene_name + "_normal"))
-                        #out_normal_queue.put([twosample_object_normal, gene_name])
-    #                    write_back_data(twosample_object_normal, gene_name, out_normal)
-                        pass
             except KeyboardInterrupt:
                     #iter_lock.release()
                     print "caught keyboard interrupt, stopping..."
@@ -325,17 +375,23 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
         #pool.map(gptwosample_multiprocess, gt_names)
         
         processes = []
-        for num in range(cpu_count()):
+        if conf:
+            processes.append(out_conf_process)
+        if normal:
+            processes.append(out_normal_process)
+        if raw:
+            processes.append(out_raw_process)
+        if ideal:
+            processes.append(out_ideal_process)
+            
+        for num in range(NUM_PROCS):
             processes.append(Thread(target=gptwosample_multiprocess, name=str(num)))
-        out_conf_process.start()
-        #out_normal_process.start()
+        
         for p in processes:
             p.start()
         for p in processes:
             p.join()
-        out_conf_process.join()
-        #out_normal_process.join()
-        
+
 #        for gene_name in gt_names:
 #            if gene_name is "input":
 #                continue
@@ -362,17 +418,40 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
 #                                        gene_name,os.path.join(plots_out_dir,gene_name+"_predict"))
 #                write_back_data(twosample_object_subtract, gene_name, out_predict)
         
-        out_conf_file.close()
-        out_normal_file.close()
-#        out_predict_file.close()
+        if conf:
+            out_conf_file.close()
+        if normal:
+            out_normal_file.close()
+        if raw:
+            out_raw_file.close()
+        if ideal:
+            out_ideal_file.close()
         
     if "plot_roc" in sys.argv:
         pylab.figure()
         plot_roc_curve(out_conf_file_name, gt_file_name, label="conf")
         plot_roc_curve(out_normal_file_name, gt_file_name, label="normal")
-#        plot_roc_curve(out_predict_file_name, gt_file_name, label="predict")
+        plot_roc_curve(out_raw_file_name, gt_file_name, label="raw")
+        plot_roc_curve(out_ideal_file_name, gt_file_name, label="ideal")        
         pylab.legend()
-    
+
+def setup_queue(out_file, name):
+    out_conf_queue = Queue()
+    out_conf_process = Thread(target=write_csv_file_asynchronous, name="{s!}_write_out".format(name), args=(out_file, out_conf_queue))
+    return out_conf_queue, out_conf_process
+
+def write_csv_file_asynchronous(out_file, q):
+    for _ in range(NUM_PROCS):
+        for twosample_object, gene_name in iter(q.get, "STOP"):
+            #print gene_name, twosample_object.bayes_factor()
+            write_back_data(twosample_object, gene_name, out_file)
+
+def write_header(covar_conf_common, covar_conf_r1, out_conf_file):
+    first_line = ["gene name", "bayes factor"]
+    first_line.extend(map(lambda x:"Common: " + x, covar_conf_common().get_hyperparameter_names()))
+    first_line.extend(map(lambda x:"Individual: " + x, covar_conf_r1().get_hyperparameter_names()))
+    out_conf_file.write(",".join(first_line) + os.linesep)
+
 def write_back_data(twosample_object, gene_name, csv_out):
     line = [gene_name, twosample_object.bayes_factor()]
     try:
