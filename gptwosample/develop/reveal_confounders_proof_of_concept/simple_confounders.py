@@ -43,7 +43,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
         os.makedirs(root)
     if not os.path.exists(data):
         os.makedirs(data)
-    plots_out_dir = os.path.join(root, "plots/")
+    plots_out_dir = os.path.join(root, "plots")
     if not os.path.exists(plots_out_dir):
         os.mkdir(plots_out_dir)
 
@@ -429,7 +429,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
             pylab.tight_layout()
         except:
             pass
-        pylab.savefig(plots_out_dir,'roc.pdf')
+        pylab.savefig(os.path.join(plots_out_dir,'roc.pdf'))
 
 def setup_queue(out_file, name):
     out_conf_queue = Queue()
