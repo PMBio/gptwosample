@@ -87,11 +87,11 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     K_conf_file_name = os.path.join(root, "toy_data_conf_K.pickle")
     if not os.path.exists(K_conf_file_name) or "regplvm" in sys.argv:
         if "condition_model" in sys.argv:
-            gplvm_model_function = conditional_linear_gplvm_confounder
             print "conditional model"
+            gplvm_model_function = conditional_linear_gplvm_confounder
         elif "time_model" in sys.argv:
-            gplvm_model_function = time_linear_gplvm_confounder
             print "time model"
+            gplvm_model_function = time_linear_gplvm_confounder
         else:
             print "linear model"
             gplvm_model_function = linear_gplvm_confounder
@@ -405,6 +405,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
         for p in processes:
             while p.is_alive():
                 p.join()
+            print "stopped", p.name
         print "exited without errors"
         raise k
     finally:
@@ -424,6 +425,11 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
         plot_roc_curve(out_raw_file_name, gt_file_name, label="raw")
         plot_roc_curve(out_ideal_file_name, gt_file_name, label="ideal")
         pylab.legend()
+        try:
+            pylab.tight_layout()
+        except:
+            pass
+        pylab.savefig(plots_out_dir,'roc.pdf')
 
 def setup_queue(out_file, name):
     out_conf_queue = Queue()
