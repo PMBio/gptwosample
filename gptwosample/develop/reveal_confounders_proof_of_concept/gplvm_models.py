@@ -3,7 +3,7 @@ Created on Feb 21, 2013
 
 @author: Max
 '''
-from pygp.covar.linear import LinearCF
+from pygp.covar.linear import LinearCF, LinearCFISO
 from pygp.covar.bias import BiasCF
 from pygp.covar.combinators import SumCF
 import numpy
@@ -32,19 +32,19 @@ def run_gplvm_with_convariance(Y, T, components, lvm_covariance):
     bounds['lik'] = numpy.array([[-5., 5.]] * T.shape[2])
     [opt_hyperparams_comm, _] = opt_hyper(g, hyperparams, gradcheck=False, messages=True, maxiter=8000)
     X = opt_hyperparams_comm['x']
-    ard = lvm_covariance.get_reparametrized_theta(opt_hyperparams_comm['covar'])[:components]
-    return numpy.dot(X,(ard*X).T), opt_hyperparams_comm, g
+    ard = lvm_covariance.get_reparametrized_theta(opt_hyperparams_comm['covar'])[0]
+    return ard*numpy.dot(X,X.T), opt_hyperparams_comm, g
     
 def linear_gplvm_confounder(Y, T, components=4):
     __doc__ = __doc
-    linear_cf = LinearCF(n_dimensions=components)
+    linear_cf = LinearCFISO(n_dimensions=components, dimension_indices=numpy.arange(1,1+components))
     mu_cf = BiasCF()
     lvm_covariance = SumCF((linear_cf,mu_cf))
     return run_gplvm_with_convariance(Y, T, components, lvm_covariance)
 
 def conditional_linear_gplvm_confounder(Y, T, components=4):
     __doc__ = __doc
-    linear_cf = LinearCF(n_dimensions=components)
+    linear_cf = LinearCFISO(n_dimensions=components, dimension_indices=numpy.arange(1,1+components))
     mu_cf = BiasCF()
     # Get fixed cf encoding twosample structure:
     try:
@@ -59,7 +59,7 @@ def conditional_linear_gplvm_confounder(Y, T, components=4):
 
 def time_linear_gplvm_confounder(Y, T, components=4):
     __doc__ = __doc
-    linear_cf = LinearCF(n_dimensions=components, dimension_indices=numpy.arange(1,1+components))
+    linear_cf = LinearCFISO(n_dimensions=components, dimension_indices=numpy.arange(1,1+components))
     mu_cf = BiasCF()
     se_cf = SqexpCFARD(n_dimensions=1,dimension_indices=numpy.array([0]))
     # Get fixed cf encoding twosample structure:

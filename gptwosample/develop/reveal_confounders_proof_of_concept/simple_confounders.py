@@ -47,12 +47,17 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     if not os.path.exists(plots_out_dir):
         os.mkdir(plots_out_dir)
 
-
-    ######################################
-    #            LOAD DATA               #
-    ######################################
+    D='all'
+    for arg in sys.argv:
+        if arg.startswith("D="):
+            D=int(arg.split('=')[1])            
+    
+    gt_file_name = "../../examples/ground_truth_random_genes.csv"
+    if "GT100" in sys.argv:
+        gt_file_name = "../../examples/ground_truth_balanced_set_of_100.csv"
+    
     if not os.path.exists(os.path.join(data, "toy_data.pickle")):
-        read_files_and_pickle(cond1_file, cond2_file, data)
+        read_files_and_pickle(cond1_file, cond2_file, gt_file_name, data, D=D)
         
     data_file_name = os.path.join(data, "toy_data.pickle")
     (Y, Tpredict, T1, T2, gene_names, n_replicates_1, n_replicates_2,
@@ -216,8 +221,6 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
     print "mean squared distance: {0:.3G}".format(MSD)
     print "Y.var()={}, Conf.var()={}".format(Y.var(), simulated_confounders.var())
 
-    gt_file_name = "../../examples/ground_truth_random_genes.csv"
-#    gt_file_name = "../../examples/ground_truth_balanced_set_of_100.csv"
     out_conf_file_name = os.path.join(root, "conf.csv")
     out_normal_file_name = os.path.join(data, "normal.csv")
     out_raw_file_name = os.path.join(data, "raw.csv")
@@ -524,7 +527,7 @@ def get_priors(dim, confounders):
         covar_priors_individual.append([lnpriors.lnGammaExp, [1, .5]])
     return get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
-def read_files_and_pickle(cond1_file, cond2_file, root, D='all'):
+def read_files_and_pickle(cond1_file, cond2_file, gt_file_name, root, D='all'):
     # 1. read csv file
     print 'reading files'
     cond1 = get_data_from_csv(cond1_file, delimiter=',')
@@ -549,8 +552,10 @@ def read_files_and_pickle(cond1_file, cond2_file, root, D='all'):
 
     # data merging and stuff
     gt_names = []
-    for [name, _] in csv.reader(open("../../examples/ground_truth_random_genes.csv", 'r')):
+    gt_file = open(gt_file_name, 'r')
+    for [name, _] in csv.reader(gt_file):
         gt_names.append(name)
+    gt_file.close()
 
     if D == 'all':
         D = len(gene_names_all)
