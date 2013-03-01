@@ -109,7 +109,7 @@ class Confounder_Model(GPTwoSample_individual_covariance):
             self.d = Y.shape[3]
         except ValueError:
             raise ValueError("Expression must be given as [n x r x t x d] matrix!")
-        assert numpy.prod(T.shape) == numpy.prod(Y.shape[:3]), 'Shape mismatch, must be one nrt timepoints per gene.'
+        assert T.shape == Y.shape[:3], 'Shape mismatch, must be one nrt timepoints per gene.'
 
     def predict_model_likelihoods(self, interval_indices=get_model_structure(), message="Predicting Likelihoods:", *args, **kwargs):
         self._check_data()

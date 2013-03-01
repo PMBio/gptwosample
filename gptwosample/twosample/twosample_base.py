@@ -137,19 +137,20 @@ class AbstractGPTwoSampleBase(object):
 
         for name, model in self._models.iteritems():
             model.set_active_set_indices(interval_indices[name])
-            if(self._learn_hyperparameters):
-                opt_hyperparameters = opt_hyper(model,
-                                                self._initial_hyperparameters[name],
-                                                priors=self._priors[name],
-                                                *args, **kwargs)[0]
-                self._learned_hyperparameters[name] = opt_hyperparameters
-#                elif not isinstance(self._learned_hyperparameters[name], list):
-#                    self._learned_hyperparameters[name] = [self._learned_hyperparameters[name]]
-#                    self._learned_hyperparameters[name].append(opt_hyperparameters)
-#                else:
-#                    self._learned_hyperparameters[name].append(opt_hyperparameters)
+            try:
+                if(self._learn_hyperparameters):
+                    opt_hyperparameters = opt_hyper(model,
+                                                    self._initial_hyperparameters[name],
+                                                    priors=self._priors[name],
+                                                    *args, **kwargs)[0]
+                    self._learned_hyperparameters[name] = opt_hyperparameters
+                else:
+                    self._learned_hyperparameters[name] = self._initial_hyperparameters[name]
+            except ValueError as r:
+                print "caught error:", r.message, 
+                self._learned_hyperparameters[name] = self._initial_hyperparameters[name]
             self._model_likelihoods[name] = model.LML(self._learned_hyperparameters[name],
-                                                      priors=self._priors)
+                                                              priors=self._priors)
 
         return self._model_likelihoods
 
