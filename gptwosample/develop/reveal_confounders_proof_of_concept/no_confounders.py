@@ -17,12 +17,13 @@ import scipy as SP
 import sys
 from gptwosample.twosample.twosample_base import GPTwoSample_share_covariance
 import itertools
+from multiprocessing import Lock, Pool
 
 # Private variables:
 __debug = 1
 
 
-def run_demo(cond1_file, cond2_file, components = 4, root='.'):
+def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
     logging.basicConfig(level=logging.INFO)
 
     ######################################
@@ -71,7 +72,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         os.mkdir(plots_out_dir)
 
     gt_file_name = "../../examples/ground_truth_random_genes.csv"
-    out_normal_file_name = os.path.join(results_out_dir,"raw.csv")
+    out_normal_file_name = os.path.join(root,data,"raw.csv")
     
     if "retwosample" in sys.argv or not os.path.exists(out_normal_file_name):
         # get csv files to write to
@@ -93,10 +94,10 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         current = itertools.count()
         lgt_names = len(gt_names)
         
-        #loop through genes
-        for gene_name in gt_names:
+        out_file_lock = Lock()
+        def gptwosample_multiprocessing(gene_name):
             if gene_name is "input":
-                continue
+                return
             gene_name = gene_name.upper()
             if gene_name in Y_dict.keys():
                 sys.stdout.flush()
@@ -107,7 +108,29 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                                         Y_dict[gene_name]['raw'][:len(T1)],
                                         Y_dict[gene_name]['raw'][len(T1):], 
                                         gene_name,os.path.join(plots_out_dir,gene_name+"_raw"))
+                out_file_lock.acquire()
                 write_back_data(twosample_object_normal, gene_name, out_normal)
+                out_file_lock.release()
+            return
+
+        pool = Pool(processes=8)
+        pool.map(gptwosample_multiprocessing, gt_names)
+        
+#        #loop through genes
+#        for gene_name in gt_names:
+#            if gene_name is "input":
+#                continue
+#            gene_name = gene_name.upper()
+#            if gene_name in Y_dict.keys():
+#                sys.stdout.flush()
+#                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(current.next())/lgt_names))
+#
+#                twosample_object_normal = GPTwoSample_share_covariance(covar_normal, priors=priors_normal)
+#                run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
+#                                        Y_dict[gene_name]['raw'][:len(T1)],
+#                                        Y_dict[gene_name]['raw'][len(T1):], 
+#                                        gene_name,os.path.join(plots_out_dir,gene_name+"_raw"))
+#                write_back_data(twosample_object_normal, gene_name, out_normal)
             
         out_normal_file.close()
       

@@ -19,9 +19,10 @@ from gptwosample.data.data_analysis import plot_roc_curve
 import ipdb
 from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance
 import itertools
+from multiprocessing import Lock, Pool
 
 
-def run_demo(cond1_file, cond2_file, components = 4, root='.'):
+def run_demo(cond1_file, cond2_file, components = 4, root='.', data='../data'):
     logging.basicConfig(level=logging.INFO)
 
     ######################################
@@ -83,7 +84,7 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         os.mkdir(plots_out_dir)
 
     gt_file_name = "../../examples/ground_truth_random_genes.csv"
-    out_conf_file_name = os.path.join(results_out_dir,"ideal.csv")
+    out_conf_file_name = os.path.join(root,data,"ideal.csv")
     
     if "retwosample" in sys.argv or not os.path.exists(out_conf_file_name):
         # get csv files to write to
@@ -104,11 +105,11 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
         
         current = itertools.count()
         lgt_names = len(gt_names)
+        out_file_lock = Lock()
         
-        #loop through genes
-        for gene_name in gt_names:
+        def gptwosample_multiprocessing(gene_name):
             if gene_name is "input":
-                continue
+                return
             gene_name = gene_name.upper()
             if gene_name in Y_dict.keys():
                 sys.stdout.flush()
@@ -119,8 +120,29 @@ def run_demo(cond1_file, cond2_file, components = 4, root='.'):
                                         Y_dict[gene_name]['confounded'][:len(T1)],
                                         Y_dict[gene_name]['confounded'][len(T1):], 
                                         gene_name,os.path.join(plots_out_dir,gene_name+"_ideal"))
+                out_file_lock.acquire()
                 write_back_data(twosample_object_conf, gene_name, out_conf)
                 out_conf_file.flush()
+                out_file_lock.release()
+            
+        pool = Pool(processes=8)
+        pool.map(gptwosample_multiprocessing, gt_names)
+#        #loop through genes
+#        for gene_name in gt_names:
+#            if gene_name is "input":
+#                continue
+#            gene_name = gene_name.upper()
+#            if gene_name in Y_dict.keys():
+#                sys.stdout.flush()
+#                sys.stdout.write('processing {0:s} {1:.3%}             \r'.format(gene_name, float(current.next())/lgt_names))
+#                
+#                twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1, covar_conf_r2, covar_conf_common, priors=priors_conf)
+#                run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2, n_replicates_1, n_replicates_2, 
+#                                        Y_dict[gene_name]['confounded'][:len(T1)],
+#                                        Y_dict[gene_name]['confounded'][len(T1):], 
+#                                        gene_name,os.path.join(plots_out_dir,gene_name+"_ideal"))
+#                write_back_data(twosample_object_conf, gene_name, out_conf)
+#                out_conf_file.flush()
             
         out_conf_file.close()
     if "plot_roc" in sys.argv:
