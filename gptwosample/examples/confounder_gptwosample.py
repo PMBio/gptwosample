@@ -45,7 +45,7 @@ if __name__ == '__main__':
                      numpy.tile(T2[:,None], Y1.shape[0])]).swapaxes(1,2)
     Y = numpy.array([Y0,Y1])
     
-    confounder_object = ConfounderTwoSample(T, Y, q=8)
+    confounder_object = ConfounderTwoSample(T, Y, q=2)
     confounder_object.learn_confounder_matrix()
     confounder_object.predict_likelihoods()
     
