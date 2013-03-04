@@ -21,8 +21,8 @@ import numpy
 from pygp.gp import gplvm
 from pygp.covar.combinators import SumCF
 from gptwosample.data.dataIO import get_data_from_csv
-from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance, \
-    GPTwoSample_share_covariance
+from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
+    TwoSampleShare
 from gptwosample.develop.reveal_confounders_proof_of_concept.gplvm_models import conditional_linear_gplvm_confounder, \
     linear_gplvm_confounder, time_linear_gplvm_confounder
 import itertools
@@ -183,7 +183,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
         pylab.close('all')
         fig = pylab.figure()
         im = pylab.imshow(K_sim)
-        pylab.title("Simulated Covariance Matrix:")
+        pylab.title("Simulation:")
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
@@ -196,7 +196,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
 
         fig = pylab.figure()
         im = pylab.imshow(K_learned)
-        pylab.title("Predicted Confounder Matrix:")
+        pylab.title(r"${\mathbf{XX}}^\top$")
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
@@ -206,9 +206,22 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
             pass
         pylab.savefig(os.path.join(root, "plots", "predicted_confounder_matrix.pdf"))
 
+#        fig = pylab.figure()
+#        im = pylab.imshow(K_sim - K_learned)
+#        pylab.title("Difference: MSD={0:.4G}".format(MSD))
+#        divider = make_axes_locatable(pylab.gca())
+#        cax = divider.append_axes("right", "5%", pad="3%")
+#        pylab.colorbar(im, cax=cax)
+#        try:
+#            fig.tight_layout()
+#        except:
+#            pass
+#        pylab.savefig(os.path.join(root, "plots", "difference_confounder_matrix.pdf"))
         fig = pylab.figure()
-        im = pylab.imshow(K_sim - K_learned)
-        pylab.title("Difference: MSD={0:.4G}".format(MSD))
+        X0 = numpy.concatenate((T.copy().reshape(-1,1), hyperparams_gplvm['x']), axis=1)
+        K_whole = gplvm_model.covar.K(hyperparams_gplvm['covar'], X0)
+        im = pylab.imshow(K_whole)
+        pylab.title(r"whole confounder matrix ${\mathbf{K}}$")
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
@@ -216,10 +229,18 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
             fig.tight_layout()
         except:
             pass
-        pylab.savefig(os.path.join(root, "plots", "difference_confounder_matrix.pdf"))
+        pylab.savefig(os.path.join(root, "plots", "whole_predicted_confounder_matrix.pdf"))
+
+
 
     print "mean squared distance: {0:.3G}".format(MSD)
     print "Y.var()={}, Conf.var()={}".format(Y.var(), simulated_confounders.var())
+    print "learned hyperparams['covar']:"
+    names = gplvm_model.covar.get_hyperparameter_names()
+    for name, val in itertools.izip(names, 
+                                    gplvm_model.covar.get_reparametrized_theta(hyperparams_gplvm['covar'])):
+        print ("{0:>"+str(max(map(len,names)))+"}={1:g}").format(name, val)
+    print ("{0:>"+str(max(map(len,names)))+"}={1:g}").format('Noise', numpy.exp(2*hyperparams_gplvm['lik'][0]))
 
     out_conf_file_name = os.path.join(root, "conf.csv")
     out_normal_file_name = os.path.join(data, "normal.csv")
@@ -329,7 +350,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
                         inner_processes = []
                         if conf:
                             def gptwosample_fun():
-                                twosample_object_conf = GPTwoSample_individual_covariance(covar_conf_r1(), covar_conf_r2(), covar_conf_common(), priors=priors_conf())
+                                twosample_object_conf = TwoSampleSeparate(covar_conf_r1(), covar_conf_r2(), covar_conf_common(), priors=priors_conf())
                                 run_gptwosample_on_data(twosample_object_conf, Tpredict, T1, T2,
                                                         n_replicates_1, n_replicates_2,
                                                         Y_dict[gene_name]['confounded'][:len(T1)],
@@ -339,7 +360,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
                             inner_processes.append(Thread(target=gptwosample_fun(), name="inner conf"))
                         if normal:
                             def gptwosample_fun():
-                                twosample_object_normal = GPTwoSample_share_covariance(covar_normal(), priors=priors_normal())
+                                twosample_object_normal = TwoSampleShare(covar_normal(), priors=priors_normal())
                                 run_gptwosample_on_data(twosample_object_normal, Tpredict, T1, T2,
                                                         n_replicates_1, n_replicates_2,
                                                         Y_dict[gene_name]['confounded'][:len(T1)],
@@ -349,7 +370,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
                             inner_processes.append(Thread(target=gptwosample_fun(), name="inner normal"))
                         if raw:
                             def gptwosample_fun():
-                                twosample_object_raw = GPTwoSample_share_covariance(covar_normal(), priors=priors_normal())
+                                twosample_object_raw = TwoSampleShare(covar_normal(), priors=priors_normal())
                                 run_gptwosample_on_data(twosample_object_raw, Tpredict, T1, T2,
                                                         n_replicates_1, n_replicates_2,
                                                         Y_dict[gene_name]['raw'][:len(T1)],
@@ -359,7 +380,7 @@ def run_demo(cond1_file, cond2_file, components=4, root='.', data='data'):
                             inner_processes.append(Thread(target=gptwosample_fun(), name="inner raw"))
                         if ideal:
                             def gptwosample_fun():
-                                twosample_object_ideal = GPTwoSample_individual_covariance(covar_ideal_r1(), covar_ideal_r2(), covar_ideal_common(), priors=priors_conf())
+                                twosample_object_ideal = TwoSampleSeparate(covar_ideal_r1(), covar_ideal_r2(), covar_ideal_common(), priors=priors_conf())
                                 run_gptwosample_on_data(twosample_object_ideal, Tpredict, T1, T2,
                                                         n_replicates_1, n_replicates_2,
                                                         Y_dict[gene_name]['confounded'][:len(T1)],
@@ -492,12 +513,15 @@ def run_gptwosample_on_data(twosample_object, Tpredict, T1, T2, n_replicates_1, 
     #    savename=gene_name
     # pylab.savefig("%s"%(savename))
 
-def sample_confounders_from_GP(components, gene_names, n_replicates, gene_length, lvm_covariance, hyperparams, T):
+def sample_confounders_from_GP(components, gene_names, 
+                               n_replicates, gene_length, 
+                               lvm_covariance, hyperparams, 
+                               T):
         # or draw from a GP:
-    NRT = n_replicates * gene_length
-    X = numpy.concatenate((T.copy().T, numpy.random.randn(NRT, components).T)).T
+    RT = n_replicates * gene_length
+    X = numpy.concatenate((T.copy().T, numpy.random.randn(RT, components).T)).T
     sigma = 1e-6
-    Y_conf = numpy.array([numpy.dot(cholesky(lvm_covariance.K(hyperparams['covar'], X) + sigma * numpy.eye(NRT)), numpy.random.randn(NRT, 1)).flatten() for _ in range(len(gene_names))])
+    Y_conf = numpy.array([numpy.dot(cholesky(lvm_covariance.K(hyperparams['covar'], X) + sigma * numpy.eye(RT)), numpy.random.randn(RT, 1)).flatten() for _ in range(len(gene_names))])
     return Y_conf.T
 
 def sample_confounders_linear(components, gene_names, n_replicates, gene_length):

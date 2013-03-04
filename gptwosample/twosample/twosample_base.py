@@ -2,7 +2,7 @@
 Classes to apply GPTwoSample to data
 ====================================
 
-All classes handling AbstractGPTwoSampleBase tasks should extend this class.
+All classes handling TwoSampleBase tasks should extend this class.
 
 Created on Mar 18, 2011
 
@@ -18,21 +18,22 @@ import numpy
 from pygp.plot.gpr_plot import plot_sausage, plot_training_data
 from copy import deepcopy
 from matplotlib import cm
+from pygp.likelihood.likelihood_base import GaussLikISO
     
-class AbstractGPTwoSampleBase(object):
+class TwoSampleBase(object):
     """
-    AbstractGPTwoSampleBase object with the given covariance function covar.
+    TwoSampleBase object with the given covariance function covar.
     """
     def __init__(self, learn_hyperparameters=True,
                  priors=None,
                  initial_hyperparameters=None, **kwargs):
         """
-        Perform AbstractGPTwoSampleBase with the given covariance function covar.
+        Perform TwoSampleBase with the given covariance function covar.
 
         **Parameters**:
 
             covar : :py:class:`pygp.covar.CovarianceFunction`
-                The covariance function this AbstractGPTwoSampleBase class works with.
+                The covariance function this TwoSampleBase class works with.
 
             learn_hyperparameters : bool
                 Specifies whether or not to optimize the hyperparameters for the given data
@@ -51,7 +52,7 @@ class AbstractGPTwoSampleBase(object):
             
         self._models = dict()
         
-        if initial_hyperparameters is None:
+        if initial_hyperparameters is None and priors is not None:
             self._initial_hyperparameters = get_model_structure({}, {});
             for name, prior in self._priors.iteritems():
                 if prior.has_key('covar'):
@@ -65,8 +66,10 @@ class AbstractGPTwoSampleBase(object):
         elif initial_hyperparameters is not None:
             self._initial_hyperparameters = get_model_structure(initial_hyperparameters, initial_hyperparameters)
         else:
-            self._initial_hyperparameters = get_model_structure()
+            self._initial_hyperparameters = get_model_structure({})
 
+        for name, hyper in self._initial_hyperparameters.iteritems():
+            hyper['lik'] = numpy.log([0.1])
         self._invalidate_cache()
     
     def set_data_by_xy_data(self, x1, x2, y1, y2):
@@ -126,10 +129,10 @@ class AbstractGPTwoSampleBase(object):
             respectively.
 
         args : [..]
-            see :py:class:`pygp.gpr.GP`
+            see :py:class:`pygp.gpr.gp_base.GP`
 
         kwargs : {..}
-            see :py:class:`pygp.gpr.GP`
+            see :py:class:`pygp.gpr.gp_base.GP`
         
         """
         if(training_data is not None):
@@ -176,6 +179,8 @@ class AbstractGPTwoSampleBase(object):
         interval_indices : {'common':[boolean],'individual':[boolean]}
             Indices in which to predict, for each group, respectively.
         """
+        if interpolation_interval.ndim < 2:
+            interpolation_interval = interpolation_interval[:,None]
         if(hyperparams is None):
             hyperparams = self._learned_hyperparameters
         self._predicted_mean_variance = get_model_structure()
@@ -269,7 +274,7 @@ class AbstractGPTwoSampleBase(object):
             Proper rectangles for use in pylab.legend().
         """
         if self._predicted_mean_variance is None:
-            print "Not yet predicted"
+            print "Not yet predicted, or not predictable"
             return
         if interval_indices is None:
             interval_indices = get_model_structure(
@@ -385,45 +390,54 @@ class AbstractGPTwoSampleBase(object):
         self._interpolation_interval_cache = None
         self._predicted_mean_variance = None
 
-class GPTwoSample_share_covariance(AbstractGPTwoSampleBase):
+class TwoSampleShare(TwoSampleBase):
     """
     This class provides comparison of two Timeline Groups to each other.
 
-    see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase` for detailed description of provided methods.
+    see :py:class:`gptwosample.twosample.twosample_base.TwoSampleBase` for detailed description of provided methods.
     """
     def __init__(self, covar, *args, **kwargs):
         """
-        see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase`
+        see :py:class:`gptwosample.twosample.twosample_base.TwoSampleBase`
         """
-        super(GPTwoSample_share_covariance, self).__init__(*args, **kwargs)
-        gpr1 = GP(covar)
-        gpr2 = GP(covar)
-        individual_model = GroupGP([gpr1,gpr2])
-        common_model = GP(covar)
-        self.covar = covar
-        # set models for this AbstractGPTwoSampleBase Test
-        self._models = {individual_id:individual_model,common_id:common_model}
+        if not kwargs.has_key('initial_hyperparameters'):
+            kwargs['initial_hyperparameters'] = \
+                get_model_structure(individual={'covar':numpy.zeros(covar.get_number_of_parameters())},
+                                    common={'covar':numpy.zeros(covar.get_number_of_parameters())})
+        super(TwoSampleShare, self).__init__(*args, **kwargs)
+        gpr1 = GP(deepcopy(covar), likelihood=GaussLikISO())
+        gpr2 = GP(deepcopy(covar), likelihood=GaussLikISO())
+        #individual = GroupGP([gpr1,gpr2])
+        #common = GP(covar)
+        #self.covar = covar
+        # set models for this TwoSampleBase Test
+        self._models = {individual_id:GroupGP([gpr1,gpr2]),
+                        common_id:GP(deepcopy(covar), likelihood=GaussLikISO())}
         
-class GPTwoSample_individual_covariance(AbstractGPTwoSampleBase):
+class TwoSampleSeparate(TwoSampleBase):
     """
-    This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively
+    This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively.
 
-    see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase` for detailed description of provided methods.
+    see :py:class:`gptwosample.twosample.twosample_base.TwoSampleBase` for detailed description of provided methods.
     
     Note that this model will need one covariance function for each model, respectively!
     """
     def __init__(self, covar_individual_1, covar_individual_2, covar_common, **kwargs):
         """
-        see :py:class:`gptwosample.twosample.twosample_base.AbstractGPTwoSampleBase`
+        see :py:class:`gptwosample.twosample.twosample_base.TwoSampleBase`
         """
-        super(GPTwoSample_individual_covariance, self).__init__(**kwargs)
-        gpr1 = GP(covar_individual_1)
-        gpr2 = GP(covar_individual_2)
-        individual_model = GroupGP([gpr1,gpr2])
-        common_model = GP(covar_common)
-        self.covar_individual_1 = covar_individual_1
-        self.covar_individual_2 = covar_individual_2
-        self.covar_common = covar_common
-        # set models for this AbstractGPTwoSampleBase Test
-        self._models = {individual_id:individual_model,common_id:common_model}
+        if not kwargs.has_key('initial_hyperparameters'):
+            kwargs['initial_hyperparameters'] = \
+                get_model_structure(individual={'covar':numpy.zeros(covar_individual_1.get_number_of_parameters())},
+                                    common={'covar':numpy.zeros(covar_common.get_number_of_parameters())})
+        super(TwoSampleSeparate, self).__init__(**kwargs)
+        gpr1 = GP(deepcopy(covar_individual_1), likelihood=GaussLikISO())
+        gpr2 = GP(deepcopy(covar_individual_2), likelihood=GaussLikISO())
+        #self.covar_individual_1 = covar_individual_1
+        #self.covar_individual_2 = covar_individual_2
+        #self.covar_common = covar_common
+        # set models for this TwoSampleBase Test
+        
+        
+        self._models = {individual_id:GroupGP([gpr1,gpr2]),common_id:GP(deepcopy(covar_common), likelihood=GaussLikISO())}
     
