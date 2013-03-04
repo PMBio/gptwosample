@@ -13,9 +13,9 @@ Created on Feb 25, 2011
 from gptwosample.data.dataIO import get_data_from_csv
 import logging as LG
 import scipy as SP
-from gptwosample.confounder.confounder_model import Confounder_Model
 import numpy
 import pylab
+from gptwosample.confounder.confounder import ConfounderTwoSample
 
 
 if __name__ == '__main__':
@@ -45,18 +45,14 @@ if __name__ == '__main__':
                      numpy.tile(T2[:,None], Y1.shape[0])]).swapaxes(1,2)
     Y = numpy.array([Y0,Y1])
     
-    confounder_object = Confounder_Model(T, Y, components=4)
+    confounder_object = ConfounderTwoSample(T, Y, q=8)
     confounder_object.learn_confounder_matrix()
-    confounder_object.predict_model_likelihoods()
+    confounder_object.predict_likelihoods()
     
     Tpredict = numpy.linspace(T1.min(), T1.max(), 100)[:,None]
-    it = confounder_object.predict_mean_variance_iter(Tpredict)
+    it = confounder_object.predict_means_variances(Tpredict)
     pylab.ion()
     pylab.figure()
-    for m_s in it:
-        pylab.clf()
-        confounder_object.plot()
-        
-        raw_input("Press Enter to Continue")
-        
+    for _ in confounder_object.plot():
+        raw_input("Press Enter to continue...")
     
