@@ -13,13 +13,13 @@ import itertools
 from gptwosample.confounder.confounder import ConfounderTwoSample
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
-from gptwosample.data.data_analysis import plot_roc_curve
 
-numpy.random.seed(0)
+seed = 0
+numpy.random.seed(seed)
 
 _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
-[regplvm|relikelihood|plot_confounder|gt100]
+[redata|regplvm|relikelihood|plot_confounder|gt100]
 
 warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
 
@@ -46,7 +46,7 @@ def finished(s, process=None):
     try:
         sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
     except:
-        sys.stdout.write(s + " done            \n")
+        sys.stdout.write(s + " done             \n")
     sys.stdout.flush()
 
 def start_mill(s):
@@ -65,8 +65,8 @@ def start_mill(s):
 
 s = "loading data..."
 sys.stdout.write(s)
-data_file_path = os.path.join(data, "./data.pickle")
-if not os.path.exists(data_file_path):
+data_file_path = os.path.join(data, "./data_seed_"+str(seed)+".pickle")
+if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
     cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
     cond2 = get_data_from_csv(sys.argv[5])  # os.path.join(root,'warwick_treatment.csv'))
@@ -77,6 +77,7 @@ if not os.path.exists(data_file_path):
     Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
     Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
     Y = numpy.array([Y1, Y2])
+    import ipdb;ipdb.set_trace()
 
     n, r, t, d = Y.shape
 
