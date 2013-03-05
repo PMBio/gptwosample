@@ -395,8 +395,8 @@ class ConfounderTwoSample():
     def _pred_worker(self, twosample, interpolation_interval, message, l, **kwargs):
         try:
             for i, [da, hyperparams] in iter(self.inq.get, STOP):
-                # if not self.__running_event.is_set():
-                #    break
+                if not self.__running_event.is_set():
+                    break
                 sys.stdout.flush()
                 sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 twosample.set_data_by_xy_data(*da)
