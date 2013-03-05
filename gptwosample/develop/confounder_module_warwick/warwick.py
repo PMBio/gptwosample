@@ -77,10 +77,15 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
     Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
     Y = numpy.array([Y1, Y2])
-    import ipdb;ipdb.set_trace()
-
+    
     n, r, t, d = Y.shape
 
+    si = "standardizing Y"
+    sys.stdout.write(si+"\r")
+    Y -= Y.reshape(n*r*t,d).mean(0)
+    Y /= Y.reshape(n*r*t,d).std(0)
+    finished(si)
+    
     T1 = numpy.tile(T1, r).T
     T2 = numpy.tile(T2, r).T
 
