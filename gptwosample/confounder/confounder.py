@@ -23,6 +23,7 @@ from threading import Thread, Event
 import pickle
 import pylab
 from pygp.covar.bias import BiasCF
+import time
 
 NUM_PROCS = max(1, cpu_count() - 2)
 STOP = "STOP"
@@ -362,6 +363,7 @@ class ConfounderTwoSample():
                 if not self.__running_event.is_set():
                     break
                 main(i)
+                time.sleep(max(.3,1./(2*NUM_PROCS)))
         except _ as e:
             print "ERROR: Caught Exception in _distributor"
             print e.message
@@ -373,6 +375,8 @@ class ConfounderTwoSample():
         try:
             for i, da in iter(self.inq.get, STOP):
                 if self.__running_event.is_set():
+                    sys.stdout.flush()
+                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                     twosample.set_data_by_xy_data(*da)
                     try:
                         lik = twosample.predict_model_likelihoods(**kwargs).copy()
@@ -380,8 +384,6 @@ class ConfounderTwoSample():
                     except ValueError:
                         lik = numpy.nan
                         hyp = None
-                    sys.stdout.flush()
-                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                     self.outq.put([i, [lik, hyp]])
                 else:
                     continue
@@ -394,6 +396,8 @@ class ConfounderTwoSample():
     def _pred_worker(self, twosample, interpolation_interval, message, l, **kwargs):
         try:
             for i, [da, hyperparams] in iter(self.inq.get, STOP):
+                sys.stdout.flush()
+                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 if not self.__running_event.is_set():
                     continue
                 twosample.set_data_by_xy_data(*da)
@@ -401,8 +405,6 @@ class ConfounderTwoSample():
                     ms = twosample.predict_mean_variance(interpolation_interval, hyperparams=hyperparams, **kwargs).copy()
                 except ValueError:
                     ms = None
-                sys.stdout.flush()
-                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 self.outq.put([i, ms])
         except _ as e:
             print "ERROR: Caught Exception in _pred_worker"
