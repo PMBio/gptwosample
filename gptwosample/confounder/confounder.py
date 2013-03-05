@@ -69,7 +69,7 @@ class ConfounderTwoSample():
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
                                           LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + self.n)),
                                           SqexpCFARD(dimension_indices=numpy.array([0])),
-                                          BiasCF()])
+                                          BiasCF(dimension_indices=numpy.arange(0, 1 + q))])
 
         # if initial_hyperparameters is None:
         #    initial_hyperparameters = numpy.zeros(self._lvm_covariance.get_number_of_parameters()))
@@ -373,8 +373,6 @@ class ConfounderTwoSample():
         try:
             for i, da in iter(self.inq.get, STOP):
                 if self.__running_event.is_set():
-                    sys.stdout.flush()
-                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                     twosample.set_data_by_xy_data(*da)
                     try:
                         lik = twosample.predict_model_likelihoods(**kwargs).copy()
@@ -382,6 +380,8 @@ class ConfounderTwoSample():
                     except ValueError:
                         lik = numpy.nan
                         hyp = None
+                    sys.stdout.flush()
+                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                     self.outq.put([i, [lik, hyp]])
                 else:
                     continue
@@ -396,13 +396,13 @@ class ConfounderTwoSample():
             for i, [da, hyperparams] in iter(self.inq.get, STOP):
                 if not self.__running_event.is_set():
                     continue
-                sys.stdout.flush()
-                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 twosample.set_data_by_xy_data(*da)
                 try:
                     ms = twosample.predict_mean_variance(interpolation_interval, hyperparams=hyperparams, **kwargs).copy()
                 except ValueError:
                     ms = None
+                sys.stdout.flush()
+                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 self.outq.put([i, ms])
         except _ as e:
             print "ERROR: Caught Exception in _pred_worker"
