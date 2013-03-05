@@ -363,7 +363,7 @@ class ConfounderTwoSample():
                 if not self.__running_event.is_set():
                     break
                 main(i)
-                time.sleep(max(.3,1./(2*NUM_PROCS)))
+                time.sleep(min(.3,1./(2*NUM_PROCS)))
         except _ as e:
             print "ERROR: Caught Exception in _distributor"
             print e.message
