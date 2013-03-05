@@ -372,18 +372,20 @@ class ConfounderTwoSample():
     def _lik_worker(self, twosample, message, l, **kwargs):
         try:
             for i, da in iter(self.inq.get, STOP):
-                # if not self.__running_event.is_set():
-                #    break
-                sys.stdout.flush()
-                sys.stdout.write("{1:s} {3}/{2} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
-                twosample.set_data_by_xy_data(*da)
-                try:
-                    lik = twosample.predict_model_likelihoods(**kwargs).copy()
-                    hyp = twosample.get_learned_hyperparameters().copy()
-                except ValueError:
-                    lik = numpy.nan
-                    hyp = None
-                self.outq.put([i, [lik, hyp]])
+                if self.__running_event.is_set():
+                    sys.stdout.flush()
+                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
+                    twosample.set_data_by_xy_data(*da)
+                    try:
+                        lik = twosample.predict_model_likelihoods(**kwargs).copy()
+                        hyp = twosample.get_learned_hyperparameters().copy()
+                    except ValueError:
+                        lik = numpy.nan
+                        hyp = None
+                    
+                    self.outq.put([i, [lik, hyp]])
+                else:
+                    break
         except _ as e:
             print "ERROR: Caught Exception in _lik_worker"
             print e.message
@@ -396,7 +398,7 @@ class ConfounderTwoSample():
                 # if not self.__running_event.is_set():
                 #    break
                 sys.stdout.flush()
-                sys.stdout.write("{1:s}{0:.3%}            \r".format(float(i + 1) / l, message))
+                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 twosample.set_data_by_xy_data(*da)
                 try:
                     ms = twosample.predict_mean_variance(interpolation_interval, hyperparams=hyperparams, **kwargs).copy()
