@@ -424,12 +424,14 @@ class ConfounderTwoSample():
         except KeyboardInterrupt as r:
             sys.stdout.write("stopping threads                             \r")
             self.__running_event.clear()
-            for p in processes:  # Wait for all processes to terminate
-                sys.stdout.flush()
-                sys.stdout.write("stopping {} ...    \r".format(p.name))
-                while p.is_alive():
-                    p.join(.1)
-                #sys.stdout.write("stopping {} done        \n".format(p.name))
+            while len(processes) > 0: # Wait for all processes to terminate
+                for p in processes:  # iter through running processes
+                    sys.stdout.flush()
+                    sys.stdout.write("stopping {} ...    \r".format(p.name))
+                    if not p.is_alive():  # Process finished
+                        processes.remove(p)  # can be deleted
+                    else:
+                        p.join(.4)  # Join in process
             sys.stdout.write("stopping threads done                          \n")
             raise r
 if __name__ == '__main__':
