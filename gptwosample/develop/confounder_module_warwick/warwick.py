@@ -234,12 +234,12 @@ for row in csv.reader(bayes_file):
 bayes_file.close()
 finished(s)
 
-s = "plotting roc curve"
-sys.stdout.write(s + "\r")
-pylab.ion()
-pylab.figure(10)    
-plot_roc_curve(bayes_file_name, gt_file_name, label=outname)
-pylab.legend(loc=4)
-finished(s)
+#s = "plotting roc curve"
+#sys.stdout.write(s + "\r")
+#pylab.ion()
+#pylab.figure(10)    
+#plot_roc_curve(bayes_file_name, gt_file_name, label=outname)
+#pylab.legend(loc=4)
+#finished(s)
 
 

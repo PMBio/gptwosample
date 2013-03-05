@@ -61,14 +61,14 @@ class ConfounderTwoSample():
             self._lvm_covariance = lvm_covariance
         else:
             rt = self.r * self.t
-            self.X_s = numpy.zeros((self.n * rt, self.n))
-            for i in xrange(self.n):
-                self.X_s[i * rt:(i + 1) * rt, i] = 1
+            self.X_s = numpy.zeros((self.n * rt, self.n * self.r))
+            for i in xrange(self.n):self.X_s[i * rt:(i + 1) * rt, i * self.r : (i+1) * self.r] = .1
+            for i in xrange(self.n * self.r):self.X_s[i * self.t:(i + 1) * self.t, i] = 1 - .1*3
             # sample_structure = numpy.append(numpy.ones(self.r * self.t), numpy.zeros(self.r * self.t))[:, None]
             # sample_struct = numpy.dot(sample_structure, sample_structure.T)
             # sample_struct += numpy.dot(sample_structure[::-1], sample_structure[::-1].T)
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
-                                          LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + self.n)),
+                                          LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r))),
                                           SqexpCFARD(dimension_indices=numpy.array([0])),
                                           BiasCF(dimension_indices=numpy.arange(0, 1 + q))])
 
@@ -114,7 +114,8 @@ class ConfounderTwoSample():
         lvm_hyperparams, _ = opt_hyper(g, hyper,
                                        Ifilter=None, maxiter=10000,
                                        gradcheck=False, bounds=None,
-                                       messages=True, gradient_tolerance=1E-8)
+                                       messages=True, 
+                                       gradient_tolerance=1E-16)
 
         self._init_conf_matrix(lvm_hyperparams, ard_indices)
         # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
