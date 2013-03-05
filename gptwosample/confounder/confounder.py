@@ -432,7 +432,12 @@ class ConfounderTwoSample():
                         processes.remove(p)  # can be deleted
                     else:
                         p.join(.4)  # Join in process
-            sys.stdout.write("stopping threads done                          \n")
+            sys.stdout.write("stopping threads ")
+            try:
+                sys.stdout.write(" " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
+            except:
+                sys.stdout.write(" done            \n")
+    
             raise r
 if __name__ == '__main__':
     Tt = numpy.arange(0, 24, 2)[:, None]
