@@ -4,8 +4,8 @@ Confounder Learning and Correction Module
 
 @author: Max Zwiessele
 '''
-from multiprocessing import cpu_count
 import numpy
+from multiprocessing import cpu_count
 from pygp.covar.linear import LinearCFISO, LinearCF
 from pygp.covar.combinators import SumCF
 from pygp.covar.se import SqexpCFARD
@@ -20,12 +20,11 @@ from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
 from Queue import Queue
 import sys
 from threading import Thread, Event
-from scikits.learn.mixture import sample_gaussian
 import pickle
 import pylab
 from pygp.covar.bias import BiasCF
 
-NUM_PROCS = 1  # cpu_count()  # max(1, cpu_count() - 2)
+NUM_PROCS = cpu_count()  # max(1, cpu_count() - 2)
 STOP = "STOP"
 
 class ConfounderTwoSample():
@@ -440,6 +439,11 @@ if __name__ == '__main__':
     K = covar.K(covar.get_de_reparametrized_theta([1, 13]), Tt)
     m = numpy.zeros(t)
 
+    try:
+        from scikits.learn.mixture import sample_gaussian
+    except _ as r:
+        r.message = "scikits needed for this example"
+        raise r
     Y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     Y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
 
