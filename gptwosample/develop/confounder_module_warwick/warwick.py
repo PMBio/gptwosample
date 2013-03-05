@@ -15,6 +15,8 @@ import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from gptwosample.data.data_analysis import plot_roc_curve
 
+numpy.random.seed(0)
+
 _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
 [regplvm|relikelihood|plot_confounder|gt100]

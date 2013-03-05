@@ -338,6 +338,8 @@ class ConfounderTwoSample():
             # Keep running until we see numprocs STOP messages
             for _ in xrange(NUM_PROCS):
                 for i, d in iter(self.outq.get, STOP):
+                    if not self.__running_event.is_set():
+                        continue
                     # verify rows are in order, if not save in buff
                     if i != cur:
                         buff[i] = d
@@ -360,8 +362,6 @@ class ConfounderTwoSample():
                 if not self.__running_event.is_set():
                     break
                 main(i)
-            for _ in xrange(NUM_PROCS):
-                self.inq.put(STOP)
         except _ as e:
             print "ERROR: Caught Exception in _distributor"
             print e.message
@@ -382,10 +382,9 @@ class ConfounderTwoSample():
                     except ValueError:
                         lik = numpy.nan
                         hyp = None
-                    
                     self.outq.put([i, [lik, hyp]])
                 else:
-                    break
+                    continue
         except _ as e:
             print "ERROR: Caught Exception in _lik_worker"
             print e.message
@@ -396,7 +395,7 @@ class ConfounderTwoSample():
         try:
             for i, [da, hyperparams] in iter(self.inq.get, STOP):
                 if not self.__running_event.is_set():
-                    break
+                    continue
                 sys.stdout.flush()
                 sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 twosample.set_data_by_xy_data(*da)
