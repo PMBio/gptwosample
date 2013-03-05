@@ -79,12 +79,6 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     Y = numpy.array([Y1, Y2])
     
     n, r, t, d = Y.shape
-
-    si = "standardizing Y"
-    sys.stdout.write(si+"\r")
-    Y -= Y.reshape(n*r*t,d).mean(0)
-    Y /= Y.reshape(n*r*t,d).std(0)
-    finished(si)
     
     T1 = numpy.tile(T1, r).T
     T2 = numpy.tile(T2, r).T
@@ -101,6 +95,15 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     X_sim = numpy.random.randn(n, r, t, Q)
     K_sim = numpy.dot(X_sim.reshape(n*r*t, Q), X_sim.reshape(n*r*t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
+
+    si = "standardizing data ..."
+    sys.stdout.write(si+"\r")
+    Y -= Y.reshape(n*r*t,d).mean(0)
+    Y /= Y.reshape(n*r*t,d).std(0)
+    Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
+    Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0) 
+    finished(si)
+    
     Y += Conf_sim.reshape(n, r, t, d)
 
     data_file = open(data_file_path, 'w')
