@@ -116,7 +116,7 @@ if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
     conf_model._initialized = True
-if "no_conf" in sys.argv:
+if "noconf" in sys.argv:
     conf_model.X = numpy.zeros((conf_model.n*conf_model.r*conf_model.t, conf_model.q))
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
