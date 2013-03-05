@@ -1,1 +1,1 @@
-from .confounder import *
+from gptwosample.confounder.confounder import *
