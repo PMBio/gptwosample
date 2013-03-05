@@ -116,7 +116,7 @@ if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
     conf_model._initialized = True
-if "noconf" in sys.argv:
+elif "noconf" in sys.argv:
     conf_model.X = numpy.zeros((conf_model.n*conf_model.r*conf_model.t, conf_model.q))
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
@@ -189,14 +189,17 @@ gt_vals = list()
 for name, val in gt_read:
     gt_names.append(name.upper())
     gt_vals.append(val)
-indices = numpy.where(numpy.array(gt_names)[None,:]==numpy.array(gene_names)[:,None])[0]
+indices = numpy.where(numpy.array(gt_names)[None,:]==numpy.array(gene_names)[:,None])
+gt_names = numpy.array(gt_names)[indices[1]]
+gt_vals = numpy.array(gt_vals)[indices[1]]
 
 likelihoods_file_name = os.path.join(root, outname+'_likelihoods.pickle')
 hyperparams_file_name = os.path.join(root, outname+'_hyperparams.pickle')
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
     sys.stdout.write(s + "             \r")
-    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices)
+    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0])
+    del indices
     hyperparams = conf_model.get_learned_hyperparameters()
     likelihoods_file = open(likelihoods_file_name, 'w')
     hyperparams_file = open(hyperparams_file_name, 'w')
