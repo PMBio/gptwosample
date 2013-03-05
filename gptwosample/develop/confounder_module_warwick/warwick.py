@@ -165,7 +165,7 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
-    X0 = numpy.concatenate((T.copy().reshape(-1, 1), conf_model._lvm_hyperparams['x']), axis=1)
+    X0 = numpy.concatenate((T.copy().reshape(-1, 1), conf_model.X), axis=1)
     K_whole = cov.K(conf_model._lvm_hyperparams['covar'], X0)
     im = pylab.imshow(K_whole)
     pylab.title(r"$\mathbf{K}$")

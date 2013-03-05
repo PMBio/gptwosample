@@ -24,7 +24,7 @@ import pickle
 import pylab
 from pygp.covar.bias import BiasCF
 
-NUM_PROCS = cpu_count()  # max(1, cpu_count() - 2)
+NUM_PROCS = max(1, cpu_count() - 2)
 STOP = "STOP"
 
 class ConfounderTwoSample():
@@ -169,8 +169,8 @@ class ConfounderTwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(2 * NUM_PROCS)
-        self.inq = Queue(2 * NUM_PROCS)
+        self.outq = Queue(NUM_PROCS+3)
+        self.inq = Queue(NUM_PROCS+3)
 
         self._likelihoods = list()
         self._hyperparameters = list()
@@ -211,8 +211,8 @@ class ConfounderTwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(2 * NUM_PROCS)
-        self.outq = Queue(2 * NUM_PROCS)
+        self.inq = Queue(NUM_PROCS+3)
+        self.outq = Queue(NUM_PROCS+3)
 
         try:
             if self._hyperparameters is None:
@@ -360,6 +360,8 @@ class ConfounderTwoSample():
                 if not self.__running_event.is_set():
                     break
                 main(i)
+            for _ in xrange(NUM_PROCS):
+                self.inq.put(STOP)
         except _ as e:
             print "ERROR: Caught Exception in _distributor"
             print e.message
@@ -373,7 +375,7 @@ class ConfounderTwoSample():
                 # if not self.__running_event.is_set():
                 #    break
                 sys.stdout.flush()
-                sys.stdout.write("{1:s}{0:.3%}             \r".format(float(i + 1) / l, message))
+                sys.stdout.write("{1:s} {3}/{2} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 twosample.set_data_by_xy_data(*da)
                 try:
                     lik = twosample.predict_model_likelihoods(**kwargs).copy()
@@ -418,7 +420,7 @@ class ConfounderTwoSample():
                         processes.remove(p)  # can be deleted
                     else:
                         p.join(2)  # Join in process
-        except KeyboardInterrupt:
+        except KeyboardInterrupt as r:
             sys.stdout.write("stopping threads                             \r")
             self.__running_event.clear()
             for p in processes:  # Wait for all processes to terminate
@@ -426,8 +428,9 @@ class ConfounderTwoSample():
                 sys.stdout.write("stopping {} ...    \r".format(p.name))
                 while p.is_alive():
                     p.join(.1)
-                sys.stdout.write("stopping {} done        \n".format(p.name))
-
+                #sys.stdout.write("stopping {} done        \n".format(p.name))
+            sys.stdout.write("stopping threads done                          \n")
+            raise r
 if __name__ == '__main__':
     Tt = numpy.arange(0, 24, 2)[:, None]
     Tr = numpy.tile(Tt, 4).T
