@@ -114,7 +114,7 @@ class ConfounderTwoSample():
                                        Ifilter=None, maxiter=10000,
                                        gradcheck=False, bounds=None,
                                        messages=True, 
-                                       gradient_tolerance=1E-16)
+                                       gradient_tolerance=1E-12)
 
         self._init_conf_matrix(lvm_hyperparams, ard_indices)
         # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
