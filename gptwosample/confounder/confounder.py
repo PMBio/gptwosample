@@ -169,8 +169,8 @@ class ConfounderTwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(NUM_PROCS+3)
-        self.inq = Queue(NUM_PROCS+3)
+        self.outq = Queue(NUM_PROCS+1)
+        self.inq = Queue(NUM_PROCS+1)
 
         self._likelihoods = list()
         self._hyperparameters = list()
@@ -211,8 +211,8 @@ class ConfounderTwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(NUM_PROCS+3)
-        self.outq = Queue(NUM_PROCS+3)
+        self.inq = Queue(NUM_PROCS+1)
+        self.outq = Queue(NUM_PROCS+1)
 
         try:
             if self._hyperparameters is None:
@@ -431,7 +431,7 @@ class ConfounderTwoSample():
                     if not p.is_alive():  # Process finished
                         processes.remove(p)  # can be deleted
                     else:
-                        p.join(.4)  # Join in process
+                        p.join(.2)  # Join in process
             sys.stdout.write("stopping threads ")
             try:
                 sys.stdout.write(" " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
