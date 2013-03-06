@@ -5,7 +5,6 @@ Created on Sep 16, 2011
 '''
 from gptwosample.data.dataIO import get_data_from_csv
 import scipy,pylab
-from scikits.learn.metrics.metrics import roc_curve, auc
 
 def plot_roc_curve(path_to_result,path_to_ground_truth,
                    delimiter_1=',',delimiter_2=',',
@@ -76,10 +75,13 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     predictions = result_results[match_filter[1]]
     
     # get ROC and AUROC 
-    fpr, tpr, _ = roc_curve(labels, predictions)
-    auroc_c = auc(fpr, tpr)
-    #roc_c = roc(labels,predictions)
-    #auroc_c = auroc(tp=roc_c[0], fp=roc_c[1])
+    try:
+        from scikits.learn.metrics.metrics import roc_curve, auc    
+        fpr, tpr, _ = roc_curve(labels, predictions)
+        auroc_c = auc(fpr, tpr)
+    except:
+        tpr, fpr = roc(labels,predictions)
+        auroc_c = auroc(tp=tpr, fp=fpr)
     
     # plot the curve into existing pylab environment
     if 'label' in kwargs.keys():
@@ -136,5 +138,6 @@ def auroc(labels=None,predictions=None,tp=None,fp=None):
     pass
 
 if __name__ == '__main__':
-    [plt,aoc] = plot_roc_curve("../examples/warwick_timeshift_no_confounders.csv", "../examples/ground_truth_random_genes.csv")
+    [plt,aoc] = plot_roc_curve("../examples/warwick/result.csv", "../examples/ground_truth_random_genes.csv", label="warwick")
+    pylab.legend(loc=4)
     print "AUROC: %f" % aoc
