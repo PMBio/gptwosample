@@ -92,12 +92,13 @@ class ConfounderTwoSample():
         likelihood = GaussLikISO()
 
         Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
-        p = PCA(Y)
-        try:
-            self.X = p.project(Y, self.q)
-        except IndexError:
-            raise IndexError("More confounder components then genes (q > d)")
-
+        #p = PCA(Y)
+        #try:
+        #    self.X = p.project(Y, self.q)
+        #except IndexError:
+        #    raise IndexError("More confounder components then genes (q > d)")
+        self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
+        
         g = GPLVM(gplvm_dimensions=xrange(1, 1 + self.q),
                   covar_func=self._lvm_covariance,
                   likelihood=likelihood,
