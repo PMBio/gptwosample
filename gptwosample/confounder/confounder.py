@@ -9,7 +9,6 @@ from multiprocessing import cpu_count
 from pygp.covar.linear import LinearCFISO, LinearCF
 from pygp.covar.combinators import SumCF
 from pygp.covar.se import SqexpCFARD
-from pygp.util.pca import PCA
 from pygp.gp.gplvm import GPLVM
 from pygp.optimize.optimize_base import opt_hyper
 from pygp.covar.fixed import FixedCF
@@ -351,7 +350,7 @@ class ConfounderTwoSample():
                         cur += 1
                         while cur in buff:
                             sys.stdout.flush()
-                            sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(cur + 1) / l, message, i+1, l))                    
+                            sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(cur + 1) / l, message, cur+1, l))                    
                             collect(buff[cur])
                             del buff[cur]
                             cur += 1

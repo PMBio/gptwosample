@@ -220,7 +220,7 @@ if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     hyperparams_file = open(hyperparams_file_name, 'w')
     pickle.dump(likelihoods, likelihoods_file)
     pickle.dump(hyperparams, hyperparams_file)
-    finished(s)
+    #finished(s)
 else:
     s = "loading model likelihoods... "
     sys.stdout.write(s + "\r")
@@ -233,21 +233,22 @@ likelihoods_file.close()
 hyperparams_file.close()
 
 s = "writing back bayes factors..."
-sys.stdout.write(s + "\r")
 bayes_file_name = os.path.join(root, outname+'_bayes.csv')
-bayes_file = open(bayes_file_name, 'w')
-writer = csv.writer(bayes_file)
-for row in itertools.izip(gt_names, conf_model.bayes_factors()):
-    writer.writerow(row)
-bayes_file.close()
-bayes_file = open(bayes_file_name, 'r')
-bayes_factors = []
-for row in csv.reader(bayes_file):
-    bayes_factors.append(row)
-bayes_file.close()
-finished(s)
+if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv:
+    sys.stdout.write(s + "\r")
+    bayes_file = open(bayes_file_name, 'w')
+    writer = csv.writer(bayes_file)
+    for row in itertools.izip(gt_names, conf_model.bayes_factors()):
+        writer.writerow(row)
+    bayes_file.close()
+    bayes_file = open(bayes_file_name, 'r')
+    bayes_factors = []
+    for row in csv.reader(bayes_file):
+        bayes_factors.append(row)
+    bayes_file.close()
+    finished(s)
 
-print "\n"
+print ""
 
 #s = "plotting roc curve"
 #sys.stdout.write(s + "\r")
