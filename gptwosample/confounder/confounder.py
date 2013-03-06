@@ -23,6 +23,7 @@ import pickle
 import pylab
 from pygp.covar.bias import BiasCF
 import time
+import itertools
 
 NUM_PROCS = max(1, cpu_count() - 2)
 STOP = "STOP"
@@ -331,12 +332,16 @@ class ConfounderTwoSample():
                                  covar_common)
 
     def _collector(self, collect, message, l):
+        counter = itertools.count()
         try:
             cur = 0
             buff = {}
             # Keep running until we see numprocs STOP messages
             for _ in xrange(NUM_PROCS):
                 for i, d in iter(self.outq.get, STOP):
+                    k = counter.next()
+                    sys.stdout.flush()
+                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k+1, l))                                                
                     if not self.__running_event.is_set():
                         continue
                     # verify rows are in order, if not save in buff
@@ -344,13 +349,9 @@ class ConfounderTwoSample():
                         buff[i] = d
                     else:
                         # if yes are write it out and make sure no waiting rows exist
-                        sys.stdout.flush()
-                        sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))                    
                         collect(d)
                         cur += 1
                         while cur in buff:
-                            sys.stdout.flush()
-                            sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(cur + 1) / l, message, cur+1, l))                    
                             collect(buff[cur])
                             del buff[cur]
                             cur += 1
