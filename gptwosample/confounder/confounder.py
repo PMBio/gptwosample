@@ -190,7 +190,7 @@ class ConfounderTwoSample():
         for i in xrange(NUM_PROCS):
             processes.append(Thread(target=self._lik_worker,
                                     name='lik worker %i' % i,
-                                    args=[self._TwoSampleObject(), message],
+                                    args=[self._TwoSampleObject()],
                                     kwargs=kwargs,
                                     verbose=self.__verbose))
 
