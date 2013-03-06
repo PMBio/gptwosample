@@ -169,8 +169,8 @@ class ConfounderTwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(NUM_PROCS+1)
-        self.inq = Queue(NUM_PROCS+1)
+        self.outq = Queue(5)
+        self.inq = Queue(5)
 
         self._likelihoods = list()
         self._hyperparameters = list()
@@ -212,8 +212,8 @@ class ConfounderTwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(NUM_PROCS+1)
-        self.outq = Queue(NUM_PROCS+1)
+        self.inq = Queue(5)
+        self.outq = Queue(5)
 
         try:
             if self._hyperparameters is None:
