@@ -247,6 +247,8 @@ for row in csv.reader(bayes_file):
 bayes_file.close()
 finished(s)
 
+print "\n"
+
 #s = "plotting roc curve"
 #sys.stdout.write(s + "\r")
 #pylab.ion()
