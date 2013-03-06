@@ -234,7 +234,7 @@ hyperparams_file.close()
 
 s = "writing back bayes factors..."
 bayes_file_name = os.path.join(root, outname+'_bayes.csv')
-if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv:
+if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood" in sys.argv:
     sys.stdout.write(s + "\r")
     bayes_file = open(bayes_file_name, 'w')
     writer = csv.writer(bayes_file)
