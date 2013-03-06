@@ -92,7 +92,11 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 
     del T1, T2, Y1, Y2, cond1, cond2
 
-    X_sim = numpy.random.randn(n, r, t, Q)
+    X_sim = numpy.random.randn(n * r * t, Q)
+    X_sim -= X_sim.mean(0)
+    X_sim /= X_sim.std(0)
+    X_sim *= numpy.sqrt(.5)
+    
     K_sim = numpy.dot(X_sim.reshape(n*r*t, Q), X_sim.reshape(n*r*t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
@@ -100,8 +104,8 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(si+"\r")
     Y -= Y.reshape(n*r*t,d).mean(0)
     Y /= Y.reshape(n*r*t,d).std(0)
-    Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
-    Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0) 
+    #Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
+    #Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0) 
     finished(si)
     
     Y += Conf_sim.reshape(n, r, t, d)
