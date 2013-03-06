@@ -5,6 +5,7 @@ Created on Sep 16, 2011
 '''
 from gptwosample.data.dataIO import get_data_from_csv
 import scipy,pylab
+from scikits.learn.metrics.metrics import roc_curve, auc
 
 def plot_roc_curve(path_to_result,path_to_ground_truth,
                    delimiter_1=',',delimiter_2=',',
@@ -75,13 +76,15 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     predictions = result_results[match_filter[1]]
     
     # get ROC and AUROC 
-    roc_curve = roc(labels,predictions)
-    auroc_curve = auroc(tp=roc_curve[0], fp=roc_curve[1])
+    fpr, tpr, _ = roc_curve(labels, predictions)
+    auroc_c = auc(fpr, tpr)
+    #roc_c = roc(labels,predictions)
+    #auroc_c = auroc(tp=roc_c[0], fp=roc_c[1])
     
     # plot the curve into existing pylab environment
     if 'label' in kwargs.keys():
-        kwargs['label'] = "{0}: AUC={1:.3g}".format(kwargs['label'], auroc_curve)
-    plot = pylab.plot(roc_curve[1],roc_curve[0],**kwargs)
+        kwargs['label'] = "{0}: AUC={1:.3g}".format(kwargs['label'], auroc_c)
+    plot = pylab.plot(fpr,tpr,**kwargs)
     pylab.xlabel(xlabel)
     pylab.ylabel(ylabel)
 
@@ -91,7 +94,7 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
     except:
         pass
 
-    return [plot,auroc_curve]
+    return [plot,auroc_c]
     
 
 def roc(labels, predictions):
