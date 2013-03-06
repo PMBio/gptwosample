@@ -64,11 +64,11 @@ class ConfounderTwoSample():
             self.X_r = numpy.zeros((self.n * rt, self.n * self.r))
             for i in xrange(self.n * self.r):self.X_r[i * self.t:(i + 1) * self.t, i] = 1
             rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))
-            self.X_s = numpy.zeros((self.n*rt, self.n))
-            for i in xrange(self.n):self.X_s[i * self.n, rt:(i + 1) * self.n * rt, i] = .1
-            sam = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))
+            self.X_s = numpy.zeros((self.n * rt, self.n))
+            for i in xrange(self.n):self.X_s[i * rt:(i + 1) * rt, i] = 1
+            sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (self.n * self.r), 1 + q + (self.n * self.r) + self.n))
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
-                                          #rep,
+                                          rep,
                                           sam,
                                           ProductCF([sam,SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF(dimension_indices=numpy.arange(0, 1 + q))])
@@ -104,7 +104,7 @@ class ConfounderTwoSample():
         g = GPLVM(gplvm_dimensions=xrange(1, 1 + self.q),
                   covar_func=self._lvm_covariance,
                   likelihood=likelihood,
-                  x=numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_s), axis=1),
+                  x=numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_r, self.X_s), axis=1),
                   y=Y)
 
         hyper = {
