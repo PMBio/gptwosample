@@ -185,12 +185,12 @@ class ConfounderTwoSample():
             self._likelihoods.append(d[0])
             self._hyperparameters.append(d[1])
 
-        processes.append(Thread(target=self._collector, name='lik collector', args=[collect, message], verbose=self.__verbose))
+        processes.append(Thread(target=self._collector, name='lik collector', args=[collect, message, len(indices)], verbose=self.__verbose))
 
         for i in xrange(NUM_PROCS):
             processes.append(Thread(target=self._lik_worker,
                                     name='lik worker %i' % i,
-                                    args=[self._TwoSampleObject(), message, len(indices)],
+                                    args=[self._TwoSampleObject(), message],
                                     kwargs=kwargs,
                                     verbose=self.__verbose))
 
@@ -233,15 +233,13 @@ class ConfounderTwoSample():
         def collect(d):
             self._mean_variances.append(d)
 
-        processes.append(Thread(target=self._collector, name='ms collector', args=[collect, message], verbose=self.__verbose))
+        processes.append(Thread(target=self._collector, name='ms collector', args=[collect, message, len(indices)], verbose=self.__verbose))
 
         for i in xrange(NUM_PROCS):
             processes.append(Thread(target=self._pred_worker,
                                     name='lik worker %i' % i,
                                     args=[self._TwoSampleObject(),
-                                          interpolation_interval,
-                                          message,
-                                          len(indices)],
+                                          interpolation_interval],
                                     kwargs=kwargs,
                                     verbose=self.__verbose))
         
@@ -333,7 +331,7 @@ class ConfounderTwoSample():
         return TwoSampleSeparate(covar_individual_1, covar_individual_2,
                                  covar_common)
 
-    def _collector(self, collect, message):
+    def _collector(self, collect, message, l):
         try:
             cur = 0
             buff = {}
@@ -347,9 +345,13 @@ class ConfounderTwoSample():
                         buff[i] = d
                     else:
                         # if yes are write it out and make sure no waiting rows exist
+                        sys.stdout.flush()
+                        sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))                    
                         collect(d)
                         cur += 1
                         while cur in buff:
+                            sys.stdout.flush()
+                            sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(cur + 1) / l, message, i+1, l))                    
                             collect(buff[cur])
                             del buff[cur]
                             cur += 1
@@ -375,7 +377,7 @@ class ConfounderTwoSample():
             for _ in xrange(NUM_PROCS):
                 self.inq.put(STOP)
 
-    def _lik_worker(self, twosample, message, l, **kwargs):
+    def _lik_worker(self, twosample, **kwargs):
         try:
             for i, da in iter(self.inq.get, STOP):
                 if self.__running_event.is_set():
@@ -386,8 +388,6 @@ class ConfounderTwoSample():
                     except ValueError:
                         lik = numpy.nan
                         hyp = None
-                    sys.stdout.flush()
-                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                     self.outq.put([i, [lik, hyp]])
                 else:
                     continue
@@ -397,7 +397,7 @@ class ConfounderTwoSample():
         finally:
             self.outq.put(STOP)
 
-    def _pred_worker(self, twosample, interpolation_interval, message, l, **kwargs):
+    def _pred_worker(self, twosample, interpolation_interval, **kwargs):
         try:
             for i, [da, hyperparams] in iter(self.inq.get, STOP):
                 if not self.__running_event.is_set():
@@ -407,8 +407,6 @@ class ConfounderTwoSample():
                     ms = twosample.predict_mean_variance(interpolation_interval, hyperparams=hyperparams, **kwargs).copy()
                 except ValueError:
                     ms = None
-                sys.stdout.flush()
-                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(i + 1) / l, message, i+1, l))
                 self.outq.put([i, ms])
         except _ as e:
             print "ERROR: Caught Exception in _pred_worker"
