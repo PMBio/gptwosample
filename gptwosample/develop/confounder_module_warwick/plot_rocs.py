@@ -16,6 +16,7 @@ for f in os.listdir(root):
         plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=os.path.basename(f).split("_")[0])
         
 pylab.legend(loc=4)
+pylab.xlim(0,.2)
 pylab.savefig(os.path.join(root, "roc.pdf"))
 
 try:
