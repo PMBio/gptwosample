@@ -8,7 +8,10 @@ from gptwosample.data.data_analysis import plot_roc_curve
 import pylab
 import sys
 
-root = 'warwick'
+try:
+    root = sys.argv[1]
+except:
+    root = 'warwick'
 s = "plotting roc curves..."
 print s,
 for f in os.listdir(root):
