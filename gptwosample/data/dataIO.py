@@ -38,7 +38,7 @@ def get_data_from_csv(path_to_file,delimiter=',',count=-1):
     reader = csv.reader(out_file,delimiter=str(delimiter))
     out = sys.stdout
     current_line = 0
-    message = lambda x:"Reading File {1:s}: {0:.2%}\r".format(x, os.path.basename(path_to_file))
+    message = lambda x:"Reading File {1:s}: {0:.2%}        \r".format(x, os.path.basename(path_to_file))
     out.write(message(0))
     data = {"input":reader.next()[1:]}
     for line in reader:
@@ -57,16 +57,19 @@ def get_data_from_csv(path_to_file,delimiter=',',count=-1):
 #            out.write("#"*(step_ahead-step))
 #            step = step_ahead
     out.flush()
-    out.write("Reading File {1:s}: {0:.2%}".format(1, os.path.basename(path_to_file)) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '\n')
+    try:
+        out.write(message(1) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '  \n')
+    except:
+        out.write(message(1) + " done         ")
     for name,expr in data.iteritems():
         try:
             data[name] = SP.array(expr,dtype='float')
         except:
-            if(name == 'input'):
-                print "input is header and cannot be converted, this is NO error"
-            else:
+            if not (name == 'input'):
                 print "Caught Failure on dataset with name %s: " % (name)
                 print sys.exc_info()[0]
+#            else:
+#                print "input is header and cannot be converted, this is NO error \r",
     return data
 
 def write_data_to_csv(data,path_to_file,header='GPTwoSample',delimiter=','):
