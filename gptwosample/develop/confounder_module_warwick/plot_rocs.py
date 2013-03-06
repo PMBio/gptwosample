@@ -8,10 +8,7 @@ from gptwosample.data.data_analysis import plot_roc_curve
 import pylab
 import sys
 
-try:
-    root = sys.argv[1]
-except:
-    root = 'warwick'
+root = sys.argv[1]
 s = "plotting roc curves..."
 print s,
 for f in os.listdir(root):
@@ -19,7 +16,7 @@ for f in os.listdir(root):
         plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=os.path.basename(f).split("_")[0])
         
 pylab.legend(loc=4)
-pylab.savefig("warwick/roc.pdf")
+pylab.savefig(os.path.join(root, "roc.pdf"))
 
 try:
     sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
