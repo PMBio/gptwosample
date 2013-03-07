@@ -68,7 +68,7 @@ class ConfounderTwoSample():
             for i in xrange(self.n):self.X_s[i * rt:(i + 1) * rt, i] = 1
             sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (self.n * self.r), 1 + q + (self.n * self.r) + self.n))
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
-                                          rep,
+                                          #rep,
                                           sam,
                                           ProductCF([sam,SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF()])
@@ -263,7 +263,7 @@ class ConfounderTwoSample():
         f = lambda lik:t.bayes_factor(lik)
         return map(f, self._likelihoods)
 
-    def plot(self,
+    def plot(self, indices,
              xlabel="input", ylabel="ouput", title=None,
              interval_indices=None, alpha=None, legend=True,
              replicate_indices=None, shift=None, *args, **kwargs):
@@ -279,9 +279,9 @@ class ConfounderTwoSample():
             return
         pylab.ion()
         t = self._TwoSampleObject()
-        for i in xrange(len(self._mean_variances)):
+        for i in xrange(len(indices)):
             pylab.clf()
-            t.set_data_by_xy_data(*self._get_data_for(i))
+            t.set_data_by_xy_data(*self._get_data_for(indices[i]))
             t._predicted_mean_variance = self._mean_variances[i]
             t._interpolation_interval_cache = self._interpolation_interval_cache
             t._learned_hyperparameters = self._hyperparameters[i]
