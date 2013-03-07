@@ -123,7 +123,7 @@ data_file.close()
 s = "setting up gplvm module..."
 sys.stdout.write(s + "\r")
 conf_model = ConfounderTwoSample(T, Y, q=Q)
-conf_model.__verbose = 5
+conf_model.__verbose = 0
 finished(s)
 
 lvm_hyperparams_file_name = os.path.join(root, outname+'_lvm_hyperparams.pickle')
