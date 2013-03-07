@@ -164,6 +164,7 @@ if "conf" in sys.argv:
 
 conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
+x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
 lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.pickle')
@@ -178,7 +179,7 @@ elif "noconf" in sys.argv or "raw" in sys.argv:
 elif not os.path.exists(lvm_hyperparams_file_name) or "regplvm" in sys.argv:
     s = 'learning confounder matrix... '
     p = start_mill(s)
-    conf_model.learn_confounder_matrix()
+    conf_model.learn_confounder_matrix(x=x)
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
     pickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
     finished(s, process=p)
@@ -204,7 +205,7 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, "simulated.pdf"))
+    pylab.savefig(os.path.join(root, outname+"simulated.pdf"))
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
@@ -216,12 +217,11 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, "XX.pdf"))
+    pylab.savefig(os.path.join(root, outname+"XX.pdf"))
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
-    X0 = numpy.concatenate((T.copy().reshape(-1, 1), conf_model.X, conf_model.X_r, conf_model.X_s), axis=1)
-    K_whole = cov.K(conf_model._lvm_hyperparams['covar'], X0)
+    K_whole = cov.K(conf_model._lvm_hyperparams['covar'], x)
     im = pylab.imshow(K_whole)
     pylab.title(r"$\mathbf{K}$")
     divider = make_axes_locatable(pylab.gca())
@@ -231,7 +231,7 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, "K.pdf"))
+    pylab.savefig(os.path.join(root, outname+"K.pdf"))
 
 if "gt100" in sys.argv:
     gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'

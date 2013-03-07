@@ -78,7 +78,7 @@ class ConfounderTwoSample():
 
         self._initialized = False
 
-    def learn_confounder_matrix(self, ard_indices=None):
+    def learn_confounder_matrix(self, ard_indices=None, x=None):
         """
         Learn confounder matrix with this model.
 
@@ -101,10 +101,13 @@ class ConfounderTwoSample():
         #    raise IndexError("More confounder components then genes (q > d)")
         self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
         
+        if x is None:
+            x = numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_r, self.X_s), axis=1)
+        
         g = GPLVM(gplvm_dimensions=xrange(1, 1 + self.q),
                   covar_func=self._lvm_covariance,
                   likelihood=likelihood,
-                  x=numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_r, self.X_s), axis=1),
+                  x=x,
                   y=Y)
 
         hyper = {
