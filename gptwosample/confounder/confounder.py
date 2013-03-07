@@ -69,7 +69,7 @@ class ConfounderTwoSample():
             sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (self.n * self.r), 1 + q + (self.n * self.r) + self.n))
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
                                           rep,
-                                          #sam,
+                                          sam,
                                           ProductCF([sam,SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF(dimension_indices=numpy.arange(0, 1 + q))])
 
