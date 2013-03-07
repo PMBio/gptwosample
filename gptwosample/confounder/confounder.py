@@ -56,7 +56,9 @@ class ConfounderTwoSample():
         self.q = q
         self.__verbose = False
         self.__running_event = Event()
-
+        
+        self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
+        
         if lvm_covariance is not None:
             self._lvm_covariance = lvm_covariance
         else:
@@ -68,7 +70,7 @@ class ConfounderTwoSample():
             for i in xrange(self.n):self.X_s[i * rt:(i + 1) * rt, i] = 1
             sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (self.n * self.r), 1 + q + (self.n * self.r) + self.n))
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
-                                          #rep,
+                                          rep,
                                           sam,
                                           ProductCF([sam,SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF()])
@@ -99,7 +101,6 @@ class ConfounderTwoSample():
         #    self.X = p.project(Y, self.q)
         #except IndexError:
         #    raise IndexError("More confounder components then genes (q > d)")
-        self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
         
         if x is None:
             x = numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_r, self.X_s), axis=1)

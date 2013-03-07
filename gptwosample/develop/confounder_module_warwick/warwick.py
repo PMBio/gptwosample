@@ -138,6 +138,7 @@ X_s = numpy.zeros((n * rt, n))
 for i in xrange(n):X_s[i * rt:(i + 1) * rt, i] = 1
 sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (n * r), 1 + q + (n * r) + n))
 
+lvm_covariance = None
 if "conf" in sys.argv:
     if "rep" in sys.argv:
         lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
