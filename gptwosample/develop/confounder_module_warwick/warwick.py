@@ -13,6 +13,8 @@ import itertools
 from gptwosample.confounder.confounder import ConfounderTwoSample
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
+from pygp.priors import lnpriors
+from gptwosample.data.data_base import get_model_structure
 
 seed = 0
 numpy.random.seed(seed)
@@ -210,10 +212,24 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 
 likelihoods_file_name = os.path.join(root, outname+'_likelihoods.pickle')
 hyperparams_file_name = os.path.join(root, outname+'_hyperparams.pickle')
+
+#priors
+covar_priors_common = []
+covar_priors_individual = []
+# scale
+covar_priors_common.append([lnpriors.lnGammaExp, [6, .3]])
+covar_priors_individual.append([lnpriors.lnGammaExp, [6, .3]])
+covar_priors_common.append([lnpriors.lnGammaExp, [30, .1]])
+covar_priors_individual.append([lnpriors.lnGammaExp, [30, .1]])
+covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
+covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
+priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
+
+
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
     sys.stdout.write(s + "             \r")
-    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0])
+    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0], priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
     likelihoods_file = open(likelihoods_file_name, 'w')
     hyperparams_file = open(hyperparams_file_name, 'w')
