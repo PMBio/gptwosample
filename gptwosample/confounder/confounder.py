@@ -151,6 +151,7 @@ class ConfounderTwoSample():
                             indices=None,
                             message="Predicting Likelihoods: ",
                             messages=False,
+                            priors=None,
                             **kwargs):
         """
         Predict all likelihoods for all genes, given in Y
@@ -327,13 +328,13 @@ class ConfounderTwoSample():
         ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
         self.K_conf = numpy.dot(self.X * ard, self.X.T)
 
-    def _TwoSampleObject(self):
+    def _TwoSampleObject(self, priors=None):
         covar_common = SumCF([SqexpCFARD(1), FixedCF(self.K_conf), BiasCF()])
         covar_individual_1 = SumCF([SqexpCFARD(1), FixedCF(self.K_conf[:self.r * self.t, :self.r * self.t]), BiasCF()])
         covar_individual_2 = SumCF([SqexpCFARD(1), FixedCF(self.K_conf[self.r * self.t:, self.r * self.t:]), BiasCF()])
 
         return TwoSampleSeparate(covar_individual_1, covar_individual_2,
-                                 covar_common)
+                                 covar_common, priors=priors)
 
     def _collector(self, collect, message, l):
         counter = itertools.count()
@@ -363,9 +364,9 @@ class ConfounderTwoSample():
                 sys.stdout.write(message+" " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
             except:
                 sys.stdout.write(message+" done                      \n")
-        except _ as e:
+        except:
             print "ERROR: Caught Exception in _collector"
-            print e.message
+            raise
 
     def _distributor(self, main, l):
         try:
@@ -374,9 +375,9 @@ class ConfounderTwoSample():
                     break
                 main(i)
                 time.sleep(min(.3,2./float(NUM_PROCS)))
-        except _ as e:
+        except:
             print "ERROR: Caught Exception in _distributor"
-            print e.message
+            raise
         finally:
             for _ in xrange(NUM_PROCS):
                 self.inq.put(STOP)
@@ -395,9 +396,9 @@ class ConfounderTwoSample():
                     self.outq.put([i, [lik, hyp]])
                 else:
                     continue
-        except _ as e:
+        except:
             print "ERROR: Caught Exception in _lik_worker"
-            print e.message
+            raise
         finally:
             self.outq.put(STOP)
 
@@ -412,9 +413,9 @@ class ConfounderTwoSample():
                 except ValueError:
                     ms = None
                 self.outq.put([i, ms])
-        except _ as e:
+        except:
             print "ERROR: Caught Exception in _pred_worker"
-            print e.message
+            raise
         finally:
             self.outq.put(STOP)
 
