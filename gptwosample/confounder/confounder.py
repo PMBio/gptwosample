@@ -16,16 +16,15 @@ from pygp.likelihood.likelihood_base import GaussLikISO
 from gptwosample.data.data_base import get_model_structure
 from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
     TwoSampleBase
-from Queue import Queue
+from Queue import Queue, Empty
 import sys
 from threading import Thread, Event
 import pickle
 import pylab
 from pygp.covar.bias import BiasCF
-import time
 import itertools
 
-NUM_PROCS = max(1, (cpu_count()-2)/2)
+NUM_PROCS = cpu_count()*2
 STOP = "STOP"
 
 class ConfounderTwoSample():

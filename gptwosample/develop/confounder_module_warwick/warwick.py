@@ -121,7 +121,6 @@ else:
     data_file = open(data_file_path, 'r')
     T, Y, gene_names, K_sim, Conf_sim, X_sim = pickle.load(data_file)
     n, r, t, d = Y.shape
-gene_names = numpy.array(gene_names)
 finished(s)
 data_file.close()
 
@@ -291,7 +290,7 @@ if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood
     sys.stdout.write(s + "\r")
     bayes_file = open(bayes_file_name, 'w')
     writer = csv.writer(bayes_file)
-    for row in itertools.izip(gene_names[indices[0]], conf_model.bayes_factors()):
+    for row in itertools.izip(gt_names, conf_model.bayes_factors()):
         writer.writerow(row)
     bayes_file.close()
     bayes_file = open(bayes_file_name, 'r')
