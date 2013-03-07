@@ -71,7 +71,7 @@ class ConfounderTwoSample():
                                           rep,
                                           sam,
                                           ProductCF([sam,SqexpCFARD(dimension_indices=numpy.array([0]))]),
-                                          BiasCF(dimension_indices=numpy.arange(0, 1 + q))])
+                                          BiasCF()])
 
         # if initial_hyperparameters is None:
         #    initial_hyperparameters = numpy.zeros(self._lvm_covariance.get_number_of_parameters()))

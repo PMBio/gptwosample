@@ -102,14 +102,12 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 
     si = "standardizing data ..."
     sys.stdout.write(si+"\r")
-    Y -= Y.reshape(n*r*t,d).mean(0)
-    Y /= Y.reshape(n*r*t,d).std(0)
+    Y -= Y.mean(1).mean(1)[None,:,:,None]
+    #Y /= Y.std()
     #Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
     #Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0) 
     finished(si)
     
-    Y += Conf_sim.reshape(n, r, t, d)
-
     data_file = open(data_file_path, 'w')
     pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n*r*t, Q).T], data_file)
 else:
@@ -122,6 +120,8 @@ data_file.close()
 
 s = "setting up gplvm module..."
 sys.stdout.write(s + "\r")
+if not ("raw" in sys.argv):
+    Y = Y + Conf_sim
 conf_model = ConfounderTwoSample(T, Y, q=Q)
 conf_model.__verbose = 0
 finished(s)
@@ -131,7 +131,7 @@ if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
     conf_model._initialized = True
-elif "noconf" in sys.argv:
+elif "noconf" in sys.argv or "raw" in sys.argv:
     conf_model.X = numpy.zeros((conf_model.n*conf_model.r*conf_model.t, conf_model.q))
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
@@ -168,7 +168,7 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
-    pylab.title(r"$\mathbf{XAX}^\top$")
+    pylab.title(r"$\mathbf{XX}$")
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
