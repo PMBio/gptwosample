@@ -25,7 +25,7 @@ from pygp.covar.bias import BiasCF
 import time
 import itertools
 
-NUM_PROCS = max(1, cpu_count() - 2)
+NUM_PROCS = max(1, (cpu_count()-2)/2)
 STOP = "STOP"
 
 class ConfounderTwoSample():
