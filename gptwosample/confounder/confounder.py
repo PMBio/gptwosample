@@ -279,7 +279,7 @@ class ConfounderTwoSample():
             return
         pylab.ion()
         t = self._TwoSampleObject()
-        for i in xrange(self.d):
+        for i in xrange(len(self._mean_variances)):
             pylab.clf()
             t.set_data_by_xy_data(*self._get_data_for(i))
             t._predicted_mean_variance = self._mean_variances[i]
@@ -440,7 +440,7 @@ class ConfounderTwoSample():
                         processes.remove(p)  # can be deleted
                     else:
                         p.join(.2)  # Join in process
-            sys.stdout.write("stopping threads ")
+            sys.stdout.write("stopping threads... ")
             try:
                 sys.stdout.write(" " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
             except:

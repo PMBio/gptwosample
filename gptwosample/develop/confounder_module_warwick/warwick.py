@@ -23,7 +23,7 @@ _usage = """usage: python warwick.py root-dir data_dir out_name
 
 warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
 
-Q = 4
+Q = 8
 
 try:
     root = sys.argv[1]
@@ -93,8 +93,8 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     del T1, T2, Y1, Y2, cond1, cond2
 
     X_sim = numpy.random.randn(n * r * t, Q)
-    X_sim -= X_sim.mean(0)
-    X_sim /= X_sim.std(0)
+    #X_sim -= X_sim.mean(0)
+    #X_sim /= X_sim.std(0)
     X_sim *= numpy.sqrt(.5)
     
     K_sim = numpy.dot(X_sim.reshape(n*r*t, Q), X_sim.reshape(n*r*t, Q).T)
@@ -121,7 +121,7 @@ data_file.close()
 s = "setting up gplvm module..."
 sys.stdout.write(s + "\r")
 if not ("raw" in sys.argv):
-    Y = Y + Conf_sim
+    Y = Y + Conf_sim.reshape(n,r,t,d)
 conf_model = ConfounderTwoSample(T, Y, q=Q)
 conf_model.__verbose = 0
 finished(s)
@@ -214,7 +214,6 @@ if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
     sys.stdout.write(s + "             \r")
     likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0])
-    del indices
     hyperparams = conf_model.get_learned_hyperparameters()
     likelihoods_file = open(likelihoods_file_name, 'w')
     hyperparams_file = open(hyperparams_file_name, 'w')
@@ -238,7 +237,7 @@ if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood
     sys.stdout.write(s + "\r")
     bayes_file = open(bayes_file_name, 'w')
     writer = csv.writer(bayes_file)
-    for row in itertools.izip(gt_names, conf_model.bayes_factors()):
+    for row in itertools.izip(gene_names[indices[0]], conf_model.bayes_factors()):
         writer.writerow(row)
     bayes_file.close()
     bayes_file = open(bayes_file_name, 'r')
@@ -249,6 +248,7 @@ if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood
     finished(s)
 
 print ""
+
 
 #s = "plotting roc curve"
 #sys.stdout.write(s + "\r")

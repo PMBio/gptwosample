@@ -38,8 +38,8 @@ def get_data_from_csv(path_to_file,delimiter=',',count=-1):
     reader = csv.reader(out_file,delimiter=str(delimiter))
     out = sys.stdout
     current_line = 0
-    message = lambda x:"Reading File {1:s}: {0:.2%}        ".format(x, os.path.basename(path_to_file))
-    out.write(message(0) + "\r")
+    message = lambda x:"Reading File {1:s}: {0:.2%} ".format(x, os.path.basename(path_to_file))
+    out.write(message(0) + "                          \r")
     data = {"input":reader.next()[1:]}
     for line in reader:
         if line:
@@ -58,9 +58,9 @@ def get_data_from_csv(path_to_file,delimiter=',',count=-1):
 #            step = step_ahead
     out.flush()
     try:
-        out.write(message(1) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '        \n')
+        out.write(message(1) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                 \n')
     except:
-        out.write(message(1) + " done         ")
+        out.write(message(1) + " done                  ")
     for name,expr in data.iteritems():
         try:
             data[name] = SP.array(expr,dtype='float')
