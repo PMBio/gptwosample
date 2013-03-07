@@ -15,6 +15,10 @@ import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from pygp.priors import lnpriors
 from gptwosample.data.data_base import get_model_structure
+from pygp.covar.linear import LinearCFISO, LinearCF
+from pygp.covar.combinators import SumCF, ProductCF
+from pygp.covar.se import SqexpCFARD
+from pygp.covar.bias import BiasCF
 
 seed = 0
 numpy.random.seed(seed)
@@ -67,21 +71,21 @@ def start_mill(s):
 
 s = "loading data..."
 sys.stdout.write(s)
-data_file_path = os.path.join(data, "./data_seed_"+str(seed)+".pickle")
+data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".pickle")
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
     cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
     cond2 = get_data_from_csv(sys.argv[5])  # os.path.join(root,'warwick_treatment.csv'))
-    print s+"\r",
+    print s + "\r",
     T1 = numpy.array(cond1.pop("input"))[:, None]
     T2 = numpy.array(cond2.pop("input"))[:, None]
 
     Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
     Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
     Y = numpy.array([Y1, Y2])
-    
+
     n, r, t, d = Y.shape
-    
+
     T1 = numpy.tile(T1, r).T
     T2 = numpy.tile(T2, r).T
 
@@ -95,23 +99,23 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     del T1, T2, Y1, Y2, cond1, cond2
 
     X_sim = numpy.random.randn(n * r * t, Q)
-    #X_sim -= X_sim.mean(0)
-    #X_sim /= X_sim.std(0)
+    # X_sim -= X_sim.mean(0)
+    # X_sim /= X_sim.std(0)
     X_sim *= numpy.sqrt(.5)
-    
-    K_sim = numpy.dot(X_sim.reshape(n*r*t, Q), X_sim.reshape(n*r*t, Q).T)
+
+    K_sim = numpy.dot(X_sim.reshape(n * r * t, Q), X_sim.reshape(n * r * t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
     si = "standardizing data ..."
-    sys.stdout.write(si+"\r")
-    Y -= Y.mean(1).mean(1)[:,None,None,:]
-    #Y /= Y.std()
-    #Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
-    #Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0) 
+    sys.stdout.write(si + "\r")
+    Y -= Y.mean(1).mean(1)[:, None, None, :]
+    # Y /= Y.std()
+    # Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
+    # Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
     finished(si)
-    
+
     data_file = open(data_file_path, 'w')
-    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n*r*t, Q).T], data_file)
+    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
 else:
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
@@ -124,18 +128,51 @@ data_file.close()
 s = "setting up gplvm module..."
 sys.stdout.write(s + "\r")
 if not ("raw" in sys.argv):
-    Y = Y + Conf_sim.reshape(n,r,t,d)
-conf_model = ConfounderTwoSample(T, Y, q=Q)
+    Y = Y + Conf_sim.reshape(n, r, t, d)
+q = Q
+rt = r * t
+X_r = numpy.zeros((n * rt, n * r))
+for i in xrange(n * r):X_r[i * t:(i + 1) * t, i] = 1
+rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (n * r)))
+X_s = numpy.zeros((n * rt, n))
+for i in xrange(n):X_s[i * rt:(i + 1) * rt, i] = 1
+sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (n * r), 1 + q + (n * r) + n))
+
+if "conf" in sys.argv:
+    if "rep" in sys.argv:
+        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
+                                  rep,
+                                  # sam,
+                                  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
+                                  BiasCF()])
+        learn_name = 'rep'
+    elif "sam" in sys.argv:
+        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
+                                  # rep,
+                                  sam,
+                                  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
+                                  BiasCF()])
+        learn_name = 'sam'
+    else:
+        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
+                                  rep,
+                                  sam,
+                                  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
+                                  BiasCF()])
+        learn_name = 'all'
+    outname = outname + "_" + learn_name
+
+conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
 finished(s)
 
-lvm_hyperparams_file_name = os.path.join(root, outname+'_lvm_hyperparams.pickle')
+lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.pickle')
 if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
     conf_model._initialized = True
 elif "noconf" in sys.argv or "raw" in sys.argv:
-    conf_model.X = numpy.zeros((conf_model.n*conf_model.r*conf_model.t, conf_model.q))
+    conf_model.X = numpy.zeros((conf_model.n * conf_model.r * conf_model.t, conf_model.q))
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
 elif not os.path.exists(lvm_hyperparams_file_name) or "regplvm" in sys.argv:
@@ -200,21 +237,18 @@ if "gt100" in sys.argv:
     gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
 else:
     gt_file_name = '../../examples/ground_truth_random_genes.csv'
-gt_file = open(gt_file_name,'r')
+gt_file = open(gt_file_name, 'r')
 gt_read = csv.reader(gt_file)
 gt_names = list()
 gt_vals = list()
 for name, val in gt_read:
     gt_names.append(name.upper())
     gt_vals.append(val)
-indices = numpy.where(numpy.array(gt_names)[None,:]==numpy.array(gene_names)[:,None])
+indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
 gt_names = numpy.array(gt_names)[indices[1]]
 gt_vals = numpy.array(gt_vals)[indices[1]]
 
-likelihoods_file_name = os.path.join(root, outname+'_likelihoods.pickle')
-hyperparams_file_name = os.path.join(root, outname+'_hyperparams.pickle')
-
-#priors
+# priors
 covar_priors_common = []
 covar_priors_individual = []
 # scale
@@ -226,6 +260,8 @@ covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
 covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
 priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
+likelihoods_file_name = os.path.join(root, outname + '_likelihoods.pickle')
+hyperparams_file_name = os.path.join(root, outname + '_hyperparams.pickle')
 
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
@@ -236,7 +272,7 @@ if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     hyperparams_file = open(hyperparams_file_name, 'w')
     pickle.dump(likelihoods, likelihoods_file)
     pickle.dump(hyperparams, hyperparams_file)
-    #finished(s)
+    # finished(s)
 else:
     s = "loading model likelihoods... "
     sys.stdout.write(s + "\r")
@@ -249,7 +285,7 @@ likelihoods_file.close()
 hyperparams_file.close()
 
 s = "writing back bayes factors..."
-bayes_file_name = os.path.join(root, outname+'_bayes.csv')
+bayes_file_name = os.path.join(root, outname + '_bayes.csv')
 if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood" in sys.argv:
     sys.stdout.write(s + "\r")
     bayes_file = open(bayes_file_name, 'w')
@@ -267,12 +303,12 @@ if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood
 print ""
 
 
-#s = "plotting roc curve"
-#sys.stdout.write(s + "\r")
-#pylab.ion()
-#pylab.figure(10)    
-#plot_roc_curve(bayes_file_name, gt_file_name, label=outname)
-#pylab.legend(loc=4)
-#finished(s)
+# s = "plotting roc curve"
+# sys.stdout.write(s + "\r")
+# pylab.ion()
+# pylab.figure(10)
+# plot_roc_curve(bayes_file_name, gt_file_name, label=outname)
+# pylab.legend(loc=4)
+# finished(s)
 
 
