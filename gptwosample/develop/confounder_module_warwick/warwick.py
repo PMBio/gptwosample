@@ -25,7 +25,7 @@ _usage = """usage: python warwick.py root-dir data_dir out_name
 
 warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
 
-Q = 8
+Q = 4
 
 try:
     root = sys.argv[1]
