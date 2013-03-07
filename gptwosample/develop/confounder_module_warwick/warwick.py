@@ -102,7 +102,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 
     si = "standardizing data ..."
     sys.stdout.write(si+"\r")
-    Y -= Y.mean(1).mean(1)[None,:,:,None]
+    Y -= Y.mean(1).mean(1)[:,None,None,:]
     #Y /= Y.std()
     #Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
     #Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0) 
