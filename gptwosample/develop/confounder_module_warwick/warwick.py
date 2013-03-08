@@ -34,17 +34,17 @@ for ar in sys.argv:
     if ar.startswith("cores="):
         num_procs = int(ar.split("=")[1])
 
-try:
-    root = sys.argv[1]
-    if not os.path.exists(root):
-        os.mkdir(root)
-    data = sys.argv[2]
-    if not os.path.exists(data):
-        os.mkdir(data)
-    outname = sys.argv[3]
-except:
-    print _usage
-    sys.exit(0)
+#try:
+root = sys.argv[1]
+if not os.path.exists(root):
+    os.mkdir(root)
+data = sys.argv[2]
+if not os.path.exists(data):
+    os.mkdir(data)
+outname = sys.argv[3]
+#except:
+    #print _usage
+#    sys.exit(0)
 
 
 def finished(s, process=None):
