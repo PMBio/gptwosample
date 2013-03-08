@@ -104,7 +104,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     X_sim = numpy.random.randn(n * r * t, Q)
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
-    X_sim *= numpy.sqrt(.5)
+    # X_sim *= numpy.sqrt(.5)
 
     K_sim = numpy.dot(X_sim.reshape(n * r * t, Q), X_sim.reshape(n * r * t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
