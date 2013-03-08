@@ -353,9 +353,9 @@ class ConfounderTwoSample():
                     if not self.__running_event.is_set():
                         continue
                     # verify rows are in order, if not save in buff
-                    print i, cur
+                    print i, cur, ",".join(buff.keys())
                     if i != cur:
-                        buff[i] = deepcopy(d)
+                        buff[i] = d
                     else:
                         # if yes are write it out and make sure no waiting rows exist
                         collect(d)
