@@ -39,7 +39,7 @@ class ConfounderTwoSample():
     * d: Genes
     * q: Confounder Components
     """
-    NUM_PROCS = cpu_count()*2
+    NUM_PROCS = 2#min(max(1,cpu_count()-2),3)
     STOP = "STOP"
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
