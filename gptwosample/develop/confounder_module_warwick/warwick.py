@@ -32,10 +32,14 @@ seed = 0
 for ar in sys.argv:
     if ar.startswith("cores="):
         num_procs = int(ar.split("=")[1])
+        print "cores", num_procs
     elif ar.startswith("seed="):
         seed = int(ar.split("=")[1])
+        print "seed", seed
     elif ar.startswith("Q="):
         Q = int(ar.split("=")[1])
+        print "Q", seed
+        
 numpy.random.seed(seed)
 
 #try:
@@ -108,7 +112,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     X_sim = numpy.random.randn(n * r * t, Q)
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
-    # X_sim *= numpy.sqrt(.5)
+    X_sim *= numpy.sqrt(.5)
     #si = "standardizing data ..."
     #sys.stdout.write(si + "\r")
     Y -= Y.mean(1).mean(1)[:, None, None, :]
