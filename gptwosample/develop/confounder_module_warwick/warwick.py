@@ -106,14 +106,6 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     K_sim = numpy.dot(X_sim.reshape(n * r * t, Q), X_sim.reshape(n * r * t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
-    si = "standardizing data ..."
-    sys.stdout.write(si + "\r")
-    Y -= Y.mean(1).mean(1)[:, None, None, :]
-    # Y /= Y.std()
-    # Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
-    # Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
-    finished(si)
-
     data_file = open(data_file_path, 'w')
     pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
 else:
@@ -123,11 +115,12 @@ else:
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
-
+    
 s = "setting up gplvm module..."
 sys.stdout.write(s + "\r")
 if not ("raw" in sys.argv):
     Y = Y + Conf_sim.reshape(n, r, t, d)
+
 q = Q
 rt = r * t
 X_r = numpy.zeros((n * rt, n * r))
@@ -161,6 +154,14 @@ if "conf" in sys.argv:
                                   BiasCF()])
         learn_name = 'all'
     outname = outname + "_" + learn_name
+
+#si = "standardizing data ..."
+#sys.stdout.write(si + "\r")
+Y -= Y.mean(1).mean(1)[:, None, None, :]
+# Y /= Y.std()
+# Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
+# Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
+#finished(si)
 
 conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
