@@ -177,15 +177,15 @@ class ConfounderTwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(5)
-        self.inq = Queue(5)
+        self.outq = Queue(self.NUM_PROCS)
+        self.inq = Queue(1)
 
         self._likelihoods = list()
         self._hyperparameters = list()
         processes = list()
 
         def distribute(i):
-            self.inq.put([i, self._get_data_for(indices[i])])
+            self.inq.put([i, deepcopy(self._get_data_for(indices[i]))])
 
         processes.append(Thread(target=self._distributor, args=[distribute, len(indices)], name='distributor', verbose=self.__verbose))
 
@@ -220,8 +220,8 @@ class ConfounderTwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(5)
-        self.outq = Queue(5)
+        self.inq = Queue(self.NUM_PROCS)
+        self.outq = Queue(1)
 
         try:
             if self._hyperparameters is None:
@@ -233,13 +233,13 @@ class ConfounderTwoSample():
         processes = list()
 
         def distribute(i):
-            self.inq.put([i, [self._get_data_for(indices[i]),
-                              self._hyperparameters[i]]])
+            self.inq.put([i, deepcopy([self._get_data_for(indices[i]),
+                              self._hyperparameters[i]])])
 
         processes.append(Thread(target=self._distributor, args=[distribute, len(indices)], name='distributor', verbose=self.__verbose))
 
         def collect(d):
-            self._mean_variances.append(d)
+            self._mean_variances.append(deepcopy(d))
 
         processes.append(Thread(target=self._collector, name='ms collector', args=[collect, message, len(indices)], verbose=self.__verbose))
 
@@ -332,9 +332,9 @@ class ConfounderTwoSample():
         self.K_conf = numpy.dot(self.X * ard, self.X.T)
 
     def _TwoSampleObject(self, priors=None):
-        covar_common = SumCF([SqexpCFARD(1), FixedCF(self.K_conf), BiasCF()])
-        covar_individual_1 = SumCF([SqexpCFARD(1), FixedCF(self.K_conf[:self.r * self.t, :self.r * self.t]), BiasCF()])
-        covar_individual_2 = SumCF([SqexpCFARD(1), FixedCF(self.K_conf[self.r * self.t:, self.r * self.t:]), BiasCF()])
+        covar_common = SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])
+        covar_individual_1 = SumCF([SqexpCFARD(1), FixedCF(self.K_conf[:self.r * self.t, :self.r * self.t].copy()), BiasCF()])
+        covar_individual_2 = SumCF([SqexpCFARD(1), FixedCF(self.K_conf[self.r * self.t:, self.r * self.t:].copy()), BiasCF()])
 
         return TwoSampleSeparate(covar_individual_1, covar_individual_2,
                                  covar_common, priors=priors)
@@ -348,22 +348,25 @@ class ConfounderTwoSample():
             for _ in xrange(self.NUM_PROCS):
                 for i, d in iter(self.outq.get, self.STOP):
                     k = counter.next()
-                    #sys.stdout.flush()
-                    #sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
+                    sys.stdout.flush()
+                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
                     if not self.__running_event.is_set():
                         continue
                     # verify rows are in order, if not save in buff
-                    print i, cur, ",".join(map(str,buff.keys()))
                     if i != cur:
                         buff[i] = d
                     else:
                         # if yes are write it out and make sure no waiting rows exist
                         collect(d)
+                        print i, d[0]['common'] - d[0]['individual']
                         cur += 1
                         while cur in buff:
                             collect(buff[cur])
+                            print cur, buff[cur][0]['common'] - buff[cur][0]['individual']
                             del buff[cur]
                             cur += 1
+                    self.outq.task_done()
+                            
             try:
                 sys.stdout.write(message + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
             except:
@@ -390,16 +393,18 @@ class ConfounderTwoSample():
         try:
             for i, da in iter(self.inq.get, self.STOP):
                 if self.__running_event.is_set():
+                    numpy.random.seed(0)
                     twosample.set_data_by_xy_data(*da)
                     try:
                         lik = deepcopy(twosample.predict_model_likelihoods(**kwargs))
-                        hyp = deepcopy(twosample.get_learned_hyperparameters().copy())
+                        hyp = deepcopy(twosample.get_learned_hyperparameters())
                     except ValueError:
                         lik = numpy.nan
                         hyp = None
                     self.outq.put([i, [lik, hyp]])
                 else:
                     continue
+                self.inq.task_done()
         except:
             print "ERROR: Caught Exception in _lik_worker"
             raise
@@ -411,12 +416,14 @@ class ConfounderTwoSample():
             for i, [da, hyperparams] in iter(self.inq.get, self.STOP):
                 if not self.__running_event.is_set():
                     continue
+                numpy.random.seed(0)
                 twosample.set_data_by_xy_data(*da)
                 try:
                     ms = twosample.predict_mean_variance(interpolation_interval, hyperparams=hyperparams, **kwargs).copy()
                 except ValueError:
                     ms = None
                 self.outq.put([i, ms])
+                self.inq.task_done()
         except:
             print "ERROR: Caught Exception in _pred_worker"
             raise
