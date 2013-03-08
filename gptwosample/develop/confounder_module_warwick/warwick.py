@@ -20,9 +20,6 @@ from pygp.covar.combinators import SumCF, ProductCF
 from pygp.covar.se import SqexpCFARD
 from pygp.covar.bias import BiasCF
 
-seed = 0
-numpy.random.seed(seed)
-
 _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
 [redata|regplvm|relikelihood|plot_confounder|gt100]
@@ -30,9 +27,16 @@ _usage = """usage: python warwick.py root-dir data_dir out_name
 warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
 
 Q = 4
+seed = 0
+
 for ar in sys.argv:
     if ar.startswith("cores="):
         num_procs = int(ar.split("=")[1])
+    elif ar.startswith("seed="):
+        seed = int(ar.split("=")[1])
+    elif ar.startswith("Q="):
+        Q = int(ar.split("=")[1])
+numpy.random.seed(seed)
 
 #try:
 root = sys.argv[1]
@@ -105,7 +109,14 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
     # X_sim *= numpy.sqrt(.5)
-
+    #si = "standardizing data ..."
+    #sys.stdout.write(si + "\r")
+    Y -= Y.mean(1).mean(1)[:, None, None, :]
+    # Y /= Y.std()
+    # Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
+    # Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
+    #finished(si)
+    
     K_sim = numpy.dot(X_sim.reshape(n * r * t, Q), X_sim.reshape(n * r * t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
@@ -157,14 +168,6 @@ if "conf" in sys.argv:
                                   BiasCF()])
         learn_name = 'all'
     outname = outname + "_" + learn_name
-
-#si = "standardizing data ..."
-#sys.stdout.write(si + "\r")
-Y -= Y.mean(1).mean(1)[:, None, None, :]
-# Y /= Y.std()
-# Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
-# Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
-#finished(si)
 
 conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0

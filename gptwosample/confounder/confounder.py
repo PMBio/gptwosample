@@ -39,7 +39,7 @@ class ConfounderTwoSample():
     * d: Genes
     * q: Confounder Components
     """
-    NUM_PROCS = 2#min(max(1,cpu_count()-2),3)
+    NUM_PROCS = 3#min(max(1,cpu_count()-2),3)
     STOP = "STOP"
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
@@ -177,8 +177,8 @@ class ConfounderTwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(self.NUM_PROCS)
-        self.inq = Queue(1)
+        self.outq = Queue(5)
+        self.inq = Queue(5)
 
         self._likelihoods = list()
         self._hyperparameters = list()
@@ -198,7 +198,8 @@ class ConfounderTwoSample():
         for i in xrange(self.NUM_PROCS):
             processes.append(Thread(target=self._lik_worker,
                                     name='lik worker %i' % i,
-                                    args=[self._TwoSampleObject()],
+                                    args=[self._TwoSampleObject(),
+                                          priors],
                                     kwargs=kwargs,
                                     verbose=self.__verbose))
 
@@ -220,8 +221,8 @@ class ConfounderTwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(self.NUM_PROCS)
-        self.outq = Queue(1)
+        self.inq = Queue(5)
+        self.outq = Queue(5)
 
         try:
             if self._hyperparameters is None:
@@ -358,11 +359,11 @@ class ConfounderTwoSample():
                     else:
                         # if yes are write it out and make sure no waiting rows exist
                         collect(d)
-                        print i, d[0]['common'] - d[0]['individual']
+                        #print i, d[0]['common'] - d[0]['individual']
                         cur += 1
                         while cur in buff:
                             collect(buff[cur])
-                            print cur, buff[cur][0]['common'] - buff[cur][0]['individual']
+                            #print cur, buff[cur][0]['common'] - buff[cur][0]['individual']
                             del buff[cur]
                             cur += 1
                     self.outq.task_done()
@@ -389,7 +390,7 @@ class ConfounderTwoSample():
             for _ in xrange(self.NUM_PROCS):
                 self.inq.put(self.STOP)
 
-    def _lik_worker(self, twosample, **kwargs):
+    def _lik_worker(self, twosample, priors, **kwargs):
         try:
             for i, da in iter(self.inq.get, self.STOP):
                 if self.__running_event.is_set():
