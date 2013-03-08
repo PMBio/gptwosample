@@ -150,7 +150,7 @@ class TwoSampleBase(object):
                 else:
                     self._learned_hyperparameters[name] = self._initial_hyperparameters[name]
             except ValueError as r:
-                print "caught error:", r.message, 
+                print "caught error:", r.message, "\r", 
                 self._learned_hyperparameters[name] = self._initial_hyperparameters[name]
             self._model_likelihoods[name] = model.LML(self._learned_hyperparameters[name],
                                                               priors=self._priors)

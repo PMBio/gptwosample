@@ -20,11 +20,17 @@ from pygp.covar.combinators import SumCF, ProductCF
 from pygp.covar.se import SqexpCFARD
 from pygp.covar.bias import BiasCF
 
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+del logging
+
 _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
 [redata|regplvm|relikelihood|plot_confounder|gt100]
 
 warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
+
+
 
 Q = 4
 seed = 0
@@ -68,7 +74,9 @@ def finished(s, process=None):
 
 def start_mill(s):
     sys.stdout.flush()
-    sys.stdout.write("{}\r".format(s))
+    sys.stdout.write("{}".format(s))
+    sys.stdout.flush()
+    sys.stdout.write("\r")
 #    mill_symb = {0:'-',1:'\\',2:"|",3:'/'}
 #    def mill():
 #        i=-1
@@ -81,7 +89,7 @@ def start_mill(s):
     # p.start()
 
 s = "loading data..."
-sys.stdout.write(s)
+print s,
 data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".pickle")
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
@@ -135,7 +143,8 @@ finished(s)
 data_file.close()
     
 s = "setting up gplvm module..."
-sys.stdout.write(s + "\r")
+print s,
+sys.stdout.write("\r")
 if not ("raw" in sys.argv):
     Y = Y + Conf_sim.reshape(n, r, t, d)
 
@@ -200,7 +209,8 @@ elif not os.path.exists(lvm_hyperparams_file_name) or "regplvm" in sys.argv:
     finished(s, process=p)
 else:
     s = "loading confounder matrix..."
-    sys.stdout.write(s + "\r")
+    print s,
+    sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
     conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
     finished(s)
@@ -279,7 +289,8 @@ hyperparams_file_name = os.path.join(root, outname + '_hyperparams.pickle')
 
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
-    sys.stdout.write(s + "             \r")
+    print s,
+    sys.stdout.write("             \r")
     likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0])#, priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
     likelihoods_file = open(likelihoods_file_name, 'w')
@@ -289,7 +300,8 @@ if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     # finished(s)
 else:
     s = "loading model likelihoods... "
-    sys.stdout.write(s + "\r")
+    print s,
+    sys.stdout.write("\r")
     likelihoods_file = open(likelihoods_file_name, 'r')
     hyperparams_file = open(hyperparams_file_name, 'r')
     conf_model._likelihoods = pickle.load(likelihoods_file)
@@ -301,7 +313,8 @@ hyperparams_file.close()
 s = "writing back bayes factors..."
 bayes_file_name = os.path.join(root, outname + '_bayes.csv')
 if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood" in sys.argv:
-    sys.stdout.write(s + "\r")
+    print s,
+    sys.stdout.write("\r")
     bayes_file = open(bayes_file_name, 'w')
     writer = csv.writer(bayes_file)
     for row in itertools.izip(gt_names, conf_model.bayes_factors()):
