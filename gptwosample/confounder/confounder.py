@@ -23,9 +23,7 @@ import pickle
 import pylab
 from pygp.covar.bias import BiasCF
 import itertools
-
-NUM_PROCS = 1#cpu_count()*2
-STOP = "STOP"
+from copy import deepcopy
 
 class ConfounderTwoSample():
     """Learn Confounder and run GPTwoSample correcting for confounding variation.
@@ -41,6 +39,8 @@ class ConfounderTwoSample():
     * d: Genes
     * q: Confounder Components
     """
+    NUM_PROCS = cpu_count()*2
+    STOP = "STOP"
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
                  **kwargs):
@@ -55,9 +55,9 @@ class ConfounderTwoSample():
         self.q = q
         self.__verbose = False
         self.__running_event = Event()
-        
+
         self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
-        
+
         if lvm_covariance is not None:
             self._lvm_covariance = lvm_covariance
         else:
@@ -71,7 +71,7 @@ class ConfounderTwoSample():
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
                                           rep,
                                           sam,
-                                          ProductCF([sam,SqexpCFARD(dimension_indices=numpy.array([0]))]),
+                                          ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF()])
 
         # if initial_hyperparameters is None:
@@ -95,15 +95,15 @@ class ConfounderTwoSample():
         likelihood = GaussLikISO()
 
         Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
-        #p = PCA(Y)
-        #try:
+        # p = PCA(Y)
+        # try:
         #    self.X = p.project(Y, self.q)
-        #except IndexError:
+        # except IndexError:
         #    raise IndexError("More confounder components then genes (q > d)")
-        
+
         if x is None:
             x = numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_r, self.X_s), axis=1)
-        
+
         g = GPLVM(gplvm_dimensions=xrange(1, 1 + self.q),
                   covar_func=self._lvm_covariance,
                   likelihood=likelihood,
@@ -119,7 +119,7 @@ class ConfounderTwoSample():
         lvm_hyperparams, _ = opt_hyper(g, hyper,
                                        Ifilter=None, maxiter=10000,
                                        gradcheck=False, bounds=None,
-                                       messages=True, 
+                                       messages=True,
                                        gradient_tolerance=1E-12)
 
         self._init_conf_matrix(lvm_hyperparams, ard_indices)
@@ -195,7 +195,7 @@ class ConfounderTwoSample():
 
         processes.append(Thread(target=self._collector, name='lik collector', args=[collect, message, len(indices)], verbose=self.__verbose))
 
-        for i in xrange(NUM_PROCS):
+        for i in xrange(self.NUM_PROCS):
             processes.append(Thread(target=self._lik_worker,
                                     name='lik worker %i' % i,
                                     args=[self._TwoSampleObject()],
@@ -203,7 +203,7 @@ class ConfounderTwoSample():
                                     verbose=self.__verbose))
 
 
-        sys.stdout.write(message+'                 \r')
+        sys.stdout.write(message + '                 \r')
         self._main_loop(processes)
 
         return self._likelihoods
@@ -243,15 +243,15 @@ class ConfounderTwoSample():
 
         processes.append(Thread(target=self._collector, name='ms collector', args=[collect, message, len(indices)], verbose=self.__verbose))
 
-        for i in xrange(NUM_PROCS):
+        for i in xrange(self.NUM_PROCS):
             processes.append(Thread(target=self._pred_worker,
                                     name='lik worker %i' % i,
                                     args=[self._TwoSampleObject(),
                                           interpolation_interval],
                                     kwargs=kwargs,
                                     verbose=self.__verbose))
-        
-        sys.stdout.write(message+'                 \r')
+
+        sys.stdout.write(message + '                 \r')
         self._main_loop(processes)
 
         return self._mean_variances
@@ -345,11 +345,11 @@ class ConfounderTwoSample():
             cur = 0
             buff = {}
             # Keep running until we see numprocs STOP messages
-            for _ in xrange(NUM_PROCS):
-                for i, d in iter(self.outq.get, STOP):
+            for _ in xrange(self.NUM_PROCS):
+                for i, d in iter(self.outq.get, self.STOP):
                     k = counter.next()
                     sys.stdout.flush()
-                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k+1, l))                                                
+                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
                     if not self.__running_event.is_set():
                         continue
                     # verify rows are in order, if not save in buff
@@ -364,9 +364,9 @@ class ConfounderTwoSample():
                             del buff[cur]
                             cur += 1
             try:
-                sys.stdout.write(message+" " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
+                sys.stdout.write(message + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
             except:
-                sys.stdout.write(message+" done                      \n")
+                sys.stdout.write(message + " done                      \n")
         except:
             print "ERROR: Caught Exception in _collector"
             raise
@@ -377,22 +377,22 @@ class ConfounderTwoSample():
                 if not self.__running_event.is_set():
                     break
                 main(i)
-                #time.sleep(min(.3,2./float(NUM_PROCS)))
+                # time.sleep(min(.3,2./float(NUM_PROCS)))
         except:
             print "ERROR: Caught Exception in _distributor"
             raise
         finally:
-            for _ in xrange(NUM_PROCS):
-                self.inq.put(STOP)
+            for _ in xrange(self.NUM_PROCS):
+                self.inq.put(self.STOP)
 
     def _lik_worker(self, twosample, **kwargs):
         try:
-            for i, da in iter(self.inq.get, STOP):
+            for i, da in iter(self.inq.get, self.STOP):
                 if self.__running_event.is_set():
                     twosample.set_data_by_xy_data(*da)
                     try:
-                        lik = twosample.predict_model_likelihoods(**kwargs).copy()
-                        hyp = twosample.get_learned_hyperparameters().copy()
+                        lik = deepcopy(twosample.predict_model_likelihoods(**kwargs))
+                        hyp = deepcopy(twosample.get_learned_hyperparameters().copy())
                     except ValueError:
                         lik = numpy.nan
                         hyp = None
@@ -403,11 +403,11 @@ class ConfounderTwoSample():
             print "ERROR: Caught Exception in _lik_worker"
             raise
         finally:
-            self.outq.put(STOP)
+            self.outq.put(self.STOP)
 
     def _pred_worker(self, twosample, interpolation_interval, **kwargs):
         try:
-            for i, [da, hyperparams] in iter(self.inq.get, STOP):
+            for i, [da, hyperparams] in iter(self.inq.get, self.STOP):
                 if not self.__running_event.is_set():
                     continue
                 twosample.set_data_by_xy_data(*da)
@@ -420,7 +420,7 @@ class ConfounderTwoSample():
             print "ERROR: Caught Exception in _pred_worker"
             raise
         finally:
-            self.outq.put(STOP)
+            self.outq.put(self.STOP)
 
     def _main_loop(self, processes):
         self.__running_event.set()
@@ -436,7 +436,7 @@ class ConfounderTwoSample():
         except KeyboardInterrupt as r:
             sys.stdout.write("\nstopping threads                                    \r")
             self.__running_event.clear()
-            while len(processes) > 0: # Wait for all processes to terminate
+            while len(processes) > 0:  # Wait for all processes to terminate
                 for p in processes:  # iter through running processes
                     sys.stdout.flush()
                     sys.stdout.write("stopping {} ...                                   \r".format(p.name))
@@ -449,7 +449,7 @@ class ConfounderTwoSample():
                 sys.stdout.write(" " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
             except:
                 sys.stdout.write(" done                      \n")
-    
+
             raise r
 if __name__ == '__main__':
     Tt = numpy.arange(0, 24, 2)[:, None]

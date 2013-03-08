@@ -30,6 +30,9 @@ _usage = """usage: python warwick.py root-dir data_dir out_name
 warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
 
 Q = 4
+for ar in sys.argv:
+    if ar.startswith("cores="):
+        num_procs = int(ar.split("=")[1])
 
 try:
     root = sys.argv[1]
@@ -165,6 +168,7 @@ Y -= Y.mean(1).mean(1)[:, None, None, :]
 
 conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
+conf_model.NUM_PROCS = num_procs
 x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
