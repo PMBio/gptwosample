@@ -432,7 +432,7 @@ class ConfounderTwoSample():
                     if not p.is_alive():  # Process finished
                         processes.remove(p)  # can be deleted
                     else:
-                        p.join(2)  # Join in process
+                        p.join(.5)  # Join in process
         except KeyboardInterrupt as r:
             sys.stdout.write("\nstopping threads                                    \r")
             self.__running_event.clear()
