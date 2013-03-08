@@ -252,7 +252,6 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 # priors
 covar_priors_common = []
 covar_priors_individual = []
-# scale
 covar_priors_common.append([lnpriors.lnGammaExp, [6, .3]])
 covar_priors_individual.append([lnpriors.lnGammaExp, [6, .3]])
 covar_priors_common.append([lnpriors.lnGammaExp, [30, .1]])
@@ -267,7 +266,7 @@ hyperparams_file_name = os.path.join(root, outname + '_hyperparams.pickle')
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
     sys.stdout.write(s + "             \r")
-    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0], priors=priors)
+    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0])#, priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
     likelihoods_file = open(likelihoods_file_name, 'w')
     hyperparams_file = open(hyperparams_file_name, 'w')
