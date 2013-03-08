@@ -175,7 +175,10 @@ if "conf" in sys.argv:
 
 conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
-conf_model.NUM_PROCS = num_procs
+try:
+    conf_model.NUM_PROCS = num_procs
+except NameError:
+    pass
 x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
