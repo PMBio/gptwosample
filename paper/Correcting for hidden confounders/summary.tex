@@ -11,6 +11,7 @@
   top=40mm, bottom=40mm}
 
 \newcommand{\matr}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\vect}[1]{\ensuremath{\boldsymbol{\mathbf{#1}}}}
 \newcommand{\T}{\ensuremath{^\top}}
 
 \begin{document}
@@ -69,106 +70,168 @@ where in the linear case the confounders are
 \section{Confounder Learning}
 \label{sec:confounder-learning}
 
-GPLVM: $p(\matr Y|X,t,t',\matr\theta) = \mathcal N(\matr Y|\matr 0,
-\matr K(X,t,t',\matr\theta))$
+GPLVM: $p(\matr Y|\matr{X,t,t'},\vect\theta) = \mathcal N(\matr Y|\matr0,
+\matr K(\matr{X,t,t'},\vect\theta))$
 In the following we will discuss different choices of $\matr K(X,t,t',\matr\theta)$
 
-\subsection{Linear Confounders}
-\label{sec:linear-confounders}
+\subsection{Different Learning Structures}
+\label{sec:different-structures}
 
-Learn confounders with linear covariance:
-\begin{equation}
-  \label{eq:4}
-  K = \matr{XAX}\T + \sigma^2\matr I,\enspace\text{ where}
-\end{equation}
-$\matr A$ has dimensional weights on diagonal and $\matr X$ are linear
-learned confounders. See Figure \ref{fig:linear-conf-matr} for results.
-
+See Figure \ref{fig:structures}
 \begin{figure}[h]
-  \centering
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/simulated_confounder_matrix.pdf}}\hspace{\fill}
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/predicted_confounder_matrix.pdf}}
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/difference_confounder_matrix.pdf}}\hfill
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/roc.pdf}}
-  \caption{\subsectionname}
-  \label{fig:linear-conf-matr}
+  \subfigure[Sample Structure $\matr X_S$]{\includegraphics[width=.5\textwidth]{sampleX.pdf}}
+  \subfigure[Replicate Structure $\matr
+  X_R$]{\includegraphics[width=.5\textwidth]{replicateX.pdf}}
+  \label{fig:structures}
 \end{figure}
 
-\subsection{Condition specific linear Confounders}
-\label{sec:linear-confounders}
+\subsection{Different Learning Models}
+\label{sec:diff-learn-models}
 
-Learn confounders with linear covariance and condition matrix:
+\paragraph{all}
+\label{sec:all}
+Learn confounders excluding all structures, sample structre, replicate
+structure and sample structure over time
+
 \begin{equation}
-  \label{eq:4}
-  K = \matr{XAX}\T + \matr K_c + \sigma^2\matr I,\enspace\text{ where}
-\end{equation}
-$\matr A$ has dimensional weights on diagonal, $\matr X$ are linear
-learned confounders and $\matr K_c$ depicts the condition structure of
-the data:
-\begin{equation}
-  \label{eq:8}
-  \left(
-  \begin{matrix}
-    1&\hdots&1&0&\hdots&0\\
-    &\vdots&&&\vdots&\\
-    1&\hdots&1&0&\hdots&0\\
-    0&\hdots&0&1&\hdots&1\\
-    &\vdots&&&\vdots&\\
-    0&\hdots&0&1&\hdots&1
-  \end{matrix}
-  \right)
-\end{equation}
-See Figure \ref{fig:linear-conf-matr} for results.
-
-\begin{figure}[h]
-  \centering
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/simulated_confounder_matrix.pdf}}\hfill
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/predicted_confounder_matrix.pdf}}
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/difference_confounder_matrix.pdf}}\hfill
-  \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/roc.pdf}}
-  \caption{\subsectionname}
-  \label{fig:linear-conf-matr}
-\end{figure}
-
-
-\section{GPTwoSample Model Ideas:}
-\label{sec:model-ideas}
-
-\subsection{Model 1: Confounders included in Confounders (Currently used)}
-\label{sec:model-1:-covariance}
-
-Learn confounders $\matr{X}$ through GPLVM. Include Condounders as
-Covariance Matrix
-\begin{equation}
-  \label{eq:1}
-  \matr K_{\matr X} = \matr X\matr X\T
-\end{equation}
-into model, as follows:
-\begin{equation}
-  \label{eq:2}
-  p(\matr Y|\matr t,\matr \theta,\matr X) = \prod_d^D\mathcal N(\matr y_d|\matr 0, \matr K_{\matr\theta}(\matr t) + \matr K_{\matr X}+\sigma^2\matr I)\enspace.
+  \label{eq:9}
+  p(\matr Y) = N\big(\matr Y|\matr 0, \matr{XX}\T + \matr X_S\matr X_S\T +
+  \matr X_R\matr X_R\T + \matr X_S\matr X_S\T \circ \matr
+  K(\matr t,\matr t')\big)
 \end{equation}
 
-\subsection{Model 2: Added Confounders}
-\label{sec:model-2:-added}
+\paragraph{rep}
+\label{sec:rep}
+Learn confounders excluding only replicate structure and sample
+structure over time
 
-Learn confounders $\matr X$ and predict confounder matrix by
-GPLVM. Subtract confounder matrix from observed gene expression and
-run normal GPTwoSample on residuals.
-\begin{align}
-  \label{eq:3}
-  \matr Y_{\text{non-confounded}} &= \matr Y - \text{GPLVM.predict(\matr X)}\\
-  p(\matr Y_{\text{non-confounded}}) &= \prod_d^D\mathcal N(\matr
-  y_d|\matr 0, \matr K_{\matr\theta}(\matr t) + \sigma^2\matr
-  I)\enspace.
-\end{align}
+\begin{equation}
+  \label{eq:10}
+  p(\matr Y) = N\big(\matr Y|\matr 0, \matr{XX}\T +
+  \matr X_R\matr X_R\T + \matr X_S\matr X_S\T \circ \matr
+  K(\matr t,\matr t')\big)
+\end{equation}
 
-\subsection{Model 3: One Confounder Matrix per Condition}
-\label{sec:model-3:-one}
+\paragraph{sam}
+\label{sec:sam}
+Learn confounders excluding only samle structure and sample structure
+over time
 
-Learn confounders $\matr X_1$ and $\matr X_2$ on condition $\matr Y_1$
-and $\matr Y_2$, respectively. Then either predict or incorporate
-confounders as covariance into GPTwoSample.
+\begin{equation}
+  \label{eq:9}
+  p(\matr Y) = N\big(\matr Y|\matr 0, \matr{XX}\T + \matr X_S\matr X_S\T +
+  \matr X_S\matr X_S\T \circ \matr
+  K(\matr t,\matr t')\big)
+\end{equation}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Different Learning models}
+\label{sec:diff-learn-models-1}
+
+\paragraph{all}
+\label{sec:all-1}
+
+
+
+
+% \subsection{Linear Confounders}
+% \label{sec:linear-confounders}
+
+% Learn confounders with linear covariance:
+% \begin{equation}
+%   \label{eq:4}
+%   K = \matr{XAX}\T + \sigma^2\matr I,\enspace\text{ where}
+% \end{equation}
+% $\matr A$ has dimensional weights on diagonal and $\matr X$ are linear
+% learned confounders. See Figure \ref{fig:linear-conf-matr} for results.
+
+% \begin{figure}[h]
+%   \centering
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/simulated_confounder_matrix.pdf}}\hspace{\fill}
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/predicted_confounder_matrix.pdf}}
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/difference_confounder_matrix.pdf}}\hfill
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/linear/roc.pdf}}
+%   \caption{\subsectionname}
+%   \label{fig:linear-conf-matr}
+% \end{figure}
+
+% \subsection{Condition specific linear Confounders}
+% \label{sec:linear-confounders}
+
+% Learn confounders with linear covariance and condition matrix:
+% \begin{equation}
+%   \label{eq:4}
+%   K = \matr{XAX}\T + \matr K_c + \sigma^2\matr I,\enspace\text{ where}
+% \end{equation}
+% $\matr A$ has dimensional weights on diagonal, $\matr X$ are linear
+% learned confounders and $\matr K_c$ depicts the condition structure of
+% the data:
+% \begin{equation}
+%   \label{eq:8}
+%   \left(
+%   \begin{matrix}
+%     1&\hdots&1&0&\hdots&0\\
+%     &\vdots&&&\vdots&\\
+%     1&\hdots&1&0&\hdots&0\\
+%     0&\hdots&0&1&\hdots&1\\
+%     &\vdots&&&\vdots&\\
+%     0&\hdots&0&1&\hdots&1
+%   \end{matrix}
+%   \right)
+% \end{equation}
+% See Figure \ref{fig:linear-conf-matr} for results.
+
+% \begin{figure}[h]
+%   \centering
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/simulated_confounder_matrix.pdf}}\hfill
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/predicted_confounder_matrix.pdf}}
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/difference_confounder_matrix.pdf}}\hfill
+%   \subfigure{\includegraphics[width=.49\textwidth]{../../gptwosample/develop/reveal_confounders_proof_of_concept/condition_model/roc.pdf}}
+%   \caption{\subsectionname}
+%   \label{fig:linear-conf-matr}
+% \end{figure}
+
+
+% \section{GPTwoSample Model Ideas:}
+% \label{sec:model-ideas}
+
+% \subsection{Model 1: Confounders included in Confounders (Currently used)}
+% \label{sec:model-1:-covariance}
+
+% Learn confounders $\matr{X}$ through GPLVM. Include Condounders as
+% Covariance Matrix
+% \begin{equation}
+%   \label{eq:1}
+%   \matr K_{\matr X} = \matr X\matr X\T
+% \end{equation}
+% into model, as follows:
+% \begin{equation}
+%   \label{eq:2}
+%   p(\matr Y|\matr t,\matr \theta,\matr X) = \prod_d^D\mathcal N(\matr y_d|\matr 0, \matr K_{\matr\theta}(\matr t) + \matr K_{\matr X}+\sigma^2\matr I)\enspace.
+% \end{equation}
+
+% \subsection{Model 2: Added Confounders}
+% \label{sec:model-2:-added}
+
+% Learn confounders $\matr X$ and predict confounder matrix by
+% GPLVM. Subtract confounder matrix from observed gene expression and
+% run normal GPTwoSample on residuals.
+% \begin{align}
+%   \label{eq:3}
+%   \matr Y_{\text{non-confounded}} &= \matr Y - \text{GPLVM.predict(\matr X)}\\
+%   p(\matr Y_{\text{non-confounded}}) &= \prod_d^D\mathcal N(\matr
+%   y_d|\matr 0, \matr K_{\matr\theta}(\matr t) + \sigma^2\matr
+%   I)\enspace.
+% \end{align}
+
+% \subsection{Model 3: One Confounder Matrix per Condition}
+% \label{sec:model-3:-one}
+
+% Learn confounders $\matr X_1$ and $\matr X_2$ on condition $\matr Y_1$
+% and $\matr Y_2$, respectively. Then either predict or incorporate
+% confounders as covariance into GPTwoSample.
 
 % \section{Proof of concept}
 % \label{sec:proof-concept}
