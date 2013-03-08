@@ -317,10 +317,10 @@ class ConfounderTwoSample():
             raise ValueError("Data has not been set or is None, use set_data(Y,T) to set data")
 
     def _get_data_for(self, i):
-        return self.T[0, :, :].flatten()[:, None], \
-            self.T[1, :, :].flatten()[:, None], \
-            self.Y[0, :, :, i].flatten()[:, None], \
-            self.Y[1, :, :, i].flatten()[:, None]
+        return self.T[0, :, :].ravel()[:, None], \
+            self.T[1, :, :].ravel()[:, None], \
+            self.Y[0, :, :, i].ravel()[:, None], \
+            self.Y[1, :, :, i].ravel()[:, None]
 
     def _init_conf_matrix(self, lvm_hyperparams, ard_indices):
         self._initialized = True
@@ -348,11 +348,12 @@ class ConfounderTwoSample():
             for _ in xrange(self.NUM_PROCS):
                 for i, d in iter(self.outq.get, self.STOP):
                     k = counter.next()
-                    sys.stdout.flush()
-                    sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
+                    #sys.stdout.flush()
+                    #sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
                     if not self.__running_event.is_set():
                         continue
                     # verify rows are in order, if not save in buff
+                    print i, cur
                     if i != cur:
                         buff[i] = d
                     else:
