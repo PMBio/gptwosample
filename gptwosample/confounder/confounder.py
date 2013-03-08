@@ -355,7 +355,7 @@ class ConfounderTwoSample():
                     # verify rows are in order, if not save in buff
                     print i, cur
                     if i != cur:
-                        buff[i] = d
+                        buff[i] = deepcopy(d)
                     else:
                         # if yes are write it out and make sure no waiting rows exist
                         collect(d)
