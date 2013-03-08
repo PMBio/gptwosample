@@ -353,7 +353,7 @@ class ConfounderTwoSample():
                     if not self.__running_event.is_set():
                         continue
                     # verify rows are in order, if not save in buff
-                    print i, cur, ",".join(buff.keys())
+                    print i, cur, ",".join(str(buff.keys()))
                     if i != cur:
                         buff[i] = d
                     else:
