@@ -317,10 +317,10 @@ class ConfounderTwoSample():
             raise ValueError("Data has not been set or is None, use set_data(Y,T) to set data")
 
     def _get_data_for(self, i):
-        return self.T[0, :, :].ravel()[:, None], \
-            self.T[1, :, :].ravel()[:, None], \
-            self.Y[0, :, :, i].ravel()[:, None], \
-            self.Y[1, :, :, i].ravel()[:, None]
+        return self.T[0, :, :].flatten()[:, None], \
+            self.T[1, :, :].flatten()[:, None], \
+            self.Y[0, :, :, i].flatten()[:, None], \
+            self.Y[1, :, :, i].flatten()[:, None]
 
     def _init_conf_matrix(self, lvm_hyperparams, ard_indices):
         self._initialized = True
