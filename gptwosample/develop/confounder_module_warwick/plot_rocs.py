@@ -13,7 +13,7 @@ s = "plotting roc curves..."
 print s,
 for f in os.listdir(root):
     if os.path.splitext(os.path.basename(f))[0].endswith("bayes"):
-        label = os.path.basename(f)[::-1].split("_")[0][::-1]
+        label = os.path.basename(f)[::-1].split("_",1)[1][::-1]
         plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label)
         
 pylab.legend(loc=4)
