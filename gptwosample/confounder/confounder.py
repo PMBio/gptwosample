@@ -18,7 +18,7 @@ from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
     TwoSampleBase
 from Queue import Queue, Empty
 import sys
-from threading import Thread, Event
+from threading import Thread, Event, Condition
 import pickle
 import pylab
 from pygp.covar.bias import BiasCF
@@ -39,7 +39,7 @@ class ConfounderTwoSample():
     * d: Genes
     * q: Confounder Components
     """
-    NUM_PROCS = 3#min(max(1,cpu_count()-2),3)
+    NUM_PROCS = 3  # min(max(1,cpu_count()-2),3)
     SENTINEL = object()
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
@@ -177,12 +177,56 @@ class ConfounderTwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(5)
-        self.inq = Queue(5)
+        self.outq = Queue(3)
+        self.inq = Queue(3)
 
         self._likelihoods = list()
         self._hyperparameters = list()
         processes = list()
+
+#        l = len(indices)
+#        count = itertools.count()
+#        countlock = Condition()
+#        results = list()
+#        appendlock = Condition()
+#        twosamplelock = Condition()
+#
+#        def worker(indices_inner, **kwargs):
+#            def inner(i, x, **kwargs):
+#                with twosamplelock:
+#                    twosample = self._TwoSampleObject(priors=priors)
+#                    twosample.set_data_by_xy_data(*x)
+#                lik = deepcopy(twosample.predict_model_likelihoods(messages=False, **kwargs))
+#                hyp = deepcopy(twosample.get_learned_hyperparameters())
+#                with countlock:
+#                    k = count.next()
+#                sys.stdout.flush()
+#                sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
+#                return i, lik, hyp
+#            tmp = [inner(i, self._get_data_for(i)) for i in indices_inner]
+#            with appendlock:
+#                results.extend(tmp)
+#                
+#        for indices_inner in numpy.array_split(indices, self.NUM_PROCS):
+#            processes.append(Thread(target=worker, args=[indices_inner], kwargs=kwargs))
+#        for p in processes:
+#            p.start()
+#        for p in processes:
+#            p.join()
+#
+#        out_indices, liks, hyps = zip(*results)
+#        out_indices = numpy.array(out_indices)
+#        sorting = numpy.where(numpy.atleast_2d(out_indices) == numpy.atleast_2d(indices).T)
+#
+#        self._likelihoods = numpy.array(liks)[sorting[1]]
+#        self._hyperparameters = numpy.array(hyps)[sorting[1]]
+
+#        try:
+#            sys.stdout.write(message + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
+#        except:
+#            sys.stdout.write(message + " done                      \n")
+#
+#        assert (out_indices[sorting[1]] == indices).all()
 
         def distribute(i):
             self.inq.put([i, deepcopy(self._get_data_for(indices[i]))])
@@ -221,8 +265,8 @@ class ConfounderTwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(5)
-        self.outq = Queue(5)
+        self.inq = Queue(3)
+        self.outq = Queue(3)
 
         try:
             if self._hyperparameters is None:
@@ -359,15 +403,15 @@ class ConfounderTwoSample():
                     else:
                         # if yes are write it out and make sure no waiting rows exist
                         collect(d)
-                        #print i, d[0]['common'] - d[0]['individual']
+                        # print i, d[0]['common'] - d[0]['individual']
                         cur += 1
                         while cur in buff:
                             collect(buff[cur])
-                            #print cur, buff[cur][0]['common'] - buff[cur][0]['individual']
+                            # print cur, buff[cur][0]['common'] - buff[cur][0]['individual']
                             del buff[cur]
                             cur += 1
                     self.outq.task_done()
-                            
+
             try:
                 sys.stdout.write(message + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                         \n')
             except:

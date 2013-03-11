@@ -10,7 +10,6 @@ import numpy
 import sys
 import csv
 import itertools
-from gptwosample.confounder.confounder import ConfounderTwoSample
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from pygp.covar.linear import LinearCFISO, LinearCF
@@ -19,6 +18,7 @@ from pygp.covar.se import SqexpCFARD
 from pygp.covar.bias import BiasCF
 
 import logging
+from gptwosample.confounder import confounder
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -38,8 +38,8 @@ stats_lines = list()
 for ar in sys.argv:
     if ar.startswith("cores="):
         num_procs = int(ar.split("=")[1])
-        stats_lines.append("Using ", num_procs, "workers")
-        print "Using ", num_procs, "workers"
+        stats_lines.append("using {0:g} workers".format(num_procs))
+        print "using {0:g} workers".format(num_procs)
     elif ar.startswith("seed="):
         seed = int(ar.split("=")[1])
         print "seed", seed
@@ -48,7 +48,7 @@ for ar in sys.argv:
         print "Q", seed
     elif ar.startswith(("conf_var=")):
         conf_var = int(ar.split("=")[1])
-stats_lines.extend(["Q="+Q, "seed="+seed, "conf_var="+conf_var])
+stats_lines.extend(["Q="+str(Q), "seed="+str(seed), "conf_var="+str(conf_var)])
 
 #try:
 root = sys.argv[1]
@@ -97,8 +97,9 @@ def start_mill(s):
     # p.start()
 
 s = "loading data..."
-print s,
-data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".cPickle")
+sys.stdout.write(s)
+sys.stdout.flush()
+data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".pickle")
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
     cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
@@ -190,7 +191,7 @@ if "conf" in sys.argv:
         learn_name = 'all'
     outname = outname + "_" + learn_name
 
-conf_model = ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
+conf_model = confounder.ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
 try:
     conf_model.NUM_PROCS = num_procs
@@ -199,7 +200,7 @@ except NameError:
 x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
-lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.cPickle')
+lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.pickle')
 if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
@@ -292,8 +293,8 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 #covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
 #priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
-likelihoods_file_name = os.path.join(root, outname + '_likelihoods.cPickle')
-hyperparams_file_name = os.path.join(root, outname + '_hyperparams.cPickle')
+likelihoods_file_name = os.path.join(root, outname + '_likelihoods.pickle')
+hyperparams_file_name = os.path.join(root, outname + '_hyperparams.pickle')
 
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
@@ -336,7 +337,7 @@ if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood
     finished(s)
 
 print ""
-
+stats_file.close()
 
 # s = "plotting roc curve"
 # sys.stdout.write(s + "\r")

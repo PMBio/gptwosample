@@ -7,7 +7,7 @@ import scipy as SP
 
 from pygp.covar import se, combinators, noise
 import pygp.priors.lnpriors as lnpriors
-from gptwosample.twosample.twosample_base import GPTwoSample_share_covariance
+from gptwosample.twosample.twosample_base import TwoSampleShare
 
 def get_toy_data(xmin=1, xmax=2.5 * SP.pi, step1=.7, step2=.4,
                  fy1=lambda x, b, C:b * x + C + 1 * SP.sin(x),
@@ -43,7 +43,7 @@ def get_twosample_object(dim=1):
 
     priors = {'covar':SP.array(covar_priors)}
 
-    twosample_object = GPTwoSample_share_covariance(CovFun, priors=priors)
+    twosample_object = TwoSampleShare(CovFun, priors=priors)
 
     return twosample_object
     
