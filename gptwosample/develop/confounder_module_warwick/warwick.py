@@ -150,12 +150,15 @@ else:
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
-    
+ 
 s = "setting up gplvm module..."
 print s,
 sys.stdout.write("\r")
 if not ("raw" in sys.argv):
     Y = Y + Conf_sim.reshape(n, r, t, d)
+
+# select subset of data to run on:
+
 
 q = Q
 rt = r * t
@@ -182,6 +185,20 @@ if "conf" in sys.argv:
                                   ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                   BiasCF()])
         learn_name = 'sam'
+    elif "triv" in sys.argv:
+        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
+                                # rep,
+                                #  sam,
+                                #  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
+                                BiasCF()])
+        learn_name = 'triv'
+    elif "sam0" in sys.argv:
+        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
+                                # rep,
+                                sam,
+                                #  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
+                                BiasCF()])
+        learn_name = 'sam0'
     else:
         lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
                                   rep,
@@ -209,7 +226,7 @@ elif "noconf" in sys.argv or "raw" in sys.argv:
     conf_model.X = numpy.zeros((conf_model.n * conf_model.r * conf_model.t, conf_model.q))
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
-elif not os.path.exists(lvm_hyperparams_file_name) or "regplvm" in sys.argv:
+elif (not os.path.exists(lvm_hyperparams_file_name)) or "regplvm" in sys.argv:
     s = 'learning confounder matrix... '
     p = start_mill(s)
     conf_model.learn_confounder_matrix(x=x)

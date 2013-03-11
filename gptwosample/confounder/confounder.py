@@ -5,7 +5,6 @@ Confounder Learning and Correction Module
 @author: Max Zwiessele
 '''
 import numpy
-from multiprocessing import cpu_count
 from pygp.covar.linear import LinearCFISO, LinearCF
 from pygp.covar.combinators import SumCF, ProductCF
 from pygp.covar.se import SqexpCFARD
@@ -16,9 +15,9 @@ from pygp.likelihood.likelihood_base import GaussLikISO
 from gptwosample.data.data_base import get_model_structure
 from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
     TwoSampleBase
-from Queue import Queue, Empty
+from Queue import Queue
 import sys
-from threading import Thread, Event, Condition
+from threading import Thread, Event
 import pickle
 import pylab
 from pygp.covar.bias import BiasCF
@@ -39,7 +38,7 @@ class ConfounderTwoSample():
     * d: Genes
     * q: Confounder Components
     """
-    NUM_PROCS = 3  # min(max(1,cpu_count()-2),3)
+    NUM_PROCS = 2 # min(max(1,cpu_count()-2),3)
     SENTINEL = object()
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
@@ -62,14 +61,16 @@ class ConfounderTwoSample():
             self._lvm_covariance = lvm_covariance
         else:
             rt = self.r * self.t
-            self.X_r = numpy.zeros((self.n * rt, self.n * self.r))
-            for i in xrange(self.n * self.r):self.X_r[i * self.t:(i + 1) * self.t, i] = 1
-            rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))
+            #self.X_r = numpy.zeros((self.n * rt, self.n * self.r))
+            #for i in xrange(self.n * self.r):self.X_r[i * self.t:(i + 1) * self.t, i] = 1
+            #rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))
             self.X_s = numpy.zeros((self.n * rt, self.n))
             for i in xrange(self.n):self.X_s[i * rt:(i + 1) * rt, i] = 1
-            sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (self.n * self.r), 1 + q + (self.n * self.r) + self.n))
+            sam = LinearCFISO(dimension_indices=numpy.arange(1 + q,
+                                                              #+ (self.n * self.r),
+                                                              1 + q + self.n)) # + (self.n * self.r) 
             self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
-                                          rep,
+                                          #rep,
                                           sam,
                                           ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF()])
@@ -102,7 +103,10 @@ class ConfounderTwoSample():
         #    raise IndexError("More confounder components then genes (q > d)")
 
         if x is None:
-            x = numpy.concatenate((self.T.reshape(-1, 1), self.X, self.X_r, self.X_s), axis=1)
+            x = numpy.concatenate((self.T.reshape(-1, 1), self.X,
+                                   #self.X_r,
+                                   self.X_s),
+                                  axis=1)
 
         g = GPLVM(gplvm_dimensions=xrange(1, 1 + self.q),
                   covar_func=self._lvm_covariance,
