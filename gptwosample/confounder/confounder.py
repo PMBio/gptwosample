@@ -40,7 +40,7 @@ class ConfounderTwoSample():
     * q: Confounder Components
     """
     NUM_PROCS = 3#min(max(1,cpu_count()-2),3)
-    STOP = "STOP"
+    SENTINEL = object()
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
                  **kwargs):
@@ -345,9 +345,9 @@ class ConfounderTwoSample():
         try:
             cur = 0
             buff = {}
-            # Keep running until we see numprocs STOP messages
+            # Keep running until we see numprocs SENTINEL messages
             for _ in xrange(self.NUM_PROCS):
-                for i, d in iter(self.outq.get, self.STOP):
+                for i, d in iter(self.outq.get, self.SENTINEL):
                     k = counter.next()
                     sys.stdout.flush()
                     sys.stdout.write("{1:s} {2}/{3} {0:.3%}             \r".format(float(k + 1) / l, message, k + 1, l))
@@ -388,11 +388,11 @@ class ConfounderTwoSample():
             raise
         finally:
             for _ in xrange(self.NUM_PROCS):
-                self.inq.put(self.STOP)
+                self.inq.put(self.SENTINEL)
 
     def _lik_worker(self, twosample, priors, **kwargs):
         try:
-            for i, da in iter(self.inq.get, self.STOP):
+            for i, da in iter(self.inq.get, self.SENTINEL):
                 if self.__running_event.is_set():
                     numpy.random.seed(0)
                     twosample.set_data_by_xy_data(*da)
@@ -410,11 +410,11 @@ class ConfounderTwoSample():
             print "ERROR: Caught Exception in _lik_worker"
             raise
         finally:
-            self.outq.put(self.STOP)
+            self.outq.put(self.SENTINEL)
 
     def _pred_worker(self, twosample, interpolation_interval, **kwargs):
         try:
-            for i, [da, hyperparams] in iter(self.inq.get, self.STOP):
+            for i, [da, hyperparams] in iter(self.inq.get, self.SENTINEL):
                 if not self.__running_event.is_set():
                     continue
                 numpy.random.seed(0)
@@ -429,7 +429,7 @@ class ConfounderTwoSample():
             print "ERROR: Caught Exception in _pred_worker"
             raise
         finally:
-            self.outq.put(self.STOP)
+            self.outq.put(self.SENTINEL)
 
     def _main_loop(self, processes):
         self.__running_event.set()

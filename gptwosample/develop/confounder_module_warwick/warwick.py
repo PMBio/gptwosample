@@ -5,7 +5,7 @@ Created on Feb 26, 2013
 '''
 from gptwosample.data.dataIO import get_data_from_csv
 import os
-import pickle
+import cPickle
 import numpy
 import sys
 import csv
@@ -13,8 +13,6 @@ import itertools
 from gptwosample.confounder.confounder import ConfounderTwoSample
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
-from pygp.priors import lnpriors
-from gptwosample.data.data_base import get_model_structure
 from pygp.covar.linear import LinearCFISO, LinearCF
 from pygp.covar.combinators import SumCF, ProductCF
 from pygp.covar.se import SqexpCFARD
@@ -28,25 +26,29 @@ _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
 [redata|regplvm|relikelihood|plot_confounder|gt100]
 
-warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
-
+warwick_control-file and warwick_treatment-file have to be given only in first run - data will be cPickled"""
 
 
 Q = 4
 seed = 0
+conf_var = 1
+
+stats_lines = list()
 
 for ar in sys.argv:
     if ar.startswith("cores="):
         num_procs = int(ar.split("=")[1])
-        print "cores", num_procs
+        stats_lines.append("Using ", num_procs, "workers")
+        print "Using ", num_procs, "workers"
     elif ar.startswith("seed="):
         seed = int(ar.split("=")[1])
         print "seed", seed
     elif ar.startswith("Q="):
         Q = int(ar.split("=")[1])
         print "Q", seed
-        
-numpy.random.seed(seed)
+    elif ar.startswith(("conf_var=")):
+        conf_var = int(ar.split("=")[1])
+stats_lines.extend(["Q="+Q, "seed="+seed, "conf_var="+conf_var])
 
 #try:
 root = sys.argv[1]
@@ -60,6 +62,12 @@ outname = sys.argv[3]
     #print _usage
 #    sys.exit(0)
 
+numpy.random.seed(seed)
+stats_file_name = os.path.join(root, "stats.txt")
+stats_file = open(stats_file_name,'w')
+stats_file.writelines(stats_lines)
+stats_file.flush()
+del stats_lines
 
 def finished(s, process=None):
     if process is not None:
@@ -90,7 +98,7 @@ def start_mill(s):
 
 s = "loading data..."
 print s,
-data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".pickle")
+data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".cPickle")
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
     cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
@@ -120,7 +128,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     X_sim = numpy.random.randn(n * r * t, Q)
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
-    X_sim *= numpy.sqrt(.5)
+    X_sim *= numpy.sqrt(conf_var)
     #si = "standardizing data ..."
     #sys.stdout.write(si + "\r")
     Y -= Y.mean(1).mean(1)[:, None, None, :]
@@ -133,11 +141,11 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
     data_file = open(data_file_path, 'w')
-    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
+    cPickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
 else:
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
-    T, Y, gene_names, K_sim, Conf_sim, X_sim = pickle.load(data_file)
+    T, Y, gene_names, K_sim, Conf_sim, X_sim = cPickle.load(data_file)
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
@@ -191,7 +199,7 @@ except NameError:
 x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
-lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.pickle')
+lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.cPickle')
 if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
@@ -205,14 +213,14 @@ elif not os.path.exists(lvm_hyperparams_file_name) or "regplvm" in sys.argv:
     p = start_mill(s)
     conf_model.learn_confounder_matrix(x=x)
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
-    pickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
+    cPickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
     finished(s, process=p)
 else:
     s = "loading confounder matrix..."
     print s,
     sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
-    conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
+    conf_model._init_conf_matrix(cPickle.load(lvm_hyperparams_file), None)
     finished(s)
 try:
     lvm_hyperparams_file.close()
@@ -274,18 +282,18 @@ gt_names = numpy.array(gt_names)[indices[1]]
 gt_vals = numpy.array(gt_vals)[indices[1]]
 
 # priors
-covar_priors_common = []
-covar_priors_individual = []
-covar_priors_common.append([lnpriors.lnGammaExp, [6, .3]])
-covar_priors_individual.append([lnpriors.lnGammaExp, [6, .3]])
-covar_priors_common.append([lnpriors.lnGammaExp, [30, .1]])
-covar_priors_individual.append([lnpriors.lnGammaExp, [30, .1]])
-covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
-covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
-priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
+#covar_priors_common = []
+#covar_priors_individual = []
+#covar_priors_common.append([lnpriors.lnGammaExp, [6, .3]])
+#covar_priors_individual.append([lnpriors.lnGammaExp, [6, .3]])
+#covar_priors_common.append([lnpriors.lnGammaExp, [30, .1]])
+#covar_priors_individual.append([lnpriors.lnGammaExp, [30, .1]])
+#covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
+#covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
+#priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
-likelihoods_file_name = os.path.join(root, outname + '_likelihoods.pickle')
-hyperparams_file_name = os.path.join(root, outname + '_hyperparams.pickle')
+likelihoods_file_name = os.path.join(root, outname + '_likelihoods.cPickle')
+hyperparams_file_name = os.path.join(root, outname + '_hyperparams.cPickle')
 
 if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
@@ -295,8 +303,8 @@ if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
     hyperparams = conf_model.get_learned_hyperparameters()
     likelihoods_file = open(likelihoods_file_name, 'w')
     hyperparams_file = open(hyperparams_file_name, 'w')
-    pickle.dump(likelihoods, likelihoods_file)
-    pickle.dump(hyperparams, hyperparams_file)
+    cPickle.dump(likelihoods, likelihoods_file)
+    cPickle.dump(hyperparams, hyperparams_file)
     # finished(s)
 else:
     s = "loading model likelihoods... "
@@ -304,8 +312,8 @@ else:
     sys.stdout.write("\r")
     likelihoods_file = open(likelihoods_file_name, 'r')
     hyperparams_file = open(hyperparams_file_name, 'r')
-    conf_model._likelihoods = pickle.load(likelihoods_file)
-    conf_model._hyperparameters = pickle.load(hyperparams_file)
+    conf_model._likelihoods = cPickle.load(likelihoods_file)
+    conf_model._hyperparameters = cPickle.load(hyperparams_file)
     finished(s)
 likelihoods_file.close()
 hyperparams_file.close()
