@@ -239,6 +239,9 @@ elif "noconf" in sys.argv or "raw" in sys.argv:
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
 elif (not os.path.exists(lvm_hyperparams_file_name)) or "regplvm" in sys.argv:
+    if N>1 and Ni>0:
+        while (not os.path.exists(lvm_hyperparams_file_name)):
+            pass
     s = 'learning confounder matrix... '
     p = start_mill(s)
     conf_model.learn_confounder_matrix(x=x)
@@ -316,7 +319,7 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 # select subset of data to run on:
 jobindices = numpy.array_split(indices[0], N)[Ni]
 outname = os.path.join(outname, "jobs")
-dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'rw')
+dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'w')
 
 # priors
 # covar_priors_common = []
