@@ -23,10 +23,9 @@ colors = [[1,0.585,1.067],
 [154,0.625,1.194]]
 
 print s,
-for i, f in enumerate(os.listdir(root)):
-    if os.path.splitext(os.path.basename(f))[0].endswith("bayes"):
-        label = os.path.basename(f)[::-1].split("_",1)[1][::-1]
-        plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label, color=colors[i])
+for i, f in enumerate([x for x in os.listdir(root) if os.path.splitext(os.path.basename(f))[0].endswith("bayes")]):
+    label = os.path.basename(f)[::-1].split("_",1)[1][::-1]
+    plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label, color=colors[i%len(colors)])
         
 pylab.legend(loc=4)
 pylab.xlim(0,.2)
