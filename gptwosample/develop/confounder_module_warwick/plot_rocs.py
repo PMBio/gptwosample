@@ -23,10 +23,11 @@ colors = itertools.cycle(numpy.array([[97,216,76],
 [202,83,168]], dtype='float')/255.)
 
 print s,
-for f in os.listdir(root):
-    if os.path.splitext(os.path.basename(f))[0].endswith("bayes"):
-        label = os.path.basename(f)[::-1].split("_",1)[1][::-1]
-        plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label, color=colors.next())
+for parent, folders, files in os.walk(root):
+    for f in files:
+        if f -- "bayes.csv":
+            label = parent[len(root):].lstrip("/").replace("/","_")
+            plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label, color=colors.next())
         
 pylab.legend(loc=4)
 pylab.xlim(0,.2)
