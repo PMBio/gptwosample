@@ -13,16 +13,14 @@ import numpy
 root = sys.argv[1]
 s = "plotting roc curves..."
 
-colors = itertools.cycle(numpy.array([[212,83,144],
-[72,153,68],
-[208,91,47],
-[58,124,136],
-[100,124,192],
-[179,109,200],
-[132,81,121],
-[155,106,38],
-[188,75,83],
-[101,121,41]], dtype='float')/255.)
+colors = itertools.cycle(numpy.array([[97,216,76],
+[184,91,222],
+[199,125,28],
+[211,63,92],
+[110,122,202],
+[191,210,42],
+[81,139,44],
+[202,83,168]], dtype='float')/255.)
 
 print s,
 for f in os.listdir(root):
