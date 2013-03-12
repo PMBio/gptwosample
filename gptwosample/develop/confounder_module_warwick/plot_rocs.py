@@ -8,11 +8,12 @@ from gptwosample.data.data_analysis import plot_roc_curve
 import pylab
 import sys
 import itertools
+import numpy
 
 root = sys.argv[1]
 s = "plotting roc curves..."
 
-colors = itertools.cycle([[240,164,135],
+colors = itertools.cycle(numpy.array([[240,164,135],
 [106,231,168],
 [163,202,225],
 [222,221,95],
@@ -21,7 +22,7 @@ colors = itertools.cycle([[240,164,135],
 [109,223,221],
 [230,184,96],
 [169,226,122],
-[152,218,178]])
+[152,218,178]], dtype='float')/255.)
 
 print s,
 for f in os.listdir(root):
