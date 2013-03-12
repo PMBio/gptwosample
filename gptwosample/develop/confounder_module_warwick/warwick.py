@@ -169,7 +169,7 @@ s = "setting up gplvm module..."
 print s,
 sys.stdout.flush()
 sys.stdout.write("\r")
-if not ("raw" in sys.argv):
+if not ("raw" in sys.argv) or not "unconfounded" in sys.argv:
     Y = Y + Conf_sim.reshape(n, r, t, d)
 
 q = Q
@@ -218,6 +218,8 @@ if "conf" in sys.argv:
                                   ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                   BiasCF()])
         learn_name = 'all'
+    if "unconfounded" in sys.argv:
+        learn_name += "_unconf"
     outname = os.path.join(outname, learn_name)
     if not os.path.exists(os.path.join(root, outname)):
         os.mkdir(os.path.join(root, outname))
@@ -324,6 +326,8 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 # select subset of data to run on:
 jobindices = numpy.array_split(indices[0], N)[Ni]
 outname = os.path.join(outname, "jobs")
+if not os.path.exists(os.path.join(root), outname):
+    os.makedirs(os.path.join(root, outname))
 dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'w')
 
 # priors
