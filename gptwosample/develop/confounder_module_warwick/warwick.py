@@ -167,6 +167,7 @@ data_file.close()
 
 s = "setting up gplvm module..."
 print s,
+sys.stdout.flush()
 sys.stdout.write("\r")
 if not ("raw" in sys.argv):
     Y = Y + Conf_sim.reshape(n, r, t, d)
@@ -339,7 +340,7 @@ dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".for
 #likelihoods_file_name = os.path.join(root, outname, 'likelihoods_job_{}_{}.hdf5'.format(Ni, N))
 #hyperparams_file_name = os.path.join(root, outname, 'hyperparams_job_{}_{}.hdf5'.format(Ni, N))
 
-if 'dolikelihood' in sys.argv and (not ("L" in dataset) or "relikelihood" in sys.argv):
+if 'dolikelihood' in sys.argv and not "L" in dataset or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
     print s,
     sys.stdout.flush()
