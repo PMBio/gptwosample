@@ -19,6 +19,7 @@ from pygp.covar.bias import BiasCF
 import logging
 from gptwosample.confounder import confounder
 import h5py
+import time
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -220,7 +221,8 @@ if "conf" in sys.argv:
     if not os.path.exists(os.path.join(root, outname)):
         os.mkdir(os.path.join(root, outname))
 
-conf_model = confounder.ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
+conf_model = confounder.ConfounderTwoSample(T, Y, q=Q, 
+                                            lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
 try:
     conf_model.NUM_PROCS = num_procs
@@ -235,13 +237,12 @@ if "ideal" in sys.argv:
     conf_model.K_conf = K_sim
     conf_model._initialized = True
 elif "noconf" in sys.argv or "raw" in sys.argv:
-    conf_model.X = numpy.zeros((conf_model.n * conf_model.r * conf_model.t, conf_model.q))
+    conf_model.X = numpy.zeros((conf_model.n * conf_model.r * conf_model.t, 
+                                conf_model.q))
     conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
     conf_model._initialized = True
-elif (not os.path.exists(lvm_hyperparams_file_name)) or "regplvm" in sys.argv:
-    if N>1 and Ni>0:
-        while (not os.path.exists(lvm_hyperparams_file_name)):
-            pass
+elif ((not os.path.exists(lvm_hyperparams_file_name)) or 
+      "regplvm" in sys.argv):
     s = 'learning confounder matrix... '
     p = start_mill(s)
     conf_model.learn_confounder_matrix(x=x)
@@ -255,6 +256,7 @@ else:
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
     conf_model._init_conf_matrix(cPickle.load(lvm_hyperparams_file), None)
     finished(s)
+
 try:
     lvm_hyperparams_file.close()
 except:
@@ -299,6 +301,8 @@ if "plot_confounder" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "K.pdf"))
 
+sys.stdout.flush()
+
 # GPTwoSample:
 
 if "gt100" in sys.argv:
@@ -335,9 +339,10 @@ dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".for
 #likelihoods_file_name = os.path.join(root, outname, 'likelihoods_job_{}_{}.hdf5'.format(Ni, N))
 #hyperparams_file_name = os.path.join(root, outname, 'hyperparams_job_{}_{}.hdf5'.format(Ni, N))
 
-if not ("L" in dataset) or "relikelihood" in sys.argv:
+if 'dolikelihood' in sys.argv and (not ("L" in dataset) or "relikelihood" in sys.argv):
     s = "predicting model likelihoods..."
     print s,
+    sys.stdout.flush()
     sys.stdout.write("             \r")
     likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=jobindices)  # , priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
@@ -349,7 +354,9 @@ if not ("L" in dataset) or "relikelihood" in sys.argv:
 
     # cPickle.dump(likelihoods, likelihoods_file)
     # cPickle.dump(hyperparams, hyperparams_file)
-    # finished(s)
+    finished(s)
+
+dataset.close()
 #else:
 #    s = "loading model likelihoods... "
 #    print s,
