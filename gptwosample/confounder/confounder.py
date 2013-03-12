@@ -305,16 +305,19 @@ class ConfounderTwoSample():
 
         return self._mean_variances
 
-    def bayes_factors(self):
+    def bayes_factors(self, likelihoods = None):
         """
         get list of bayes_factors for all genes.
 
         **returns**:
             bayes_factor for each gene in Y
         """
+        if likelihoods is None:
+            likelihoods = self._likelihoods
         t = TwoSampleBase()
         f = lambda lik:t.bayes_factor(lik)
         return map(f, self._likelihoods)
+        
 
     def plot(self, indices,
              xlabel="input", ylabel="ouput", title=None,

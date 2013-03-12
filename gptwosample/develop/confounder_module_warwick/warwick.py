@@ -9,7 +9,6 @@ import cPickle
 import numpy
 import sys
 import csv
-import itertools
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from pygp.covar.linear import LinearCFISO, LinearCF
@@ -19,6 +18,7 @@ from pygp.covar.bias import BiasCF
 
 import logging
 from gptwosample.confounder import confounder
+import h5py
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -32,6 +32,7 @@ warwick_control-file and warwick_treatment-file have to be given only in first r
 Q = 4
 seed = 0
 conf_var = 1
+N, Ni = 1, 0
 
 stats_lines = list()
 
@@ -46,11 +47,19 @@ for ar in sys.argv:
     elif ar.startswith("Q="):
         Q = int(ar.split("=")[1])
         print "Q", seed
-    elif ar.startswith(("conf_var=")):
+    elif ar.startswith("conf_var="):
         conf_var = int(ar.split("=")[1])
-stats_lines.extend(["Q="+str(Q), "seed="+str(seed), "conf_var="+str(conf_var)])
+    elif ar.startswith("="):
+        N, Ni = map(lambda x: int(x), ar.split("=")[1].split("."))
+        Ni -= 1  # to index
+        print "Ni/N={1}/{0}".format(N, Ni)
 
-#try:
+stats_lines.extend(["Q={}\n".format(str(Q)),
+                    "seed={}\n".format(str(seed)),
+                    "conf_var={}\n".format(str(conf_var))])  # ,
+#                    "Ni/N={1}/{0}".format(N,Ni)])
+
+# try:
 root = sys.argv[1]
 if not os.path.exists(root):
     os.mkdir(root)
@@ -58,15 +67,19 @@ data = sys.argv[2]
 if not os.path.exists(data):
     os.mkdir(data)
 outname = sys.argv[3]
-#except:
-    #print _usage
+if not os.path.exists(os.path.join(root, outname)):
+    os.mkdir(os.path.join(root, outname))
+
+# except:
+    # print _usage
 #    sys.exit(0)
 
 numpy.random.seed(seed)
 stats_file_name = os.path.join(root, "stats.txt")
-stats_file = open(stats_file_name,'w')
+stats_file = open(stats_file_name, 'w')
 stats_file.writelines(stats_lines)
 stats_file.flush()
+
 del stats_lines
 
 def finished(s, process=None):
@@ -130,14 +143,14 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
     X_sim *= numpy.sqrt(conf_var)
-    #si = "standardizing data ..."
-    #sys.stdout.write(si + "\r")
+    # si = "standardizing data ..."
+    # sys.stdout.write(si + "\r")
     Y -= Y.mean(1).mean(1)[:, None, None, :]
     # Y /= Y.std()
     # Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
     # Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
-    #finished(si)
-    
+    # finished(si)
+
     K_sim = numpy.dot(X_sim.reshape(n * r * t, Q), X_sim.reshape(n * r * t, Q).T)
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
@@ -150,15 +163,12 @@ else:
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
- 
+
 s = "setting up gplvm module..."
 print s,
 sys.stdout.write("\r")
 if not ("raw" in sys.argv):
     Y = Y + Conf_sim.reshape(n, r, t, d)
-
-# select subset of data to run on:
-
 
 q = Q
 rt = r * t
@@ -206,7 +216,9 @@ if "conf" in sys.argv:
                                   ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                   BiasCF()])
         learn_name = 'all'
-    outname = outname + "_" + learn_name
+    outname = os.path.join(outname, learn_name)
+    if not os.path.exists(os.path.join(root, outname)):
+        os.mkdir(os.path.join(root, outname))
 
 conf_model = confounder.ConfounderTwoSample(T, Y, q=Q, lvm_covariance=lvm_covariance)
 conf_model.__verbose = 0
@@ -217,7 +229,7 @@ except NameError:
 x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
-lvm_hyperparams_file_name = os.path.join(root, outname + '_lvm_hyperparams.pickle')
+lvm_hyperparams_file_name = os.path.join(root, outname, 'lvm_hyperparams.pickle')
 if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
@@ -256,7 +268,7 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname+"simulated.pdf"))
+    pylab.savefig(os.path.join(root, outname + "simulated.pdf"))
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
@@ -268,7 +280,7 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname+"XX.pdf"))
+    pylab.savefig(os.path.join(root, outname + "XX.pdf"))
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
@@ -282,7 +294,9 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname+"K.pdf"))
+    pylab.savefig(os.path.join(root, outname, "K.pdf"))
+
+# GPTwoSample:
 
 if "gt100" in sys.argv:
     gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
@@ -299,59 +313,53 @@ indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[
 gt_names = numpy.array(gt_names)[indices[1]]
 gt_vals = numpy.array(gt_vals)[indices[1]]
 
+# select subset of data to run on:
+jobindices = numpy.array_split(indices[0], N)[Ni]
+outname = os.path.join(outname, "jobs")
+dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'rw')
+
 # priors
-#covar_priors_common = []
-#covar_priors_individual = []
-#covar_priors_common.append([lnpriors.lnGammaExp, [6, .3]])
-#covar_priors_individual.append([lnpriors.lnGammaExp, [6, .3]])
-#covar_priors_common.append([lnpriors.lnGammaExp, [30, .1]])
-#covar_priors_individual.append([lnpriors.lnGammaExp, [30, .1]])
-#covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
-#covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
-#priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
+# covar_priors_common = []
+# covar_priors_individual = []
+# covar_priors_common.append([lnpriors.lnGammaExp, [6, .3]])
+# covar_priors_individual.append([lnpriors.lnGammaExp, [6, .3]])
+# covar_priors_common.append([lnpriors.lnGammaExp, [30, .1]])
+# covar_priors_individual.append([lnpriors.lnGammaExp, [30, .1]])
+# covar_priors_common.append([lnpriors.lnuniformpdf, [1, 1]])
+# covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
+# priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
-likelihoods_file_name = os.path.join(root, outname + '_likelihoods.pickle')
-hyperparams_file_name = os.path.join(root, outname + '_hyperparams.pickle')
+#likelihoods_file_name = os.path.join(root, outname, 'likelihoods_job_{}_{}.hdf5'.format(Ni, N))
+#hyperparams_file_name = os.path.join(root, outname, 'hyperparams_job_{}_{}.hdf5'.format(Ni, N))
 
-if not os.path.exists(likelihoods_file_name) or "relikelihood" in sys.argv:
+if not ("L" in dataset) or "relikelihood" in sys.argv:
     s = "predicting model likelihoods..."
     print s,
     sys.stdout.write("             \r")
-    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=indices[0])#, priors=priors)
+    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=jobindices)  # , priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
-    likelihoods_file = open(likelihoods_file_name, 'w')
-    hyperparams_file = open(hyperparams_file_name, 'w')
-    cPickle.dump(likelihoods, likelihoods_file)
-    cPickle.dump(hyperparams, hyperparams_file)
-    # finished(s)
-else:
-    s = "loading model likelihoods... "
-    print s,
-    sys.stdout.write("\r")
-    likelihoods_file = open(likelihoods_file_name, 'r')
-    hyperparams_file = open(hyperparams_file_name, 'r')
-    conf_model._likelihoods = cPickle.load(likelihoods_file)
-    conf_model._hyperparameters = cPickle.load(hyperparams_file)
-    finished(s)
-likelihoods_file.close()
-hyperparams_file.close()
+    dataset.create_dataset("L", data=likelihoods)
+    dataset.create_dataset("H", data=hyperparams)
+    dataset.create_dataset("genes", gt_names[jobindices])
+    #likelihoods_file = open(likelihoods_file_name, 'w')
+    #hyperparams_file = open(hyperparams_file_name, 'w')
 
-s = "writing back bayes factors..."
-bayes_file_name = os.path.join(root, outname + '_bayes.csv')
-if not os.path.exists(bayes_file_name) or "rebayes" in sys.argv or "relikelihood" in sys.argv:
-    print s,
-    sys.stdout.write("\r")
-    bayes_file = open(bayes_file_name, 'w')
-    writer = csv.writer(bayes_file)
-    for row in itertools.izip(gt_names, conf_model.bayes_factors()):
-        writer.writerow(row)
-    bayes_file.close()
-    bayes_file = open(bayes_file_name, 'r')
-    bayes_factors = []
-    for row in csv.reader(bayes_file):
-        bayes_factors.append(row)
-    bayes_file.close()
-    finished(s)
+    # cPickle.dump(likelihoods, likelihoods_file)
+    # cPickle.dump(hyperparams, hyperparams_file)
+    # finished(s)
+#else:
+#    s = "loading model likelihoods... "
+#    print s,
+#    sys.stdout.write("\r")
+#    #likelihoods_file = open(likelihoods_file_name, 'r')
+#    #hyperparams_file = open(hyperparams_file_name, 'r')
+#    conf_model._likelihoods = dataset.require_dataset("L")#cPickle.load(likelihoods_file)
+#    conf_model._hyperparameters = dataset.require_dataset("H")#cPickle.load(hyperparams_file)
+#    finished(s)
+#likelihoods_file.close()
+#hyperparams_file.close()
+
+
 
 print ""
 stats_file.close()
