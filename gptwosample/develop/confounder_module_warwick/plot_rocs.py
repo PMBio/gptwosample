@@ -27,8 +27,11 @@ for parent, folders, files in os.walk(root):
     for f in files:
         if f == "bayes.csv":
             label = parent[len(root):].lstrip("/").replace("/","_")
-            plot_roc_curve(os.path.join(parent,f), "../../examples/ground_truth_random_genes.csv", 
-                           label=label, color=colors.next())
+            try:
+                plot_roc_curve(os.path.join(parent,f), "../../examples/ground_truth_random_genes.csv", 
+                               label=label, color=colors.next())
+            except StopIteration:
+                pass
 pylab.legend(loc=4)
 pylab.xlim(0,.2)
 pylab.savefig(os.path.join(root, "roc.pdf"))
