@@ -25,7 +25,7 @@ colors = itertools.cycle(numpy.array([[97,216,76],
 print s,
 for parent, folders, files in os.walk(root):
     for f in files:
-        if f -- "bayes.csv":
+        if f == "bayes.csv":
             label = parent[len(root):].lstrip("/").replace("/","_")
             plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label, color=colors.next())
         
