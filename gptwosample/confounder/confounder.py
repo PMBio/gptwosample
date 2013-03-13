@@ -319,7 +319,7 @@ class ConfounderTwoSample():
         return map(f, self._likelihoods)
         
 
-    def plot(self, indices,
+    def plot(self, indices=None,
              xlabel="input", ylabel="ouput", title=None,
              interval_indices=None, alpha=None, legend=True,
              replicate_indices=None, shift=None, *args, **kwargs):
@@ -334,6 +334,8 @@ class ConfounderTwoSample():
             print "Not yet predicted, use predict_means_variances before"
             return
         pylab.ion()
+        if indices is None:
+            indices = numpy.arange(self.d)
         t = self._TwoSampleObject()
         for i in xrange(len(indices)):
             pylab.clf()
@@ -527,33 +529,38 @@ if __name__ == '__main__':
     except _ as r:
         r.message = "scikits needed for this example"
         raise r
-    Y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
-    Y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
-
-    Y = numpy.zeros(nrtd)
+    
+    y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
+    y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
+    
+    Y1 = numpy.zeros(y1.shape)
+    
+    Y = numpy.zeros(n,r,t,d+10)
 
     sigma = .5
     Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d)
     Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d)
 
     c = ConfounderTwoSample(Ts, Y)
-    c.__verbose = True
+#    c.__verbose = True
 
-    lvm_hyperparams_file_name = 'lvm_hyperparams.pickle'
+    #lvm_hyperparams_file_name = 'lvm_hyperparams.pickle'
 
-#    c.learn_confounder_matrix()
+    c.learn_confounder_matrix()
 #    lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
 #    pickle.dump(c._lvm_hyperparams, lvm_hyperparams_file)
 #    lvm_hyperparams_file.close()
 
-    lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
-    c._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
-    lvm_hyperparams_file.close()
+#    lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
+#    c._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
+#    lvm_hyperparams_file.close()
 
     c.predict_likelihoods()
 
     c.predict_means_variances(numpy.linspace(0, 24, 100))
-
+    
+    pylab.ion()
+    pylab.figure()
     for _ in c.plot():
         raw_input("enter to continue")
 

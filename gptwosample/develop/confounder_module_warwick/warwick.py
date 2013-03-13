@@ -161,6 +161,7 @@ else:
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
     T, Y, gene_names, K_sim, Conf_sim, X_sim = pickle.load(data_file)
+    import ipdb;ipdb.set_trace()
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
