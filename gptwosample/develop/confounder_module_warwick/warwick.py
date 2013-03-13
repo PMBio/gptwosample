@@ -19,7 +19,6 @@ from pygp.covar.bias import BiasCF
 import logging
 from gptwosample.confounder import confounder
 import h5py
-import time
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -50,8 +49,8 @@ for ar in sys.argv:
         print "Q", seed
     elif ar.startswith("conf_var="):
         conf_var = int(ar.split("=")[1])
-    elif ar.startswith("="):
-        N, Ni = map(lambda x: int(x), ar.split("=")[1].split("."))
+    elif ar.startswith("jobs="):
+        N, Ni = map(lambda x: int(x), ar.split("=")[1].split(","))
         Ni -= 1  # to index
         print "Ni/N={1}/{0}".format(N, Ni)
 
@@ -325,6 +324,7 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 
 # select subset of data to run on:
 jobindices = numpy.array_split(indices[0], N)[Ni]
+import ipdb;ipdb.set_trace()
 outname = os.path.join(outname, "jobs")
 if not os.path.exists(os.path.join(root, outname)):
     os.makedirs(os.path.join(root, outname))
