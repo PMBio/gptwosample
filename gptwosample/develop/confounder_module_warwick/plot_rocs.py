@@ -29,10 +29,9 @@ for parent, folders, files in os.walk(root):
             label = parent[len(root):].lstrip("/").replace("/","_")
             plot_roc_curve(os.path.join(parent,f), "../../examples/ground_truth_random_genes.csv", 
                            label=label, color=colors.next())
-            pylab.legend(loc=4)
-            pylab.xlim(0,.2)
-            pylab.savefig(os.path.join(parent, "roc.pdf"))
-
+pylab.legend(loc=4)
+pylab.xlim(0,.2)
+pylab.savefig(os.path.join(root, "roc.pdf"))
 
 try:
     sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
