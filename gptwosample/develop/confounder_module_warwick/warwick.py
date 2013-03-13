@@ -350,26 +350,27 @@ gt_file_name = os.path.join(root, outname, 'gt_names_job_{}_{}.pickle'.format(Ni
 if "relikelihood" in sys.argv:
     sys.argv.append("dolikelihood") 
 
-if 'dolikelihood' in sys.argv and (not os.path.exists(likelihoods_file_name)):
-    s = "predicting model likelihoods..."
-    print s,
-    sys.stdout.flush()
-    sys.stdout.write("             \r")
-    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=jobindices)  # , priors=priors)
-    hyperparams = conf_model.get_learned_hyperparameters()
-    #dataset.create_dataset(name="L", data=numpy.array(likelihoods), dtype=list, shape=(joblen,))
-    #dataset.create_dataset(name="H", data=numpy.array(hyperparams), dtype=list, shape=(joblen,))
-    #dataset.create_dataset(name="genes", data=gt_names[jobslice], dtype=list, shape=(joblen,))
-    likelihoods_file = open(likelihoods_file_name, 'w')
-    hyperparams_file = open(hyperparams_file_name, 'w')
-    gt_file = open(gt_file_name, 'w')
-    pickle.dump(likelihoods, likelihoods_file)
-    pickle.dump(hyperparams, hyperparams_file)
-    pickle.dump(gt_names[jobslice], gt_file)
-    #finished(s)
-likelihoods_file.close()
-hyperparams_file.close()
-gt_file.close()
+if len(jobindices):
+    if 'dolikelihood' in sys.argv and (not os.path.exists(likelihoods_file_name)):
+        s = "predicting model likelihoods..."
+        print s,
+        sys.stdout.flush()
+        sys.stdout.write("             \r")
+        likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=jobindices)  # , priors=priors)
+        hyperparams = conf_model.get_learned_hyperparameters()
+        #dataset.create_dataset(name="L", data=numpy.array(likelihoods), dtype=list, shape=(joblen,))
+        #dataset.create_dataset(name="H", data=numpy.array(hyperparams), dtype=list, shape=(joblen,))
+        #dataset.create_dataset(name="genes", data=gt_names[jobslice], dtype=list, shape=(joblen,))
+        likelihoods_file = open(likelihoods_file_name, 'w')
+        hyperparams_file = open(hyperparams_file_name, 'w')
+        gt_file = open(gt_file_name, 'w')
+        pickle.dump(likelihoods, likelihoods_file)
+        pickle.dump(hyperparams, hyperparams_file)
+        pickle.dump(gt_names[jobslice], gt_file)
+        #finished(s)
+    likelihoods_file.close()
+    hyperparams_file.close()
+    gt_file.close()
 #dataset.close()
 #else:
 #    s = "loading model likelihoods... "

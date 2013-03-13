@@ -18,4 +18,4 @@ for parent, folders, files in os.walk(root):
 for parent,files in dirstoremove:
     for f in files:
         os.remove(os.path.join(parent,f))
-    os.removedirs(parent)
+    os.rmdir(parent)
