@@ -27,11 +27,12 @@ for parent, folders, files in os.walk(root):
     for f in files:
         if f == "bayes.csv":
             label = parent[len(root):].lstrip("/").replace("/","_")
-            plot_roc_curve(os.path.join(root,f), "../../examples/ground_truth_random_genes.csv", label=label, color=colors.next())
-        
-pylab.legend(loc=4)
-pylab.xlim(0,.2)
-pylab.savefig(os.path.join(root, "roc.pdf"))
+            plot_roc_curve(os.path.join(parent,f), "../../examples/ground_truth_random_genes.csv", 
+                           label=label, color=colors.next())
+            pylab.legend(loc=4)
+            pylab.xlim(0,.2)
+            pylab.savefig(os.path.join(parent, "roc.pdf"))
+
 
 try:
     sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')

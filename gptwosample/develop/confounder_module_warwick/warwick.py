@@ -5,7 +5,7 @@ Created on Feb 26, 2013
 '''
 from gptwosample.data.dataIO import get_data_from_csv
 import os
-import cPickle
+import pickle
 import numpy
 import sys
 import csv
@@ -19,6 +19,7 @@ from pygp.covar.bias import BiasCF
 import logging
 from gptwosample.confounder import confounder
 import h5py
+from numpy.ma.core import ceil
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -26,7 +27,7 @@ _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
 [redata|regplvm|relikelihood|plot_confounder|gt100]
 
-warwick_control-file and warwick_treatment-file have to be given only in first run - data will be cPickled"""
+warwick_control-file and warwick_treatment-file have to be given only in first run - data will be pickled"""
 
 
 Q = 4
@@ -155,11 +156,11 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
     data_file = open(data_file_path, 'w')
-    cPickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
+    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
 else:
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
-    T, Y, gene_names, K_sim, Conf_sim, X_sim = cPickle.load(data_file)
+    T, Y, gene_names, K_sim, Conf_sim, X_sim = pickle.load(data_file)
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
@@ -249,14 +250,14 @@ elif ((not os.path.exists(lvm_hyperparams_file_name)) or
     p = start_mill(s)
     conf_model.learn_confounder_matrix(x=x)
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
-    cPickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
+    pickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
     finished(s, process=p)
 else:
     s = "loading confounder matrix..."
     print s,
     sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
-    conf_model._init_conf_matrix(cPickle.load(lvm_hyperparams_file), None)
+    conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
     finished(s)
 
 try:
@@ -323,12 +324,13 @@ gt_names = numpy.array(gt_names)[indices[1]]
 gt_vals = numpy.array(gt_vals)[indices[1]]
 
 # select subset of data to run on:
-jobindices = numpy.array_split(indices[0], N)[Ni]
-import ipdb;ipdb.set_trace()
+joblen = ceil(len(gt_names)/float(N))
+jobslice = slice(Ni*joblen, (Ni+1)*joblen)
+jobindices = indices[0][jobslice]
 outname = os.path.join(outname, "jobs")
 if not os.path.exists(os.path.join(root, outname)):
     os.makedirs(os.path.join(root, outname))
-dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'w')
+#dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'w')
 
 # priors
 # covar_priors_common = []
@@ -341,38 +343,43 @@ dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".for
 # covar_priors_individual.append([lnpriors.lnuniformpdf, [1, 1]])
 # priors = get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
-#likelihoods_file_name = os.path.join(root, outname, 'likelihoods_job_{}_{}.hdf5'.format(Ni, N))
-#hyperparams_file_name = os.path.join(root, outname, 'hyperparams_job_{}_{}.hdf5'.format(Ni, N))
+likelihoods_file_name = os.path.join(root, outname, 'likelihoods_job_{}_{}.pickle'.format(Ni, N))
+hyperparams_file_name = os.path.join(root, outname, 'hyperparams_job_{}_{}.pickle'.format(Ni, N))
+gt_file_name = os.path.join(root, outname, 'gt_names_job_{}_{}.pickle'.format(Ni, N))
 
-if 'dolikelihood' in sys.argv and not "L" in dataset or "relikelihood" in sys.argv:
+if "relikelihood" in sys.argv:
+    sys.argv.append("dolikelihood") 
+
+if 'dolikelihood' in sys.argv and (not os.path.exists(likelihoods_file_name)):
     s = "predicting model likelihoods..."
     print s,
     sys.stdout.flush()
     sys.stdout.write("             \r")
     likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=jobindices)  # , priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
-    dataset.create_dataset("L", data=likelihoods)
-    dataset.create_dataset("H", data=hyperparams)
-    dataset.create_dataset("genes", gt_names[jobindices])
-    #likelihoods_file = open(likelihoods_file_name, 'w')
-    #hyperparams_file = open(hyperparams_file_name, 'w')
-
-    # cPickle.dump(likelihoods, likelihoods_file)
-    # cPickle.dump(hyperparams, hyperparams_file)
-    finished(s)
-
-dataset.close()
+    #dataset.create_dataset(name="L", data=numpy.array(likelihoods), dtype=list, shape=(joblen,))
+    #dataset.create_dataset(name="H", data=numpy.array(hyperparams), dtype=list, shape=(joblen,))
+    #dataset.create_dataset(name="genes", data=gt_names[jobslice], dtype=list, shape=(joblen,))
+    likelihoods_file = open(likelihoods_file_name, 'w')
+    hyperparams_file = open(hyperparams_file_name, 'w')
+    gt_file = open(gt_file_name, 'w')
+    pickle.dump(likelihoods, likelihoods_file)
+    pickle.dump(hyperparams, hyperparams_file)
+    pickle.dump(gt_names[jobslice], gt_file)
+    #finished(s)
+likelihoods_file.close()
+hyperparams_file.close()
+gt_file.close()
+#dataset.close()
 #else:
 #    s = "loading model likelihoods... "
 #    print s,
 #    sys.stdout.write("\r")
 #    #likelihoods_file = open(likelihoods_file_name, 'r')
 #    #hyperparams_file = open(hyperparams_file_name, 'r')
-#    conf_model._likelihoods = dataset.require_dataset("L")#cPickle.load(likelihoods_file)
-#    conf_model._hyperparameters = dataset.require_dataset("H")#cPickle.load(hyperparams_file)
+#    conf_model._likelihoods = dataset.require_dataset("L")#pickle.load(likelihoods_file)
+#    conf_model._hyperparameters = dataset.require_dataset("H")#pickle.load(hyperparams_file)
 #    finished(s)
-#likelihoods_file.close()
-#hyperparams_file.close()
 
 
 
