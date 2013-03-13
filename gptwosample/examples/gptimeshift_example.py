@@ -22,8 +22,8 @@ import numpy.random as random
 import pylab as PL
 import scipy as SP
 from gptwosample.data.dataIO import get_data_from_csv
-from gptwosample.twosample.twosample_base import GPTwoSample_individual_covariance,\
-    GPTwoSample_share_covariance
+from gptwosample.twosample.twosample_base import TwoSampleShare,\
+    TwoSampleSeparate
 
 def run_demo(cond1_file, cond2_file):
     LG.basicConfig(level=LG.INFO)
@@ -50,7 +50,7 @@ def run_demo(cond1_file, cond2_file):
     n_replicates = cond1[gene_names[0]].shape[0]
     gene_length = len(T1)
     
-    #hyperparamters
+    #hyperparameters
     dim = 1
     replicate_indices = []
     for rep in SP.arange(n_replicates):
@@ -107,7 +107,7 @@ def run_demo(cond1_file, cond2_file):
                                                     y1.reshape(-1,1), y2.reshape(-1,1))
         
         # First, GPTwoSample_individual_covariance:
-        gptwosample_object = GPTwoSample_individual_covariance(combinators.SumCF((shiftCFInd1,noiseCF)),
+        gptwosample_object = TwoSampleSeparate(combinators.SumCF((shiftCFInd1,noiseCF)),
                                           combinators.SumCF((shiftCFInd2,noiseCF)),
                                           combinators.SumCF((shiftCFCom,noiseCF)),
                                          priors=priors)
@@ -126,7 +126,7 @@ def run_demo(cond1_file, cond2_file):
         ylim = PL.ylim()
         
         # Second, GPTwoSample without timeshift:
-        gptwosample_object = GPTwoSample_share_covariance(CovFun, priors={'covar':SP.array(covar_priors)})
+        gptwosample_object = TwoSampleShare(CovFun, priors={'covar':SP.array(covar_priors)})
         gptwosample_object.predict_model_likelihoods(training_data=training_data)
         gptwosample_object.predict_mean_variance_iter(Tpredict)
         
