@@ -33,7 +33,7 @@ warwick_control-file and warwick_treatment-file have to be given only in first r
 
 Q = 4
 seed = 0
-conf_var = 1
+conf_var = 1./4.
 N, Ni = 1, 0
 
 stats_lines = list()
@@ -197,7 +197,7 @@ print s,
 sys.stdout.flush()
 sys.stdout.write("\r")
 if not ("raw" in sys.argv) and not ("unconfounded" in sys.argv):
-    Y = Y + conf_var*Conf_sim.reshape(n, r, t, d)
+    Y = Y + Y.std()*conf_var*Conf_sim.reshape(n, r, t, d)
 
 q = Q
 rt = r * t
@@ -350,7 +350,7 @@ if "plot_confounder" in sys.argv:
             pass
         pylab.savefig(os.path.join(root, outname, "K_sam.pdf"))
 
-        fig = pylab.figure()        
+        fig = pylab.figure()
         K_sam_prod = cov.covars[2].K(conf_model._lvm_hyperparams['covar'][covarslices[2]], x)
         im = pylab.imshow(K_sam_prod)
         pylab.title(r"$\mathbf{{sam prod}}$ var={}".format(numpy.trace(K_sam_prod)/K_sam_prod.shape[1]))

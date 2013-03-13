@@ -533,13 +533,22 @@ if __name__ == '__main__':
     y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     
-    Y1 = numpy.zeros(y1.shape)
+    Y1 = numpy.zeros((t,d+10))
+    Y2 = numpy.zeros((t,d+10))
     
-    Y = numpy.zeros(n,r,t,d+10)
+    Y1[:,:d] = y1
+    Y2[:,:d] = y2
+    
+    sames = numpy.random.randint(0,d,size=10)
+    
+    Y1[:,d:] = y2[:,sames]
+    Y2[:,d:] = y1[:,sames]
+    
+    Y = numpy.zeros((n,r,t,d+10))
 
     sigma = .5
-    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d)
-    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d)
+    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d+10)
+    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d+10)
 
     c = ConfounderTwoSample(Ts, Y)
 #    c.__verbose = True
