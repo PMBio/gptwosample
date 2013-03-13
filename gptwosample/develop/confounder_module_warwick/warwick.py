@@ -20,6 +20,7 @@ import logging
 from gptwosample.confounder import confounder
 import h5py
 from numpy.ma.core import ceil
+import itertools
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -143,7 +144,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     X_sim = numpy.random.randn(n * r * t, Q)
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
-    X_sim *= numpy.sqrt(conf_var)
+    X_sim *= numpy.sqrt(1./float(Q))
     # si = "standardizing data ..."
     # sys.stdout.write(si + "\r")
     Y -= Y.mean(1).mean(1)[:, None, None, :]
@@ -197,7 +198,7 @@ print s,
 sys.stdout.flush()
 sys.stdout.write("\r")
 if not ("raw" in sys.argv) and not ("unconfounded" in sys.argv):
-    Y = Y + Conf_sim.reshape(n, r, t, d)
+    Y = Y + conf_var*Conf_sim.reshape(n, r, t, d)
 
 q = Q
 rt = r * t
@@ -330,6 +331,50 @@ if "plot_confounder" in sys.argv:
     except:
         pass
     pylab.savefig(os.path.join(root, outname, "K.pdf"))
+    
+    if "sam" in sys.argv:
+        cov = conf_model._lvm_covariance
+        covarsnparams = [c.get_number_of_parameters() for c in cov.covars]
+        covarslices = [slice(a,b) for a,b in itertools.izip(numpy.cumsum(covarsnparams),numpy.cumsum(covarsnparams)[1:])]
+        
+        fig = pylab.figure()        
+        K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], x)
+        im = pylab.imshow(K_sam)
+        pylab.title(r"$\mathbf{sam}$ var={}".format(numpy.trace(K_sam)/K_sam.shape[1]))
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
+        try:
+            fig.tight_layout()
+        except:
+            pass
+        pylab.savefig(os.path.join(root, outname, "K_sam.pdf"))
+
+        fig = pylab.figure()        
+        K_sam_prod = cov.covars[2].K(conf_model._lvm_hyperparams['covar'][covarslices[2]], x)
+        im = pylab.imshow(K_sam_prod)
+        pylab.title(r"$\mathbf{sam prod}$ var={}".format(numpy.trace(K_sam_prod)/K_sam_prod.shape[1]))
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
+        try:
+            fig.tight_layout()
+        except:
+            pass
+        pylab.savefig(os.path.join(root, outname, "K_sam_prod.pdf"))
+
+        fig = pylab.figure()        
+        bias = cov.covars[3].K(conf_model._lvm_hyperparams['covar'][covarslices[3]], x)
+        im = pylab.imshow(bias)
+        pylab.title(r"$\mathbf{bias}$ var={}".format(numpy.trace(bias)/bias.shape[1]))
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
+        try:
+            fig.tight_layout()
+        except:
+            pass
+        pylab.savefig(os.path.join(root, outname, "bias.pdf"))
 
 sys.stdout.flush()
 
