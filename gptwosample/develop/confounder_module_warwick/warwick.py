@@ -276,7 +276,7 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname + "simulated.pdf"))
+    pylab.savefig(os.path.join(root, outname, "simulated.pdf"))
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
@@ -288,7 +288,7 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname + "XX.pdf"))
+    pylab.savefig(os.path.join(root, outname, "XX.pdf"))
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
@@ -326,7 +326,7 @@ gt_vals = numpy.array(gt_vals)[indices[1]]
 # select subset of data to run on:
 jobindices = numpy.array_split(indices[0], N)[Ni]
 outname = os.path.join(outname, "jobs")
-if not os.path.exists(os.path.join(root), outname):
+if not os.path.exists(os.path.join(root, outname)):
     os.makedirs(os.path.join(root, outname))
 dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'w')
 
