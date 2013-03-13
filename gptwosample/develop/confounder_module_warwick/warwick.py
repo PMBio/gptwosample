@@ -165,6 +165,32 @@ else:
 finished(s)
 data_file.close()
 
+#  gt read moved up to improve exit performance
+if "gt100" in sys.argv:
+    gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
+else:
+    gt_file_name = '../../examples/ground_truth_random_genes.csv'
+gt_file = open(gt_file_name, 'r')
+gt_read = csv.reader(gt_file)
+gt_names = list()
+gt_vals = list()
+for name, val in gt_read:
+    gt_names.append(name.upper())
+    gt_vals.append(val)
+indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
+gt_names = numpy.array(gt_names)[indices[1]]
+gt_vals = numpy.array(gt_vals)[indices[1]]
+
+# select subset of data to run on:
+joblen = ceil(len(gt_names)/float(N))
+jobslice = slice(Ni*joblen, (Ni+1)*joblen)
+jobindices = indices[0][jobslice]
+
+if not len(jobindices):
+    print "no more genes left to run" 
+    sys.exit(0) 
+
+
 s = "setting up gplvm module..."
 print s,
 sys.stdout.flush()
@@ -308,28 +334,11 @@ sys.stdout.flush()
 
 # GPTwoSample:
 
-if "gt100" in sys.argv:
-    gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
-else:
-    gt_file_name = '../../examples/ground_truth_random_genes.csv'
-gt_file = open(gt_file_name, 'r')
-gt_read = csv.reader(gt_file)
-gt_names = list()
-gt_vals = list()
-for name, val in gt_read:
-    gt_names.append(name.upper())
-    gt_vals.append(val)
-indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
-gt_names = numpy.array(gt_names)[indices[1]]
-gt_vals = numpy.array(gt_vals)[indices[1]]
-
-# select subset of data to run on:
-joblen = ceil(len(gt_names)/float(N))
-jobslice = slice(Ni*joblen, (Ni+1)*joblen)
-jobindices = indices[0][jobslice]
+# gt_reading done up to improve exit performance ^
 outname = os.path.join(outname, "jobs")
 if not os.path.exists(os.path.join(root, outname)):
     os.makedirs(os.path.join(root, outname))
+    
 #dataset = h5py.File(os.path.join(root, outname, "gptwosample_job_{}_{}.hdf5".format(Ni,N)), 'w')
 
 # priors
@@ -351,7 +360,10 @@ if "relikelihood" in sys.argv:
     sys.argv.append("dolikelihood") 
 
 if len(jobindices):
-    if 'dolikelihood' in sys.argv and (not os.path.exists(likelihoods_file_name)):
+    if ('dolikelihood' in sys.argv and 
+        not (os.path.exists(likelihoods_file_name) and
+             os.path.exists(hyperparams_file_name) and 
+             os.path.exists(gt_file_name))):
         s = "predicting model likelihoods..."
         print s,
         sys.stdout.flush()
