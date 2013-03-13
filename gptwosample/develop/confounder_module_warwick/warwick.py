@@ -334,6 +334,7 @@ if "plot_confounder" in sys.argv:
     if "sam" in sys.argv:
         cov = conf_model._lvm_covariance
         covarsnparams = [c.get_number_of_parameters() for c in cov.covars]
+        covarsnparams.insert(0,0)
         covarslices = [slice(a,b) for a,b in itertools.izip(numpy.cumsum(covarsnparams),numpy.cumsum(covarsnparams)[1:])]
         
         fig = pylab.figure()        
