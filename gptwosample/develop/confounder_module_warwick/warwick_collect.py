@@ -26,7 +26,7 @@ for parent, folders, files in os.walk(root):
     if "jobs" == os.path.basename(parent):
         with open(os.path.join(os.path.dirname(parent), "bayes.csv"), 'w') as bayesfile:
             writer = csv.writer(bayesfile)
-            N = os.path.splitext(files[0])[0].split("_")[-1]
+            N = int(os.path.splitext(files[0])[0].split("_")[-1])
             for Ni in range(N):
                 with open(os.path.join(parent,'likelihoods_job_{}_{}.pickle'.format(Ni, N)),'r') as liks, \
                      open(os.path.join(parent,'gt_names_job_{}_{}.pickle'.format(Ni, N)),'r') as gts:
