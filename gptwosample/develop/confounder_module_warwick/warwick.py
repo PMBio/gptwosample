@@ -168,7 +168,7 @@ s = "setting up gplvm module..."
 print s,
 sys.stdout.flush()
 sys.stdout.write("\r")
-if not ("raw" in sys.argv) or not "unconfounded" in sys.argv:
+if not ("raw" in sys.argv) and not ("unconfounded" in sys.argv):
     Y = Y + Conf_sim.reshape(n, r, t, d)
 
 q = Q
