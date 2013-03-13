@@ -13,7 +13,9 @@ dirstoremove = []
 
 for parent, folders, files in os.walk(root):
     if "jobs" == os.path.basename(parent):
-        dirstoremove.append(parent)
+        dirstoremove.append([parent,files])
         
-for parent in dirstoremove:
+for parent,files in dirstoremove:
+    for f in files:
+        os.remove(os.path.join(parent,f))
     os.removedirs(parent)
