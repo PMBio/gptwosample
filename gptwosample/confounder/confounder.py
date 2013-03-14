@@ -12,7 +12,8 @@ from pygp.gp.gplvm import GPLVM
 from pygp.optimize.optimize_base import opt_hyper
 from pygp.covar.fixed import FixedCF
 from pygp.likelihood.likelihood_base import GaussLikISO
-from gptwosample.data.data_base import get_model_structure
+from gptwosample.data.data_base import get_model_structure, common_id,\
+    individual_id
 from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
     TwoSampleBase
 from Queue import Queue
@@ -80,7 +81,7 @@ class ConfounderTwoSample():
 
         self._initialized = False
 
-    def learn_confounder_matrix(self, ard_indices=None, x=None):
+    def learn_confounder_matrix(self, ard_indices=None, x=None, messages=True,gradient_tolerance=1E-12):
         """
         Learn confounder matrix with this model.
 
@@ -123,8 +124,8 @@ class ConfounderTwoSample():
         lvm_hyperparams, _ = opt_hyper(g, hyper,
                                        Ifilter=None, maxiter=10000,
                                        gradcheck=False, bounds=None,
-                                       messages=True,
-                                       gradient_tolerance=1E-12)
+                                       messages=messages,
+                                       gradient_tolerance=gradient_tolerance)
 
         self._init_conf_matrix(lvm_hyperparams, ard_indices)
         # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
@@ -357,7 +358,14 @@ class ConfounderTwoSample():
 
     def get_predicted_means_variances(self):
         return self._mean_variances
-
+    
+    def get_twosample(self, priors=None):
+        return self._TwoSampleObject(priors)
+    
+    def get_covars(self):
+        models = self.get_twosample()._models
+        return {individual_id: models[individual_id].covar, common_id: models[common_id].covar}
+    
     def _invalidate_cache(self):
         self._likelihoods = None
         self._mean_variances = None
@@ -533,22 +541,22 @@ if __name__ == '__main__':
     y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     
-    Y1 = numpy.zeros((t,d+10))
-    Y2 = numpy.zeros((t,d+10))
+    Y1 = numpy.zeros((t,d+d/2))
+    Y2 = numpy.zeros((t,d+d/2))
     
     Y1[:,:d] = y1
     Y2[:,:d] = y2
     
-    sames = numpy.random.randint(0,d,size=10)
+    sames = numpy.random.randint(0,d,size=d/2)
     
     Y1[:,d:] = y2[:,sames]
     Y2[:,d:] = y1[:,sames]
     
-    Y = numpy.zeros((n,r,t,d+10))
+    Y = numpy.zeros((n,r,t,d+d/2))
 
     sigma = .5
-    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d+10)
-    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d+10)
+    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d+d/2)
+    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d+d/2)
 
     c = ConfounderTwoSample(Ts, Y)
 #    c.__verbose = True

@@ -69,7 +69,16 @@ def usage():
     return '\n'.join(usage)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "hvpso:ti:n:d:", ["help", "verbose", "plot", "show", "out_dir=", "timeshift", "interval=", 'interpolation=', "delimiter="])
+    opts, args = getopt.getopt(sys.argv[1:], "hvpso:tn:d:", #i 
+                               ["help", 
+                                "verbose", 
+                                "plot", 
+                                "show", 
+                                "out_dir=", 
+                                "timeshift", 
+                                #"interval=", 
+                                'interpolation=', 
+                                "delimiter="])
 except getopt.GetoptError:
     print usage()
     sys.exit(2)
@@ -91,13 +100,13 @@ for opt, arg in opts:
             os.makedirs(out_dir)
     elif opt in ('-t', '--timeshift'):
         timeshift = True
-    elif opt in ('-i', '--interval'):
-        interval = True
-        try:
-            gibbs_iterations = int(arg)
-        except:
-            print "Need an Integer for option %s, given: %s" % (opt, arg)
-            sys.exit(2)
+    #elif opt in ('-i', '--interval'):
+    #    interval = True
+    #    try:
+    #        gibbs_iterations = int(arg)
+    #    except:
+    #        print "Need an Integer for option %s, given: %s" % (opt, arg)
+    #        sys.exit(2)
     elif(opt in ('-p', '--plot')):
         plotting = True
     elif(opt in ('-s', '--show')):
@@ -118,7 +127,7 @@ print "Welcome to GPTwoSample. Loading modules, be patient..."
 print "Loading: GPTwoSample Modules..."
 print "Loading: scipy..."
 print "Loading: csv..."
-print "Finished Loading, ready to GPTwoSample!"
+print "Finished loading, ready to GPTwoSample!"
 
 def main():
     #print "Modules loaded, starting to GPTwoSample!"
@@ -137,7 +146,7 @@ def main():
         print "GPTwoSample:-plotting:\t%s" % (plotting)
         print "GPTwoSample:-hold:\t%s" % (hold)
         print "GPTwoSample:-timeshift:\t%s" % (timeshift)
-        print "GPTwoSample:-interval:\t%s, with iterations: %s" % (interval, gibbs_iterations)
+        #print "GPTwoSample:-interval:\t%s, with iterations: %s" % (interval, gibbs_iterations)
         print "GPTwoSample:-interpolation:\t%s" % (interpolation)
         print "GPTwoSample:-delim:\t%s" % (delim.encode('string-escape'))
         print "GPTwoSample:-out_dir:\t%s" % (os.path.relpath(out_dir, "./"))
@@ -150,24 +159,28 @@ def main():
     # read data
     from gptwosample.data.dataIO import get_data_from_csv
     try:
-        if verbose: print('GPTwoSample:Reading data from file:%s' % (os.path.relpath(args[0])))
-        cond1 = get_data_from_csv(args[0], delimiter=delim)
-        if verbose: print('GPTwoSample:Reading data from file:%s' % (os.path.relpath(args[1])))
-        cond2 = get_data_from_csv(args[1], delimiter=delim)
+        if verbose: print('GPTwoSample:Reading data from file: %s' % (os.path.relpath(args[0])))
+        cond1 = get_data_from_csv(args[0], delimiter=delim, verbose=verbose)
+        if verbose: print('GPTwoSample:Reading data from file: %s' % (os.path.relpath(args[1])))
+        cond2 = get_data_from_csv(args[1], delimiter=delim, verbose=verbose)
         # get input from data 
         Tpredict = scipy.linspace(cond1["input"].min(), cond1["input"].max(), interpolation).reshape(-1, 1)
         T1 = cond1.pop("input")
         T2 = cond2.pop("input")
+    except IOError as io:
+        print "ERROR: Could not read file {}".format(io.filename)
+        sys.exit(2)
     except:
+        import ipdb;ipdb.set_trace()
         print "ERROR:Could not read given files, perhaps wrong delimiter chosen?"
         sys.exit(2)
     del get_data_from_csv
     
-    if interval:
-        if not(len(T1) == len(T2)):
-            print "ERROR:GPTwoSampleInterval:For interval sampling same input dimension is required!"
-            print "ERROR:GPTwoSampleInterval:Given: len(%s)=%i and len(%s)=%i" % (os.path.basename(args[0]),len(T1),os.path.basename(args[1]),len(T2))
-            sys.exit(2)
+#    if interval:
+#        if not(len(T1) == len(T2)):
+#            print "ERROR:TwoSampleInterval:For interval sampling same input dimension is required!"
+#            print "ERROR:TwoSampleInterval:Given: len(%s)=%i and len(%s)=%i" % (os.path.basename(args[0]),len(T1),os.path.basename(args[1]),len(T2))
+#            sys.exit(2)
     # gene_names for later writing and plotting
     gene_names = sorted(cond1.keys()) 
     if not(gene_names == sorted(cond2.keys())):
@@ -195,19 +208,19 @@ def main():
     dim = 1
     # get covariance function right
     CovFun = get_covariance_function(dim, gene_length, n_replicates_1, n_replicates_2)
-    # Make shure output file has right header and
+    # Make sure output file has right header and
     # get gptwosample_object right
     header = ["Gene", "Bayes Factor"]
     if(timeshift):
         header.extend(get_header_for_covar(CovFun[2], CovFun[0]))
-        from gptwosample.twosample.twosample_compare import GPTwoSample_individual_covariance
-        gptwosample_object = GPTwoSample_individual_covariance(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
-        del GPTwoSample_individual_covariance
+        from gptwosample.twosample.twosample_base import TwoSampleSeparate
+        gptwosample_object = TwoSampleSeparate(*CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
+        del TwoSampleSeparate
     else:
         header.extend(get_header_for_covar(CovFun))
-        from gptwosample.twosample.twosample_compare import GPTwoSample_share_covariance
-        gptwosample_object = GPTwoSample_share_covariance(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
-        del GPTwoSample_share_covariance
+        from gptwosample.twosample.twosample_base import TwoSampleShare
+        gptwosample_object = TwoSampleShare(CovFun, priors=get_priors(dim, n_replicates_1, n_replicates_2))
+        del TwoSampleShare
     if(interval):
         header.append("Interval Indicators")
         header.append("Interval Probabilities")
@@ -219,10 +232,10 @@ def main():
     T1 = scipy.tile(T1, n_replicates_1).reshape(-1, 1)
     T2 = scipy.tile(T2, n_replicates_1).reshape(-1, 1)
     
+    # now lets run GPTwoSample on each gene in data:
     if interval:
         perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_names, csv_out, n_replicates_1, n_replicates_2, dim)
     else:
-        # now lets run GPTwoSample on each gene in data:
         perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_names, csv_out, n_replicates_1, n_replicates_2, dim)
     
     print "DONE:Results written to %s" % (os.path.join(out_dir, "result"+os.path.splitext(args[0])[1]))
@@ -245,8 +258,8 @@ def get_exp_on_timeshift_right(gptwosample_object, n_replicates_1, n_replicates_
         timeshift_index[dim + 1:dim + 1 + n_replicates_1] = 0
         individual[timeshift_index] = scipy.exp(individual[timeshift_index])
     else:
-        common = scipy.exp(common)
-        individual = scipy.exp(individual)
+        common = scipy.exp(2*common)
+        individual = scipy.exp(2*individual)
     return common, individual
 
 def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_names,
@@ -261,30 +274,31 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
 
     logthetaZ = scipy.log([.5, 2, .001])
     lik = scipy.log([2, 2])
-    from gptwosample.twosample.interval_smooth import GPTwoSampleInterval
+    from gptwosample.twosample.interval_smooth import TwoSampleInterval
     if plotting:
         from pylab import xlim, show, savefig, clf
         from gptwosample.plot.interval import plot_results_interval
     
     for gene_name in gene_names:
-        if verbose: print("GPTwoSampleInterval:Processing %s" % (gene_name))
+        if verbose: print("TwoSampleInterval:Processing %s" % (gene_name))
         Y0 = cond1[gene_name].reshape(-1,1)
         Y1 = cond2[gene_name].reshape(-1,1)
         gptwosample_object.set_data_by_xy_data(T1,T2,
                                                Y0,
                                                Y1)
-        gptwosample_object.predict_model_likelihoods()
+        gptwosample_object.predict_model_likelihoods(messages=False)
 
         line = [gene_name, gptwosample_object.bayes_factor()]
         common, individual = get_exp_on_timeshift_right(gptwosample_object, n_replicates_1, n_replicates_2, dim)
         line.extend(common)
         line.extend(individual)
-        gptest = GPTwoSampleInterval(gptwosample_object, outlier_probability=.1)
+        gptest = TwoSampleInterval(gptwosample_object, outlier_probability=.1)
         Z = gptest.predict_interval_probabilities(Tpredict, hyperparams={'covar':logthetaZ, 'lik':lik},
-                                                  number_of_gibbs_iterations=gibbs_iterations)
-        if verbose: print("GPTwoSampleInterval:Prediction: %s" % (" ".join(scipy.array(gptest.get_predicted_indicators(), dtype="str"))))
+                                                  number_of_gibbs_iterations=gibbs_iterations,
+                                                  )
+        if verbose: print("TwoSampleInterval:Prediction: %s" % (" ".join(scipy.array(gptest.get_predicted_indicators(), dtype="str"))))
         if(plotting):
-            if verbose: print("GPTwoSampleInterval:Plotting")
+            if verbose: print("TwoSampleInterval:Plotting")
             if(timeshift):
                 plot_results_interval(gptest,
                      shift=gptwosample_object.get_learned_hyperparameters()[common_id]['covar'][2:2 + n_replicates_1+n_replicates_2],
@@ -295,9 +309,9 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
                 plot_results_interval(gptest, title=r'%s: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, gptwosample_object.bayes_factor())) 
             xlim(T1.min(), T1.max())
             savefig(os.path.join(out_dir, "%s.png") % (gene_name), format='png')
-            if verbose: print("GPTwoSampleInterval:Saving Figure %s" % (os.path.join(out_dir, "%s.png") % (gene_name)))
+            if verbose: print("TwoSampleInterval:Saving Figure %s" % (os.path.join(out_dir, "%s.png") % (gene_name)))
             if hold:
-                print("GPTwoSampleInterval:Hold for Showing (Close figure to continue...")
+                print("TwoSampleInterval:Hold for Showing (Close figure to continue...")
                 show()
             clf()
         if(delim == ","):
@@ -306,11 +320,11 @@ def perform_interval(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene_na
             internal_delim = ','
         line.append(internal_delim.join(scipy.array(gptest.get_predicted_indicators(), dtype="str")))
         line.append(internal_delim.join(scipy.array(Z[0], dtype="str")))
-        if verbose: print("GPTwoSampleInterval:Writing back..." % (line))
+        if verbose: print("TwoSampleInterval:Writing back..." % (line))
         csv_out.writerow(line)
         csv_out_file.flush()
 
-    del GPTwoSampleInterval
+    del TwoSampleInterval
     if plotting:
         del xlim, show, savefig, clf
         del plot_results_interval
@@ -340,7 +354,7 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
         
         gptwosample_object.set_data_by_xy_data(T1,T2,
                                                Y0,Y1)
-        gptwosample_object.predict_model_likelihoods()
+        gptwosample_object.predict_model_likelihoods(messages=False)
         gptwosample_object.predict_mean_variance(Tpredict)
         if verbose: print("GPTwoSample:Prediction: %s" % (gptwosample_object.bayes_factor()))
         line = [gene_name, gptwosample_object.bayes_factor()]
@@ -362,7 +376,7 @@ def perform_gptwosample(gptwosample_object, cond1, cond2, Tpredict, T1, T2, gene
             savefig(os.path.join(out_dir, "%s.png") % (gene_name), format='png')
             if verbose: print("GPTwoSample:Saving Figure %s" % (os.path.join(out_dir, "%s.png") % (gene_name)))
             if hold:
-                print("GPTwoSampleInterval:Hold for Showing (Close figure to continue...")
+                print("TwoSampleInterval:Hold for Showing (Close figure to continue...")
                 show()
             clf()
         if verbose: print("GPTwoSample:Writing back" % (line))

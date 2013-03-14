@@ -113,7 +113,7 @@ def run_demo(cond1_file, cond2_file):
                                          priors=priors)
         
         gptwosample_object.predict_model_likelihoods(training_data=training_data)
-        gptwosample_object.predict_mean_variance_iter(Tpredict)
+        gptwosample_object.predict_mean_variance(Tpredict)
         
         #PL.suptitle("Example for GPTwoSample_individual_covariance with simulated data", fontsize=24)
     
@@ -128,7 +128,7 @@ def run_demo(cond1_file, cond2_file):
         # Second, GPTwoSample without timeshift:
         gptwosample_object = TwoSampleShare(CovFun, priors={'covar':SP.array(covar_priors)})
         gptwosample_object.predict_model_likelihoods(training_data=training_data)
-        gptwosample_object.predict_mean_variance_iter(Tpredict)
+        gptwosample_object.predict_mean_variance(Tpredict)
         
         PL.subplot(211)
         plot_results(gptwosample_object,legend=False,

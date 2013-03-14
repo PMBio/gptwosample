@@ -29,7 +29,7 @@ def get_toy_data(xmin=1, xmax=2.5 * SP.pi, step1=.7, step2=.4,
     
     return x1, x2, y1, y2
 
-def get_twosample_object(dim=1):
+def get_twosample(dim=1):
     SECF = se.SqexpCFARD(dim)
     noiseCF = noise.NoiseCFISO()
 

@@ -33,7 +33,7 @@ warwick_control-file and warwick_treatment-file have to be given only in first r
 
 Q = 4
 seed = 0
-conf_var = 1./4.
+conf_var = 0.25
 N, Ni = 1, 0
 
 stats_lines = list()
@@ -50,7 +50,7 @@ for ar in sys.argv:
         Q = int(ar.split("=")[1])
         print "Q", seed
     elif ar.startswith("conf_var="):
-        conf_var = int(ar.split("=")[1])
+        conf_var = float(ar.split("=")[1])
     elif ar.startswith("jobs="):
         N, Ni = map(lambda x: int(x), ar.split("=")[1].split(","))
         Ni -= 1  # to index
