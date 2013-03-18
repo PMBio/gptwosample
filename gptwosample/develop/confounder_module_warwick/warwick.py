@@ -56,7 +56,7 @@ for ar in sys.argv:
         conf_var = float(ar.split("=")[1])
         print "conf_var", conf_var
     elif ar.startswith("D="):
-        D = float(ar.split("=")[1])
+        D = int(ar.split("=")[1])
         print "D", D
     elif ar.startswith("jobs="):
         N, Ni = map(lambda x: int(x), ar.split("=")[1].split(","))
