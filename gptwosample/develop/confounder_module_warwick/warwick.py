@@ -334,6 +334,7 @@ if "plot_predict" in sys.argv:
 
 if "plot_confounder" in sys.argv:
     sigma = numpy.exp(2*conf_model._lvm_hyperparams['lik'][0])
+    hyps = conf_model._lvm_covariance.get_reparametrized_theta(conf_model._lvm_hyperparams['covar'])
     
     fig = pylab.figure()
     im = pylab.imshow(K_sim)
@@ -349,7 +350,8 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
-    pylab.title(r"$\mathbf{{XX}}$, var={}, $\sigma={}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1], sigma))
+    import ipdb;ipdb.set_trace()
+    pylab.title(r"$\mathbf{{XX}}$, var={.3f}, $\sigma={.3f}, \alpha={.3f}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1], sigma, ))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -382,7 +384,7 @@ if "plot_confounder" in sys.argv:
         fig = pylab.figure()        
         K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], x)
         im = pylab.imshow(K_sam)
-        pylab.title(r"$\mathbf{{sam}}$ var={}".format(numpy.trace(K_sam)/K_sam.shape[1]))
+        pylab.title(r"$\mathbf{{sam}}$ var=${.3f}$".format(numpy.trace(K_sam)/K_sam.shape[1]))
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
