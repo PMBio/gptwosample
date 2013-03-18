@@ -299,6 +299,7 @@ else:
     finished(s)
 
 x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
+conf_model._Xlvm = x
 
 try:
     lvm_hyperparams_file.close()
