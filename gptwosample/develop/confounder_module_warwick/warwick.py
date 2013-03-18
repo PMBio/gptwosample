@@ -349,7 +349,7 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
-    pylab.title(r"$\mathbf{XX}, var={}, \sigma={}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1]), sigma)
+    pylab.title(r"$\mathbf{{XX}}, var={}, \sigma={}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1]), sigma)
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -363,7 +363,7 @@ if "plot_confounder" in sys.argv:
     cov = conf_model._lvm_covariance
     K_whole = cov.K(conf_model._lvm_hyperparams['covar'], x)
     im = pylab.imshow(K_whole)
-    pylab.title(r"$\mathbf{K}$ var={}".format(numpy.trace(K_whole)/K_whole.shape[1]))
+    pylab.title(r"$\mathbf{{K}}$ var={}".format(numpy.trace(K_whole)/K_whole.shape[1]))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
