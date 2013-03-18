@@ -391,7 +391,7 @@ if "plot_confounder" in sys.argv:
             fig.tight_layout()
         except:
             pass
-        pylab.savefig(os.path.join(root, outname, "K_XXcov.pdf"))
+        pylab.savefig(os.path.join(root, outname, "KXXcov.pdf"))
 
         fig = pylab.figure()        
         K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], x)
@@ -431,7 +431,7 @@ if "plot_confounder" in sys.argv:
         except:
             pass
         pylab.savefig(os.path.join(root, outname, "bias.pdf"))
-        
+    import ipdb;ipdb.set_trace()
 
 sys.stdout.flush()
 
