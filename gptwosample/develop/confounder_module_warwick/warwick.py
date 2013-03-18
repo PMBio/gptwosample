@@ -200,8 +200,10 @@ jobindices = indices[0][jobslice]
 
 if not len(jobindices):
     print "no more genes left to run" 
-    sys.exit(0) 
+    sys.exit(0)
 
+if "onlydata" in sys.argv:
+    sys.exit(0)
 
 s = "setting up gplvm module..."
 print s,
