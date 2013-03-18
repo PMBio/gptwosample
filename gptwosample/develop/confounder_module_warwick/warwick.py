@@ -333,6 +333,8 @@ if "plot_predict" in sys.argv:
 
 
 if "plot_confounder" in sys.argv:
+    sigma = numpy.exp(2*conf_model._lvm_hyperparams['lik'][0])
+    
     fig = pylab.figure()
     im = pylab.imshow(K_sim)
     pylab.title("Simulated")
@@ -347,7 +349,7 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
-    pylab.title(r"$\mathbf{XX}$")
+    pylab.title(r"$\mathbf{XX}, var={}, \sigma={}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1]), sigma)
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -355,13 +357,13 @@ if "plot_confounder" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname, "XX.pdf"))
+    pylab.savefig(os.path.join(root, outname, "KXX.pdf"))
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
     K_whole = cov.K(conf_model._lvm_hyperparams['covar'], x)
     im = pylab.imshow(K_whole)
-    pylab.title(r"$\mathbf{K}$")
+    pylab.title(r"$\mathbf{K}$ var={}".format(numpy.trace(K_whole)/K_whole.shape[1]))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -415,6 +417,7 @@ if "plot_confounder" in sys.argv:
         except:
             pass
         pylab.savefig(os.path.join(root, outname, "bias.pdf"))
+        
 
 sys.stdout.flush()
 
