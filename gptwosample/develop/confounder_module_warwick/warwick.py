@@ -297,7 +297,7 @@ if "plot_predict" in sys.argv:
     prediction = conf_model.predict_lvm()
     fig = pylab.figure()
     im = pylab.imshow(prediction[0])
-    pylab.title("Prediction, mean var = {0:.3f}".format(prediction(1).mean()))
+    pylab.title("Prediction, mean var = {0:.3f}".format(prediction[1].mean()))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
