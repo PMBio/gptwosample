@@ -156,7 +156,7 @@ class ConfounderTwoSample():
             print "Confounders not yet learned"
             sys.exit(1)
         
-        return self.gplvm.predict(self._hyperparameters, self._Xlvm, self.arange(self.d))
+        return self.gplvm.predict(self._hyperparameters, self._Xlvm, numpy.arange(self.d))
 
     def predict_likelihoods(self,
                             indices=None,
