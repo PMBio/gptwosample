@@ -431,7 +431,6 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
         except:
             pass
         pylab.savefig(os.path.join(root, outname, "bias.pdf"))
-    import ipdb;ipdb.set_trace()
 
 sys.stdout.flush()
 
