@@ -26,7 +26,10 @@ for parent, folders, files in os.walk(root):
     if "jobs" == os.path.basename(parent):
         with open(os.path.join(os.path.dirname(parent), "bayes.csv"), 'w') as bayesfile:
             writer = csv.writer(bayesfile)
-            N = int(os.path.splitext(files[0])[0].split("_")[-1])
+            try:
+                N = int(os.path.splitext(files[0])[0].split("_")[-1])
+            except IndexError:
+                continue
             for Ni in range(N):
                 try:
                     sys.stdout.flush()
