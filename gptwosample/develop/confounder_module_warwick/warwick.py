@@ -170,7 +170,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
 
     data_file = open(data_file_path, 'w')
-    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q).T], data_file)
+    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q)], data_file)
 else:
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
@@ -295,9 +295,10 @@ else:
     print s,
     sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
-    conf_model._Xlvm = x
     conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
     finished(s)
+
+x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 
 try:
     lvm_hyperparams_file.close()
@@ -362,7 +363,7 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
-    K_whole = cov.K(conf_model._lvm_hyperparams['covar'], conf_model._Xlvm)
+    K_whole = cov.K(conf_model._lvm_hyperparams['covar'], x)
     im = pylab.imshow(K_whole)
     pylab.title(r"$\mathbf{{K}}$ var=${:.3f}$".format(numpy.trace(K_whole)/K_whole.shape[1]))
     divider = make_axes_locatable(pylab.gca())
@@ -381,7 +382,7 @@ if "plot_confounder" in sys.argv:
         covarslices = [slice(a,b) for a,b in itertools.izip(numpy.cumsum(covarsnparams),numpy.cumsum(covarsnparams)[1:])]
         
         fig = pylab.figure()        
-        K_XXcov = cov.covars[0].K(conf_model._lvm_hyperparams['covar'][covarslices[0]], conf_model._Xlvm)
+        K_XXcov = cov.covars[0].K(conf_model._lvm_hyperparams['covar'][covarslices[0]], x)
         im = pylab.imshow(K_XXcov)
         pylab.title(r"$\mathbf{{covXX}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_XXcov)/K_XXcov.shape[1], hyps[covarslices[0]].mean()))
         divider = make_axes_locatable(pylab.gca())
@@ -394,7 +395,7 @@ if "plot_confounder" in sys.argv:
         pylab.savefig(os.path.join(root, outname, "KXXcov.pdf"))
 
         fig = pylab.figure()        
-        K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], conf_model._Xlvm)
+        K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], x)
         im = pylab.imshow(K_sam)
         pylab.title(r"$\mathbf{{sam}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_sam)/K_sam.shape[1], hyps[covarslices[1]][0]))
         divider = make_axes_locatable(pylab.gca())
@@ -407,7 +408,7 @@ if "plot_confounder" in sys.argv:
         pylab.savefig(os.path.join(root, outname, "K_sam.pdf"))
 
         fig = pylab.figure()
-        K_sam_prod = cov.covars[2].K(conf_model._lvm_hyperparams['covar'][covarslices[2]], conf_model._Xlvm)
+        K_sam_prod = cov.covars[2].K(conf_model._lvm_hyperparams['covar'][covarslices[2]], x)
         im = pylab.imshow(K_sam_prod)
         pylab.title(r"$\mathbf{{sam prod}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_sam_prod)/K_sam_prod.shape[1], hyps[covarslices[2]][0]))
         divider = make_axes_locatable(pylab.gca())
@@ -420,7 +421,7 @@ if "plot_confounder" in sys.argv:
         pylab.savefig(os.path.join(root, outname, "K_sam_prod.pdf"))
 
         fig = pylab.figure()        
-        bias = cov.covars[3].K(conf_model._lvm_hyperparams['covar'][covarslices[3]], conf_model._Xlvm)
+        bias = cov.covars[3].K(conf_model._lvm_hyperparams['covar'][covarslices[3]], x)
         im = pylab.imshow(bias)
         pylab.title(r"$\mathbf{{Kbias}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(bias)/bias.shape[1], hyps[covarslices[3]][0]))
         divider = make_axes_locatable(pylab.gca())
