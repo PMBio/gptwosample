@@ -304,7 +304,7 @@ try:
 except:
     pass
 
-if "plot_predict" in sys.argv:
+if "plot_predict" in sys.argv and "conf" in sys.argv:
     prediction = conf_model.predict_lvm()
     fig = pylab.figure()
     im = pylab.imshow(prediction[0])
@@ -332,7 +332,7 @@ if "plot_predict" in sys.argv:
     
 
 
-if "plot_confounder" in sys.argv:
+if "plot_confounder" in sys.argv and "conf" in sys.argv:
     sigma = numpy.exp(2*conf_model._lvm_hyperparams['lik'][0])
     hyps = conf_model._lvm_covariance.get_reparametrized_theta(conf_model._lvm_hyperparams['covar'])
     
