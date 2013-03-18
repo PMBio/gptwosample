@@ -349,7 +349,7 @@ if "plot_confounder" in sys.argv:
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
-    pylab.title(r"$\mathbf{{XX}}, var={}, \sigma={}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1]), sigma)
+    pylab.title(r"$\mathbf{{XX}}$, var={}, $\sigma={}$".format(numpy.trace(conf_model.K_conf)/conf_model.K_conf.shape[1], sigma))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
