@@ -296,7 +296,7 @@ except:
 if "plot_predict" in sys.argv:
     prediction = conf_model.predict_lvm()
     fig = pylab.figure()
-    im = pylab.imshow(prediction)
+    im = pylab.imshow(prediction[0])
     pylab.title("Prediction")
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
@@ -308,7 +308,7 @@ if "plot_predict" in sys.argv:
     pylab.savefig(os.path.join(root, outname, "prediction.pdf"))
     
     fig = pylab.figure()
-    im = pylab.imshow(Y)
+    im = pylab.imshow(Y.reshape(-1,d))
     pylab.title("Y")
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
