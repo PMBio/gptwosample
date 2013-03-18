@@ -22,6 +22,7 @@ import h5py
 from numpy.ma.core import ceil
 import itertools
 from gptwosample.develop.reveal_confounders_proof_of_concept.simple_confounders import read_files_and_pickle
+from gptwosample.confounder.data import read_and_handle_gt
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -138,7 +139,8 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 #    Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
 #    Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
 #    Y = numpy.array([Y1, Y2])
-    T, Y, gene_names = read_files_and_pickle(sys.argv[4], sys.argv[5], gt_file_name, D=D, pickle=False)
+    T, Y, gene_names = read_and_handle_gt(sys.argv[4], sys.argv[5], gt_file_name, D=D)
+    import ipdb;ipdb.set_trace()
     
     n, r, t, d = Y.shape
 

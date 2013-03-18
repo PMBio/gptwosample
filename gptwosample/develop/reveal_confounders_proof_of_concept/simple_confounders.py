@@ -11,7 +11,6 @@ from gptwosample.data.data_base import get_model_structure, common_id, \
 import os
 import csv
 import cPickle as pickle
-from gptwosample.plot.plot_basic import plot_results
 from numpy.linalg.linalg import cholesky
 import logging
 import pylab
