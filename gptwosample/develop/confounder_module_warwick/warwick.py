@@ -296,6 +296,7 @@ else:
     sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
     x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
+    conf_model._Xlvm = x
     conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None, numpy.arange(1,1+Q))
     finished(s)
 try:
