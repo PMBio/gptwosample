@@ -70,7 +70,7 @@ class ConfounderTwoSample():
             sam = LinearCFISO(dimension_indices=numpy.arange(1 + q,
                                                               #+ (self.n * self.r),
                                                               1 + q + self.n)) # + (self.n * self.r) 
-            self._lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 1 + q)),
+            self._lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1,2)),
                                           #rep,
                                           sam,
                                           ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
@@ -410,9 +410,9 @@ class ConfounderTwoSample():
         self.X = lvm_hyperparams['x']
         self._lvm_hyperparams = lvm_hyperparams
         if ard_indices is None:
-            ard_indices = numpy.arange(0, self.q)
+            ard_indices = numpy.arange(1)
         ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
-        self.K_conf = numpy.dot(self.X * ard, self.X.T)
+        self.K_conf = numpy.dot(self.X*ard, self.X.T)
         
         try:
             self.gplvm
