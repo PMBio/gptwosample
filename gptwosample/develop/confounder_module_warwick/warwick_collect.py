@@ -33,7 +33,7 @@ for parent, folders, files in os.walk(root):
             for Ni in range(N):
                 try:
                     sys.stdout.flush()
-                    sys.stdout.write("{}/{}        \r".format(Ni,N))
+                    sys.stdout.write("{2}: {0}/{1}        \r".format(Ni,N,os.pardir(parent)))
                     with open(os.path.join(parent,'likelihoods_job_{}_{}.pickle'.format(Ni, N)),'r') as liks, \
                          open(os.path.join(parent,'gt_names_job_{}_{}.pickle'.format(Ni, N)),'r') as gts:
                         write_bayes_factors(writer, pickle.load(gts), pickle.load(liks))
