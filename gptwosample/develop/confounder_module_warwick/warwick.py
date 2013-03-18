@@ -284,6 +284,7 @@ else:
     print s,
     sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
+    conf_model._Xlvm = x
     conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
     finished(s)
 
@@ -293,7 +294,6 @@ except:
     pass
 
 if "plot_predict" in sys.argv:
-    conf_model._Xlvm = x
     prediction = conf_model.predict_lvm()
     fig = pylab.figure()
     im = pylab.imshow(prediction)
