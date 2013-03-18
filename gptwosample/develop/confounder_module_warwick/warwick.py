@@ -126,7 +126,7 @@ def start_mill(s):
 s = "loading data..."
 sys.stdout.write(s)
 sys.stdout.flush()
-data_file_path = os.path.join(data, "./data_seed={0:!s}_Q={1:!s}_D={2:!s}.pickle".format(seed,Q,D))
+data_file_path = os.path.join(data, "./data_seed={0!s}_Q={1!s}_D={2!s}.pickle".format(seed,Q,D))
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
 #    cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
