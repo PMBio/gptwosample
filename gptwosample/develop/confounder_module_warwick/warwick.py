@@ -295,12 +295,9 @@ else:
     print s,
     sys.stdout.write("\r")
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'r')
-    conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
+    x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
+    conf_model._init_conf_matrix(pickle.load(lvm_hyperparams_file), None, numpy.arange(1,1+Q))
     finished(s)
-
-x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
-conf_model._Xlvm = x
-
 try:
     lvm_hyperparams_file.close()
 except:

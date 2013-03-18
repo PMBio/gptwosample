@@ -82,16 +82,34 @@ class ConfounderTwoSample():
 
         self._initialized = False
 
-    def learn_confounder_matrix(self, ard_indices=None, x=None, messages=True,gradient_tolerance=1E-12):
+    def learn_confounder_matrix(self, 
+                                ard_indices=None, 
+                                x=None, 
+                                messages=True,
+                                gradient_tolerance=1E-12,
+                                lvm_dimension_indices=None,
+                                ):
         """
         Learn confounder matrix with this model.
 
         **Parameters**:
 
+        x : array-like
+            If you provided an own lvm_covariance you have to specify 
+            the X to use within GPLVM
+        
+        lvm_dimension_indices : [int]
+            If you specified an own lvm_covariance you have to specify 
+            the dimension indices for GPLVM
+            
         ard_indices : [indices]
             If you provided an own lvm_covariance, give the ard indices of the covariance here,
             to be able to use the correct hyperparameters for calculating the confounder covariance matrix.
+        
+        
         """
+        if lvm_dimension_indices is None:
+            lvm_dimension_indices = xrange(1, 1 + self.q)
         if ard_indices is None:
             ard_indices = slice(0, self.q)
         self._check_data()
@@ -104,8 +122,8 @@ class ConfounderTwoSample():
 
         if x is None:
             x = self._x()
-        self._Xlvm = x    
-        self.gplvm = self._gplvm()
+        self._Xlvm = x
+        self.gplvm = self._gplvm(lvm_dimension_indices)
 
         hyper = {
                  'lik':numpy.log([.15]),
@@ -119,7 +137,7 @@ class ConfounderTwoSample():
                                        messages=messages,
                                        gradient_tolerance=gradient_tolerance)
         
-        self._init_conf_matrix(lvm_hyperparams, ard_indices)
+        self._init_conf_matrix(lvm_hyperparams, ard_indices, lvm_dimension_indices)
         # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
 
     def set_data(self, T, Y):
@@ -386,7 +404,7 @@ class ConfounderTwoSample():
             self.Y[0, :, :, i].ravel()[:, None], \
             self.Y[1, :, :, i].ravel()[:, None]
 
-    def _init_conf_matrix(self, lvm_hyperparams, ard_indices):        
+    def _init_conf_matrix(self, lvm_hyperparams, ard_indices, lvm_dimension_indices):        
         self._initialized = True
         self.X = lvm_hyperparams['x']
         self._lvm_hyperparams = lvm_hyperparams
@@ -398,7 +416,7 @@ class ConfounderTwoSample():
         try:
             self.gplvm
         except:
-            self.gplvm = self._gplvm()
+            self.gplvm = self._gplvm(lvm_dimension_indices)
 
 
     def _TwoSampleObject(self, priors=None):
@@ -530,11 +548,12 @@ class ConfounderTwoSample():
 
             raise r
 
-    def _gplvm(self,):
-        X, Y = self._Xlvm, self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
-        return GPLVM(gplvm_dimensions=xrange(1, 1 + self.q), covar_func=self._lvm_covariance, 
+    def _gplvm(self, lvm_dimension_indices):
+        self._Xlvm[:,lvm_dimension_indices] = self.X
+        Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])        
+        return GPLVM(gplvm_dimensions=lvm_dimension_indices, covar_func=self._lvm_covariance, 
             likelihood=GaussLikISO(), 
-            x=X, 
+            x=self._Xlvm, 
             y=Y)
 
     def _x(self):
