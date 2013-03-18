@@ -140,8 +140,6 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 #    Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
 #    Y = numpy.array([Y1, Y2])
     T, Y, gene_names = read_and_handle_gt(sys.argv[4], sys.argv[5], gt_file_name, D=D)
-    import ipdb;ipdb.set_trace()
-    
     n, r, t, d = Y.shape
 
 #    T1 = numpy.tile(T1, r).T
