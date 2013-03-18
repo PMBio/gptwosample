@@ -52,6 +52,6 @@ def read_and_handle_gt(cond1_file, cond2_file, gt_file_name, D='all'):
         Y2[:,:,i + gt_len] = cond2.pop(name.upper())
         gene_names.append(name.upper())
 
-    Y = numpy.vstack((Y1[None], Y2[None]), 0)
+    Y = numpy.vstack((Y1[None], Y2[None]))
     
     return T, Y, gene_names
