@@ -21,6 +21,7 @@ from gptwosample.confounder import confounder
 import h5py
 from numpy.ma.core import ceil
 import itertools
+from gptwosample.develop.reveal_confounders_proof_of_concept.simple_confounders import read_files_and_pickle
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -35,6 +36,7 @@ Q = 4
 seed = 0
 conf_var = 0.25
 N, Ni = 1, 0
+D = 'all'
 
 stats_lines = list()
 
@@ -48,9 +50,13 @@ for ar in sys.argv:
         print "seed", seed
     elif ar.startswith("Q="):
         Q = int(ar.split("=")[1])
-        print "Q", seed
+        print "Q", Q
     elif ar.startswith("conf_var="):
         conf_var = float(ar.split("=")[1])
+        print "conf_var", conf_var
+    elif ar.startswith("D="):
+        D = float(ar.split("=")[1])
+        print "D", D
     elif ar.startswith("jobs="):
         N, Ni = map(lambda x: int(x), ar.split("=")[1].split(","))
         Ni -= 1  # to index
@@ -58,7 +64,9 @@ for ar in sys.argv:
 
 stats_lines.extend(["Q={}\n".format(str(Q)),
                     "seed={}\n".format(str(seed)),
-                    "conf_var={}\n".format(str(conf_var))])  # ,
+                    "conf_var={}\n".format(str(conf_var)),
+                    "D={}\n".format(str(D)),
+                    ])  # ,
 #                    "Ni/N={1}/{0}".format(N,Ni)])
 
 # try:
@@ -71,6 +79,10 @@ if not os.path.exists(data):
 outname = sys.argv[3]
 if not os.path.exists(os.path.join(root, outname)):
     os.mkdir(os.path.join(root, outname))
+if "gt100" in sys.argv:
+    gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
+else:
+    gt_file_name = '../../examples/ground_truth_random_genes.csv'
 
 # except:
     # print _usage
@@ -114,32 +126,33 @@ def start_mill(s):
 s = "loading data..."
 sys.stdout.write(s)
 sys.stdout.flush()
-data_file_path = os.path.join(data, "./data_seed_" + str(seed) + ".pickle")
+data_file_path = os.path.join(data, "./data_seed={0:!s}_Q={1:!s}_D={2:!s}.pickle".format(seed,Q,D))
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
-    cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
-    cond2 = get_data_from_csv(sys.argv[5])  # os.path.join(root,'warwick_treatment.csv'))
-    print s + "\r",
-    T1 = numpy.array(cond1.pop("input"))[:, None]
-    T2 = numpy.array(cond2.pop("input"))[:, None]
-
-    Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
-    Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
-    Y = numpy.array([Y1, Y2])
-
+#    cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
+#    cond2 = get_data_from_csv(sys.argv[5])  # os.path.join(root,'warwick_treatment.csv'))
+#    print s + "\r",
+#    T1 = numpy.array(cond1.pop("input"))[:, None]
+#    T2 = numpy.array(cond2.pop("input"))[:, None]
+#
+#    Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
+#    Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
+#    Y = numpy.array([Y1, Y2])
+    T, Y, gene_names = read_files_and_pickle(sys.argv[4], sys.argv[5], gt_file_name, D=D, pickle=False)
+    
     n, r, t, d = Y.shape
 
-    T1 = numpy.tile(T1, r).T
-    T2 = numpy.tile(T2, r).T
+#    T1 = numpy.tile(T1, r).T
+#    T2 = numpy.tile(T2, r).T
+#
+#    T = numpy.array([T1, T2])
 
-    T = numpy.array([T1, T2])
-
-    gene_names = cond1.keys()
+    #gene_names = cond1.keys()
 
     assert T.shape == Y.shape[:3]
-    assert gene_names == cond2.keys()
+    #assert gene_names == cond2.keys()
 
-    del T1, T2, Y1, Y2, cond1, cond2
+    #del T1, T2, Y1, Y2, cond1, cond2
 
     X_sim = numpy.random.randn(n * r * t, Q)
     # X_sim -= X_sim.mean(0)
@@ -167,10 +180,6 @@ finished(s)
 data_file.close()
 
 #  gt read moved up to improve exit performance
-if "gt100" in sys.argv:
-    gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
-else:
-    gt_file_name = '../../examples/ground_truth_random_genes.csv'
 gt_file = open(gt_file_name, 'r')
 gt_read = csv.reader(gt_file)
 gt_names = list()

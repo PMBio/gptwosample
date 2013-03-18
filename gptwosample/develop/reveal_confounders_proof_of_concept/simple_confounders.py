@@ -550,7 +550,7 @@ def get_priors(dim, confounders):
         covar_priors_individual.append([lnpriors.lnGammaExp, [1, .5]])
     return get_model_structure({'covar':numpy.array(covar_priors_individual)})
 
-def read_files_and_pickle(cond1_file, cond2_file, gt_file_name, root, D='all'):
+def read_files_and_pickle(cond1_file, cond2_file, gt_file_name, root=None, D='all', pickle=True):
     # 1. read csv file
     print 'reading files'
     cond1 = get_data_from_csv(cond1_file, delimiter=',')
@@ -580,7 +580,7 @@ def read_files_and_pickle(cond1_file, cond2_file, gt_file_name, root, D='all'):
         gt_names.append(name)
     gt_file.close()
 
-    if D == 'all':
+    if D<0 or D=='all':
         D = len(gene_names_all)
 
     Y1 = numpy.zeros((D, n_replicates_1, T1.shape[0]))
@@ -600,15 +600,18 @@ def read_files_and_pickle(cond1_file, cond2_file, gt_file_name, root, D='all'):
         gene_names.append(name.upper())
 
     Y = numpy.concatenate((Y1, Y2), 1).reshape(Y1.shape[0], -1)
-
-    data_file_name = os.path.join(root, "toy_data.pickle")
-    if not os.path.exists(root):
-        os.makedirs(root)
-    dump_file = open(data_file_name, "w")
-
-    pickle.dump((Y, Tpredict, T1, T2, gene_names, n_replicates_1, n_replicates_2,
-		 n_replicates, gene_length, T), dump_file, -1)
-    dump_file.close()
+    
+    if pickle:
+        data_file_name = os.path.join(root, "toy_data.pickle")
+        if not os.path.exists(root):
+            os.makedirs(root)
+        dump_file = open(data_file_name, "w")
+    
+        pickle.dump((Y, Tpredict, T1, T2, gene_names, n_replicates_1, n_replicates_2,
+    		 n_replicates, gene_length, T), dump_file, -1)
+        dump_file.close()
+    
+    return T, Y, gene_names
 
 
 if __name__ == '__main__':
