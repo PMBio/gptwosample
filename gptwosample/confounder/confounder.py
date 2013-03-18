@@ -75,6 +75,7 @@ class ConfounderTwoSample():
                                           sam,
                                           ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF()])
+            
 
         # if initial_hyperparameters is None:
         #    initial_hyperparameters = numpy.zeros(self._lvm_covariance.get_number_of_parameters()))
@@ -94,9 +95,7 @@ class ConfounderTwoSample():
         if ard_indices is None:
             ard_indices = slice(0, self.q)
         self._check_data()
-        likelihood = GaussLikISO()
 
-        Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
         # p = PCA(Y)
         # try:
         #    self.X = p.project(Y, self.q)
@@ -104,16 +103,10 @@ class ConfounderTwoSample():
         #    raise IndexError("More confounder components then genes (q > d)")
 
         if x is None:
-            x = numpy.concatenate((self.T.reshape(-1, 1), self.X,
-                                   #self.X_r,
-                                   self.X_s),
-                                  axis=1)
-
-        g = GPLVM(gplvm_dimensions=xrange(1, 1 + self.q),
-                  covar_func=self._lvm_covariance,
-                  likelihood=likelihood,
-                  x=x,
-                  y=Y)
+            x = self._x()
+        self._Xlvm = x    
+        
+        self.gplvm = self._gplvm()
 
         hyper = {
                  'lik':numpy.log([.15]),
@@ -121,7 +114,7 @@ class ConfounderTwoSample():
                  'covar':numpy.zeros(self._lvm_covariance.get_number_of_parameters())
                  }
 
-        lvm_hyperparams, _ = opt_hyper(g, hyper,
+        lvm_hyperparams, _ = opt_hyper(self.gplvm, hyper,
                                        Ifilter=None, maxiter=10000,
                                        gradcheck=False, bounds=None,
                                        messages=messages,
@@ -154,6 +147,16 @@ class ConfounderTwoSample():
         except ValueError:
             raise ValueError("Expression must be given as [n x r x t x d] matrix!")
         assert T.shape == Y.shape[:3], 'Shape mismatch, must be n*r*t timepoints per gene.'
+
+    def predict_lvm(self):
+        self._check_data()
+        try:
+            self.gplvm
+        except:
+            print "Confounders not yet learned"
+            sys.exit(1)
+        
+        return self.gplvm.predict(self._hyperparameters, self._x(), self.arange(self.d))
 
     def predict_likelihoods(self,
                             indices=None,
@@ -384,7 +387,7 @@ class ConfounderTwoSample():
             self.Y[0, :, :, i].ravel()[:, None], \
             self.Y[1, :, :, i].ravel()[:, None]
 
-    def _init_conf_matrix(self, lvm_hyperparams, ard_indices):
+    def _init_conf_matrix(self, lvm_hyperparams, ard_indices):        
         self._initialized = True
         self.X = lvm_hyperparams['x']
         self._lvm_hyperparams = lvm_hyperparams
@@ -392,6 +395,13 @@ class ConfounderTwoSample():
             ard_indices = numpy.arange(0, self.q)
         ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
         self.K_conf = numpy.dot(self.X * ard, self.X.T)
+        
+        try:
+            self.gplvm
+        except:
+            self._Xlvm = self._x()
+            self.gplvm = self._gplvm()
+
 
     def _TwoSampleObject(self, priors=None):
         covar_common = SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])
@@ -521,22 +531,36 @@ class ConfounderTwoSample():
                 sys.stdout.write(" done                      \n")
 
             raise r
+
+    def _gplvm(self,):
+        X, Y = self._Xlvm, self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
+        return GPLVM(gplvm_dimensions=xrange(1, 1 + self.q), covar_func=self._lvm_covariance, 
+            likelihood=GaussLikISO(), 
+            x=X, 
+            y=Y)
+
+    def _x(self):
+        return numpy.concatenate((self.T.reshape(-1, 1), self.X, #self.X_r,
+                self.X_s), 
+            axis=1)
+
+
 if __name__ == '__main__':
     Tt = numpy.arange(0, 24, 2)[:, None]
     Tr = numpy.tile(Tt, 4).T
     Ts = numpy.array([Tr, Tr])
 
     n, r, t, d = nrtd = Ts.shape + (20,)
-
+    
     covar = SqexpCFARD(1)
     K = covar.K(covar.get_de_reparametrized_theta([1, 13]), Tt)
     m = numpy.zeros(t)
 
     try:
         from scikits.learn.mixture import sample_gaussian
-    except _ as r:
-        r.message = "scikits needed for this example"
-        raise r
+    except:
+        raise "scikits needed for this example"
+        #raise r
     
     y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
