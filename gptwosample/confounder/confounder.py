@@ -399,7 +399,6 @@ class ConfounderTwoSample():
         try:
             self.gplvm
         except:
-            self._Xlvm = self._x()
             self.gplvm = self._gplvm()
 
 

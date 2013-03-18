@@ -293,6 +293,7 @@ except:
     pass
 
 if "plot_predict" in sys.argv:
+    conf_model._Xlvm = x
     prediction = conf_model.predict_lvm()
     fig = pylab.figure()
     im = pylab.imshow(prediction)
