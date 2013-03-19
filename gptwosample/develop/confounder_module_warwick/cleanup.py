@@ -16,6 +16,7 @@ if 'jobs' in sys.argv:
             dirstoremove.append([parent,files])
             
     for parent,files in dirstoremove:
+        print parent
         for f in files:
             os.remove(os.path.join(parent,f))
         os.rmdir(parent)
@@ -28,5 +29,6 @@ if 'pdfs' in sys.argv:
                 pdfstoremove.append(os.path.join(parent,f))
             
     for pdf in pdfstoremove:
+        print pdf
         os.remove(os.path.join(pdf))
     
