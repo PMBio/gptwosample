@@ -318,7 +318,7 @@ if "plot_predict" in sys.argv and "conf" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "Ypred.pdf"))
 
-    fig = pylab.figure()
+    fig = pylab.figure() 
     im = pylab.imshow(Y.reshape(-1, d))
     pylab.title("Y")
     divider = make_axes_locatable(pylab.gca())
@@ -464,7 +464,8 @@ if "relikelihood" in sys.argv:
 if ('dolikelihood' in sys.argv and
     not (os.path.exists(likelihoods_file_name) and
          os.path.exists(hyperparams_file_name) and
-         os.path.exists(gt_file_name))):
+         os.path.exists(gt_file_name)) or 
+    "relikelihood" in sys.argv):
     s = "predicting model likelihoods..."
     print s,
     sys.stdout.flush()
