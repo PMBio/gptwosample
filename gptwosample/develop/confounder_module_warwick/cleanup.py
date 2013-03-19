@@ -25,7 +25,7 @@ if 'pdfs' in sys.argv:
     pdfstoremove = []
     for parent, folders, files in os.walk(root):
         for f in files:
-            if os.path.splitext(f)[1] is '.pdf':
+            if os.path.splitext(f)[1] == '.pdf':
                 pdfstoremove.append(os.path.join(parent,f))
             
     for pdf in pdfstoremove:
