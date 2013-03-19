@@ -383,6 +383,7 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
         fig = pylab.figure()
         K_XXcov = cov.covars[0].K(conf_model._lvm_hyperparams['covar'][covarslices[0]], x)
         im = pylab.imshow(K_XXcov)
+        import ipdb;ipdb.set_trace()
         pylab.title(r"$\mathbf{{covXX}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_XXcov) / K_XXcov.shape[1], hyps[covarslices[0]]))
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
