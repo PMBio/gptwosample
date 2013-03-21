@@ -3,7 +3,6 @@ Created on Feb 26, 2013
 
 @author: Max
 '''
-from gptwosample.data.dataIO import get_data_from_csv
 import os
 import pickle
 import numpy
@@ -11,17 +10,15 @@ import sys
 import csv
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
-from pygp.covar.linear import LinearCFISO, LinearCF
+from pygp.covar.linear import LinearCFISO
 from pygp.covar.combinators import SumCF, ProductCF
 from pygp.covar.se import SqexpCFARD
 from pygp.covar.bias import BiasCF
 
 import logging
 from gptwosample.confounder import confounder
-import h5py
 from numpy.ma.core import ceil
 import itertools
-from gptwosample.develop.reveal_confounders_proof_of_concept.simple_confounders import read_files_and_pickle
 from gptwosample.confounder.data import read_and_handle_gt
 logging.basicConfig(level=logging.CRITICAL)
 del logging
@@ -34,8 +31,9 @@ warwick_control-file and warwick_treatment-file have to be given only in first r
 
 
 Q = 4
+Qsim = 4
 seed = 0
-conf_var = 0.25
+conf_var = 0.4
 N, Ni = 1, 0
 D = 'all'
 
@@ -52,6 +50,9 @@ for ar in sys.argv:
     elif ar.startswith("Q="):
         Q = int(ar.split("=")[1])
         print "Q", Q
+    elif ar.startswith("Qsim="):
+        Qsim = int(ar.split("=")[1])
+        print "Qsim", Qsim
     elif ar.startswith("conf_var="):
         conf_var = float(ar.split("=")[1])
         print "conf_var", conf_var
@@ -64,6 +65,7 @@ for ar in sys.argv:
         print "Ni/N={1}/{0}".format(N, Ni)
 
 stats_lines.extend(["Q={}\n".format(str(Q)),
+                    "Qsim={}\n".format(str(Qsim)),
                     "seed={}\n".format(str(seed)),
                     "conf_var={}\n".format(str(conf_var)),
                     "D={}\n".format(str(D)),
@@ -73,13 +75,13 @@ stats_lines.extend(["Q={}\n".format(str(Q)),
 # try:
 root = sys.argv[1]
 if not os.path.exists(root):
-    os.mkdir(root)
+    os.makedirs(root)
 data = sys.argv[2]
 if not os.path.exists(data):
-    os.mkdir(data)
+    os.makedirs(data)
 outname = sys.argv[3]
 if not os.path.exists(os.path.join(root, outname)):
-    os.mkdir(os.path.join(root, outname))
+    os.makedirs(os.path.join(root, outname))
 if "gt100" in sys.argv:
     gt_file_name = '../../examples/ground_truth_balanced_set_of_100.csv'
 else:
@@ -90,12 +92,6 @@ else:
 #    sys.exit(0)
 
 numpy.random.seed(seed)
-stats_file_name = os.path.join(root, "stats.txt")
-stats_file = open(stats_file_name, 'w')
-stats_file.writelines(stats_lines)
-stats_file.flush()
-
-del stats_lines
 
 def finished(s, process=None):
     if process is not None:
@@ -127,7 +123,14 @@ def start_mill(s):
 s = "loading data..."
 sys.stdout.write(s)
 sys.stdout.flush()
-data_file_path = os.path.join(data, "./data_seed={0!s}_Q={1!s}_D={2!s}.pickle".format(seed, Q, D))
+
+if "norm_genesamples" in sys.argv:
+    norm = "norm=genesamples"
+else:  # norm=genes
+    norm = "norm=genes"
+
+data_file_path = os.path.join(data, "./data_seed={0!s}_Qsim={1!s}_D={2!s}_{norm}.pickle".format(seed, Qsim, D, norm=norm))
+
 if not os.path.exists(data_file_path) or "redata" in sys.argv:
     sys.stdout.write(os.linesep)
 #    cond1 = get_data_from_csv(sys.argv[4])  # os.path.join(root,'warwick_control.csv'))
@@ -154,30 +157,40 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 
     # del T1, T2, Y1, Y2, cond1, cond2
 
-    X_sim = numpy.random.randn(n * r * t, Q)
+    X_sim = numpy.random.randn(n * r * t, Qsim)
     # X_sim -= X_sim.mean(0)
     # X_sim /= X_sim.std(0)
-    X_sim *= numpy.sqrt(1. / float(Q))
+    X_sim *= numpy.sqrt(1. / float(Qsim))
     # si = "standardizing data ..."
     # sys.stdout.write(si + "\r")
-    Y -= Y.mean(1).mean(1)[:, None, None, :]
+    if norm == "norm=genesamples":
+        # ZERO MEAN GENES AND SAMPLES:
+        Y -= Y.mean(1).mean(1)[:, None, None, :]
+    else:  # "norm=genes"
+        # ZERO MEAN GENES:
+        Y -= Y.reshape(-1, d).mean(0)[None, None, None, :]
+
     # Y /= Y.std()
     # Conf_sim -= Conf_sim.reshape(n*r*t,d).mean(0)
     # Conf_sim /= Conf_sim.reshape(n*r*t,d).std(0)
     # finished(si)
 
-    K_sim = numpy.dot(X_sim.reshape(n * r * t, Q), X_sim.reshape(n * r * t, Q).T)
-    Conf_sim = numpy.dot(X_sim, numpy.random.randn(Q, d))
+    K_sim = numpy.dot(X_sim.reshape(n * r * t, Qsim), X_sim.reshape(n * r * t, Qsim).T)
+    Conf_sim = numpy.dot(X_sim, numpy.random.randn(Qsim, d))
 
     data_file = open(data_file_path, 'w')
-    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Q)], data_file)
+    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Qsim)], data_file)
 else:
+    if "onlydata" in sys.argv:
+        sys.exit(0)
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
     T, Y, gene_names, K_sim, Conf_sim, X_sim = pickle.load(data_file)
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
+if "onlydata" in sys.argv:
+    sys.exit(0)
 
 #  gt read moved up to improve exit performance
 gt_file = open(gt_file_name, 'r')
@@ -200,15 +213,20 @@ if not len(jobindices):
     print "no more genes left to run"
     sys.exit(0)
 
-if "onlydata" in sys.argv:
-    sys.exit(0)
-
 s = "setting up gplvm module..."
 print s,
 sys.stdout.flush()
 sys.stdout.write("\r")
+yvar = Y.var()
+stats_lines.append("Y.var()={}\n".format(Y.var()))
+
 if not ("raw" in sys.argv) and not ("unconfounded" in sys.argv):
-    Y = Y + Y.std() * conf_var * Conf_sim.reshape(n, r, t, d)
+    conf = numpy.sqrt(conf_var * yvar) * Conf_sim.reshape(n, r, t, d) / Conf_sim.std()
+    stats_lines.append("conf.var()={}\n".format(conf.var()))
+    stats_lines.append("Y.var()/conf.var()={}\n".format(conf.var() / yvar))
+    Y = Y + conf
+
+stats_lines.append("Yconf.var()={}\n".format(Y.var()))
 
 q = Q
 rt = r * t
@@ -222,39 +240,44 @@ sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (n * r), 1 + q + (n * r
 lvm_covariance = None
 if "conf" in sys.argv:
     if "rep" in sys.argv:
-        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 2)),
+        lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 1 + q)),
                                   rep,
                                   # sam,
                                   ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
-                                  BiasCF()])
+                                  BiasCF()],
+                               names=['XX', 'rep', 'samprod', 'bias'])
         learn_name = 'rep'
     elif "sam" in sys.argv:
-        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 2)),
+        lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 1 + q)),
                                   # rep,
                                   sam,
                                   ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
-                                  BiasCF()])
+                                  BiasCF()],
+                               names=['XX', 'sam', 'samprod', 'bias'])
         learn_name = 'sam'
     elif "triv" in sys.argv:
-        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 2)),
+        lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 1 + q)),
                                 # rep,
                                 #  sam,
                                 #  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
-                                BiasCF()])
+                                BiasCF()],
+                               names=['XX', 'bias'])
         learn_name = 'triv'
     elif "sam0" in sys.argv:
-        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 2)),
+        lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 1 + q)),
                                 # rep,
                                 sam,
                                 #  ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
-                                BiasCF()])
+                                BiasCF()],
+                               names=['XX', 'sam', 'bias'])
         learn_name = 'sam0'
     else:
-        lvm_covariance = SumCF([LinearCF(dimension_indices=numpy.arange(1, 2)),
+        lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 1 + q)),
                                   rep,
                                   sam,
                                   ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
-                                  BiasCF()])
+                                  BiasCF()],
+                               names=['XX', 'rep', 'sam', 'samprod', 'bias'])
         learn_name = 'all'
     if "unconfounded" in sys.argv:
         learn_name += "_unconf"
@@ -262,8 +285,20 @@ if "conf" in sys.argv:
     if not os.path.exists(os.path.join(root, outname)):
         os.mkdir(os.path.join(root, outname))
 
+stats_file_name = os.path.join(root, outname, "stats.txt")
+stats_file = open(stats_file_name, 'w')
+stats_file.writelines(stats_lines)
+stats_file.flush()
+del stats_lines
+
+init = 'random'
+if "init_pca" in sys.argv:
+    init = 'pca'
+
+stats_file.write("init={}\n".format(init))
 conf_model = confounder.ConfounderTwoSample(T, Y, q=Q,
-                                            lvm_covariance=lvm_covariance)
+                                            lvm_covariance=lvm_covariance,
+                                            init=init)
 conf_model.__verbose = 0
 try:
     conf_model.NUM_PROCS = num_procs
@@ -273,6 +308,9 @@ x = numpy.concatenate((T.reshape(-1, 1), conf_model.X, X_r, X_s), axis=1)
 finished(s)
 
 lvm_hyperparams_file_name = os.path.join(root, outname, 'lvm_hyperparams.pickle')
+
+stats_file.write("Conf_model.Y.var()={}\n".format(conf_model.Y.var()))
+
 if "ideal" in sys.argv:
     conf_model.X = X_sim
     conf_model.K_conf = K_sim
@@ -318,7 +356,7 @@ if "plot_predict" in sys.argv and "conf" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "Ypred.pdf"))
 
-    fig = pylab.figure() 
+    fig = pylab.figure()
     im = pylab.imshow(Y.reshape(-1, d))
     pylab.title("Y")
     divider = make_axes_locatable(pylab.gca())
@@ -330,15 +368,14 @@ if "plot_predict" in sys.argv and "conf" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "Yorig.pdf"))
 
-
-
 if "plot_confounder" in sys.argv and "conf" in sys.argv:
     sigma = numpy.exp(2 * conf_model._lvm_hyperparams['lik'][0])
-    hyps = conf_model._lvm_covariance.get_reparametrized_theta(conf_model._lvm_hyperparams['covar'])
+    logtheta = conf_model._lvm_hyperparams['covar']
+    theta = conf_model._lvm_covariance.get_reparametrized_theta(logtheta)
 
     fig = pylab.figure()
     im = pylab.imshow(K_sim)
-    pylab.title("XXsim")
+    pylab.title(r"$\mathbf{{XX}}sim$")
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -350,7 +387,7 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
 
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
-    pylab.title(r"$\mathbf{{XX}}$, var={:.3f}, $\sigma={:.3f}, \alpha={:.3f}$".format(numpy.trace(conf_model.K_conf) / conf_model.K_conf.shape[1], sigma, hyps[0]))
+    pylab.title(r"$\mathbf{{XX}}, var={:.3g}, \alpha={:.3g}$".format(numpy.trace(conf_model.K_conf) / conf_model.K_conf.shape[1], theta[0]))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -358,13 +395,13 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
         fig.tight_layout()
     except:
         pass
-    pylab.savefig(os.path.join(root, outname, "KXX.pdf"))
+    pylab.savefig(os.path.join(root, outname, "KXXconf.pdf"))
 
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
     K_whole = cov.K(conf_model._lvm_hyperparams['covar'], x)
     im = pylab.imshow(K_whole)
-    pylab.title(r"$\mathbf{{K}}$ var=${:.3f}$".format(numpy.trace(K_whole) / K_whole.shape[1]))
+    pylab.title(r"$\mathbf{{K}}, var={:.3g}, \sigma={:.3g}$".format(numpy.trace(K_whole) / K_whole.shape[1], sigma))
     divider = make_axes_locatable(pylab.gca())
     cax = divider.append_axes("right", "5%", pad="3%")
     pylab.colorbar(im, cax=cax)
@@ -374,17 +411,11 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "K.pdf"))
 
-    if "sam" in sys.argv:
-        cov = conf_model._lvm_covariance
-        covarsnparams = [c.get_number_of_parameters() for c in cov.covars]
-        covarsnparams.insert(0, 0)
-        covarslices = [slice(a, b) for a, b in itertools.izip(numpy.cumsum(covarsnparams), numpy.cumsum(covarsnparams)[1:])]
-
+    for name in cov.names:
         fig = pylab.figure()
-        K_XXcov = cov.covars[0].K(conf_model._lvm_hyperparams['covar'][covarslices[0]], x)
-        im = pylab.imshow(K_XXcov)
-        import ipdb;ipdb.set_trace()
-        pylab.title(r"$\mathbf{{covXX}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_XXcov) / K_XXcov.shape[1], hyps[covarslices[0]]))
+        K = cov.K(logtheta, x, x, [name])
+        im = pylab.imshow(K)
+        pylab.title(r"$\mathbf{{{}}}, var={:.3g}, \alpha={:.3g}$".format(name, numpy.trace(K) / K.shape[1], cov.get_theta_by_names(theta, [name])[0]))
         divider = make_axes_locatable(pylab.gca())
         cax = divider.append_axes("right", "5%", pad="3%")
         pylab.colorbar(im, cax=cax)
@@ -392,46 +423,67 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
             fig.tight_layout()
         except:
             pass
-        pylab.savefig(os.path.join(root, outname, "KXXcov.pdf"))
+        pylab.savefig(os.path.join(root, outname, "K{}.pdf".format(name)))
 
-        fig = pylab.figure()
-        K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], x)
-        im = pylab.imshow(K_sam)
-        pylab.title(r"$\mathbf{{sam}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_sam) / K_sam.shape[1], hyps[covarslices[1]][0]))
-        divider = make_axes_locatable(pylab.gca())
-        cax = divider.append_axes("right", "5%", pad="3%")
-        pylab.colorbar(im, cax=cax)
-        try:
-            fig.tight_layout()
-        except:
-            pass
-        pylab.savefig(os.path.join(root, outname, "K_sam.pdf"))
 
-        fig = pylab.figure()
-        K_sam_prod = cov.covars[2].K(conf_model._lvm_hyperparams['covar'][covarslices[2]], x)
-        im = pylab.imshow(K_sam_prod)
-        pylab.title(r"$\mathbf{{sam prod}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_sam_prod) / K_sam_prod.shape[1], hyps[covarslices[2]][0]))
-        divider = make_axes_locatable(pylab.gca())
-        cax = divider.append_axes("right", "5%", pad="3%")
-        pylab.colorbar(im, cax=cax)
-        try:
-            fig.tight_layout()
-        except:
-            pass
-        pylab.savefig(os.path.join(root, outname, "K_sam_prod.pdf"))
-
-        fig = pylab.figure()
-        bias = cov.covars[3].K(conf_model._lvm_hyperparams['covar'][covarslices[3]], x)
-        im = pylab.imshow(bias)
-        pylab.title(r"$\mathbf{{Kbias}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(bias) / bias.shape[1], hyps[covarslices[3]][0]))
-        divider = make_axes_locatable(pylab.gca())
-        cax = divider.append_axes("right", "5%", pad="3%")
-        pylab.colorbar(im, cax=cax)
-        try:
-            fig.tight_layout()
-        except:
-            pass
-        pylab.savefig(os.path.join(root, outname, "bias.pdf"))
+#    if "sam" in sys.argv:
+#        cov = conf_model._lvm_covariance
+#        covarsnparams = [c.get_number_of_parameters() for c in cov.covars]
+#        covarsnparams.insert(0, 0)
+#        covarslices = [slice(a, b) for a, b in itertools.izip(numpy.cumsum(covarsnparams), numpy.cumsum(covarsnparams)[1:])]
+#
+#        fig = pylab.figure()
+#        K_XXcov = cov.covars[0].K(conf_model._lvm_hyperparams['covar'][covarslices[0]], x)
+#        im = pylab.imshow(K_XXcov)
+#        import ipdb;ipdb.set_trace()
+#        pylab.title(r"$\mathbf{{covXX}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_XXcov) / K_XXcov.shape[1], theta[covarslices[0]][0]))
+#        divider = make_axes_locatable(pylab.gca())
+#        cax = divider.append_axes("right", "5%", pad="3%")
+#        pylab.colorbar(im, cax=cax)
+#        try:
+#            fig.tight_layout()
+#        except:
+#            pass
+#        pylab.savefig(os.path.join(root, outname, "KXXcov.pdf"))
+#
+#        fig = pylab.figure()
+#        K_sam = cov.covars[1].K(conf_model._lvm_hyperparams['covar'][covarslices[1]], x)
+#        im = pylab.imshow(K_sam)
+#        pylab.title(r"$\mathbf{{sam}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_sam) / K_sam.shape[1], theta[covarslices[1]][0]))
+#        divider = make_axes_locatable(pylab.gca())
+#        cax = divider.append_axes("right", "5%", pad="3%")
+#        pylab.colorbar(im, cax=cax)
+#        try:
+#            fig.tight_layout()
+#        except:
+#            pass
+#        pylab.savefig(os.path.join(root, outname, "K_sam.pdf"))
+#
+#        fig = pylab.figure()
+#        K_sam_prod = cov.covars[2].K(conf_model._lvm_hyperparams['covar'][covarslices[2]], x)
+#        im = pylab.imshow(K_sam_prod)
+#        pylab.title(r"$\mathbf{{sam prod}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(K_sam_prod) / K_sam_prod.shape[1], theta[covarslices[2]][0]))
+#        divider = make_axes_locatable(pylab.gca())
+#        cax = divider.append_axes("right", "5%", pad="3%")
+#        pylab.colorbar(im, cax=cax)
+#        try:
+#            fig.tight_layout()
+#        except:
+#            pass
+#        pylab.savefig(os.path.join(root, outname, "K_sam_prod.pdf"))
+#
+#        fig = pylab.figure()
+#        bias = cov.covars[3].K(conf_model._lvm_hyperparams['covar'][covarslices[3]], x)
+#        im = pylab.imshow(bias)
+#        pylab.title(r"$\mathbf{{Kbias}}$ var=${:.3f}$, $\alpha={:.3f}$".format(numpy.trace(bias) / bias.shape[1], theta[covarslices[3]][0]))
+#        divider = make_axes_locatable(pylab.gca())
+#        cax = divider.append_axes("right", "5%", pad="3%")
+#        pylab.colorbar(im, cax=cax)
+#        try:
+#            fig.tight_layout()
+#        except:
+#            pass
+#        pylab.savefig(os.path.join(root, outname, "bias.pdf"))
 
 sys.stdout.flush()
 
@@ -465,7 +517,7 @@ if "relikelihood" in sys.argv:
 if ('dolikelihood' in sys.argv and
     not (os.path.exists(likelihoods_file_name) and
          os.path.exists(hyperparams_file_name) and
-         os.path.exists(gt_file_name)) or 
+         os.path.exists(gt_file_name)) or
     "relikelihood" in sys.argv):
     s = "predicting model likelihoods..."
     print s,
