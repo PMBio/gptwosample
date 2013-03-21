@@ -24,6 +24,7 @@ import pylab
 from pygp.covar.bias import BiasCF
 import itertools
 from copy import deepcopy
+from pygp.util.pca import PCA
 
 class ConfounderTwoSample():
     """Learn Confounder and run GPTwoSample correcting for confounding variation.
@@ -43,6 +44,7 @@ class ConfounderTwoSample():
     SENTINEL = object()
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
+                 init="random",
                  **kwargs):
         """
         **Parameters**:
@@ -50,13 +52,22 @@ class ConfounderTwoSample():
             Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]
             q : Number of Confounders to use
             lvm_covariance : optional - set covariance to use in confounder learning
+            init : [random, pca]
         """
         self.set_data(T, Y)
         self.q = q
         self.__verbose = False
         self.__running_event = Event()
 
-        self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
+        if init == 'pca':
+            y = Y.reshape(-1,self.d)
+            p = PCA(y)
+            self.X = p.project(y,self.q)
+            self.X += .1*numpy.random.randn(*self.X.shape)
+        elif init == 'random':
+            self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
+        else:
+            print "init model {0!s} not known".format(init)
 
         if lvm_covariance is not None:
             self._lvm_covariance = lvm_covariance
@@ -405,19 +416,19 @@ class ConfounderTwoSample():
             self.Y[0, :, :, i].ravel()[:, None], \
             self.Y[1, :, :, i].ravel()[:, None]
 
-    def _init_conf_matrix(self, lvm_hyperparams, ard_indices, lvm_dimension_indices):        
+    def _init_conf_matrix(self, lvm_hyperparams, conf_covar_name, lvm_dimension_indices):        
         self._initialized = True
         self.X = lvm_hyperparams['x']
         self._lvm_hyperparams = lvm_hyperparams
-        if ard_indices is None:
-            ard_indices = numpy.arange(1)
-        ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
-        self.K_conf = numpy.dot(self.X*ard, self.X.T)
-        
+        #if ard_indices is None:
+        #    ard_indices = numpy.arange(1)
+        #ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
+        #self.K_conf = numpy.dot(self.X*ard, self.X.T)
         try:
             self.gplvm
         except:
             self.gplvm = self._gplvm(lvm_dimension_indices)
+        self.K_conf = self._lvm_covariance.K(self._lvm_hyperparams['covar'], self._Xlvm, self._Xlvm, names=['XX'])
 
 
     def _TwoSampleObject(self, priors=None):
