@@ -80,7 +80,7 @@ def plot_roc_curve(path_to_result,path_to_ground_truth,
         fpr, tpr, _ = roc_curve(labels, predictions)
         auroc_c = auc(fpr, tpr)
     except:
-        tpr, fpr = roc(labels,predictions)
+        tpr, fpr = roc(labels, predictions)
         auroc_c = auroc(tp=tpr, fp=fpr)
     
     # plot the curve into existing pylab environment

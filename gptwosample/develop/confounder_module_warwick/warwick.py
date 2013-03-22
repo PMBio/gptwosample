@@ -7,6 +7,7 @@ import sys
 sys.path.append('/Users/stegle/research/users/stegle/pygp')
 sys.path.append('./../../../..')
 sys.path.append('./../../..')
+
 import os
 import pickle
 import numpy
@@ -174,8 +175,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     # sys.stdout.write(si + "\r")
     if norm == "norm=genesamples":
         # ZERO MEAN GENES AND SAMPLES:
-        mean_max = Y.mean(1).mean(1)[:, None, None, :]
-        Y -= mean_max
+        Y -= Y.mean(1).mean(1)[:, None, None, :]
     else:  # "norm=genes"
         # ZERO MEAN GENES:
         Y -= Y.reshape(-1, d).mean(0)[None, None, None, :]

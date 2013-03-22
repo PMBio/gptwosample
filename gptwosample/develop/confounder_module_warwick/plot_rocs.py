@@ -22,19 +22,26 @@ colors = itertools.cycle(numpy.array([[97,216,76],
 [81,139,44],
 [202,83,168]], dtype='float')/255.)
 
+collectfile = os.path.join(root,"aurocs.txt")
+aurocs = ""
+
 print s,
 for parent, folders, files in os.walk(root):
     for f in files:
         if f == "bayes.csv":
             label = parent[len(root):].lstrip("/").replace("/","_")
             try:
-                plot_roc_curve(os.path.join(parent,f), "../../examples/ground_truth_random_genes.csv", 
+                _, auc = plot_roc_curve(os.path.join(parent,f), "../../examples/ground_truth_random_genes.csv", 
                                label=label, color=colors.next())
+                aurocs += "{}={},".format(label,auc)
             except StopIteration:
                 pass
 pylab.legend(loc=4)
 pylab.xlim(0,.2)
 pylab.savefig(os.path.join(root, "roc.pdf"))
+
+with open(collectfile,'w') as cf:
+    cf.write(aurocs[:-1])
 
 try:
     sys.stdout.write(s + " " + '\033[92m' + u"\u2713" + '\033[0m' + '            \n')
