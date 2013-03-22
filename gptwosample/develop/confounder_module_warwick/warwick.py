@@ -3,10 +3,10 @@ Created on Feb 26, 2013
 
 @author: Max
 '''
-import sys
-sys.path.append('/Users/stegle/research/users/stegle/pygp')
-sys.path.append('./../../../..')
-sys.path.append('./../../..')
+#import sys
+#sys.path.append('/Users/stegle/research/users/stegle/pygp')
+#sys.path.append('./../../../..')
+#sys.path.append('./../../..')
 import os
 import pickle
 import numpy
