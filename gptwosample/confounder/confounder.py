@@ -12,7 +12,7 @@ from pygp.gp.gplvm import GPLVM
 from pygp.optimize.optimize_base import opt_hyper
 from pygp.covar.fixed import FixedCF
 from pygp.likelihood.likelihood_base import GaussLikISO
-from gptwosample.data.data_base import get_model_structure, common_id,\
+from gptwosample.data.data_base import get_model_structure, common_id, \
     individual_id
 from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
     TwoSampleBase
@@ -40,7 +40,7 @@ class ConfounderTwoSample():
     * d: Genes
     * q: Confounder Components
     """
-    NUM_PROCS = 2 # min(max(1,cpu_count()-2),3)
+    NUM_PROCS = 2  # min(max(1,cpu_count()-2),3)
     SENTINEL = object()
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
@@ -60,10 +60,10 @@ class ConfounderTwoSample():
         self.__running_event = Event()
 
         if init == 'pca':
-            y = Y.reshape(-1,self.d)
+            y = Y.reshape(-1, self.d)
             p = PCA(y)
-            self.X = p.project(y,self.q)
-            self.X += .1*numpy.random.randn(*self.X.shape)
+            self.X = p.project(y, self.q)
+            self.X += .1 * numpy.random.randn(*self.X.shape)
         elif init == 'random':
             self.X = numpy.random.randn(numpy.prod(self.n * self.r * self.t), self.q)
         else:
@@ -73,32 +73,33 @@ class ConfounderTwoSample():
             self._lvm_covariance = lvm_covariance
         else:
             rt = self.r * self.t
-            #self.X_r = numpy.zeros((self.n * rt, self.n * self.r))
-            #for i in xrange(self.n * self.r):self.X_r[i * self.t:(i + 1) * self.t, i] = 1
-            #rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))
+            # self.X_r = numpy.zeros((self.n * rt, self.n * self.r))
+            # for i in xrange(self.n * self.r):self.X_r[i * self.t:(i + 1) * self.t, i] = 1
+            # rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))
             self.X_s = numpy.zeros((self.n * rt, self.n))
             for i in xrange(self.n):self.X_s[i * rt:(i + 1) * rt, i] = 1
             sam = LinearCFISO(dimension_indices=numpy.arange(1 + q,
-                                                              #+ (self.n * self.r),
-                                                              1 + q + self.n)) # + (self.n * self.r) 
-            self._lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1,2)),
-                                          #rep,
+                                                              # + (self.n * self.r),
+                                                              1 + q + self.n))  # + (self.n * self.r)
+            self._lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 2)),
+                                          # rep,
                                           sam,
                                           ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                           BiasCF()])
-            
+
 
         # if initial_hyperparameters is None:
         #    initial_hyperparameters = numpy.zeros(self._lvm_covariance.get_number_of_parameters()))
 
         self._initialized = False
 
-    def learn_confounder_matrix(self, 
-                                ard_indices=None, 
-                                x=None, 
+    def learn_confounder_matrix(self,
+                                ard_indices=None,
+                                x=None,
                                 messages=True,
                                 gradient_tolerance=1E-12,
                                 lvm_dimension_indices=None,
+                                gradcheck=False
                                 ):
         """
         Learn confounder matrix with this model.
@@ -106,18 +107,18 @@ class ConfounderTwoSample():
         **Parameters**:
 
         x : array-like
-            If you provided an own lvm_covariance you have to specify 
+            If you provided an own lvm_covariance you have to specify
             the X to use within GPLVM
-        
+
         lvm_dimension_indices : [int]
-            If you specified an own lvm_covariance you have to specify 
+            If you specified an own lvm_covariance you have to specify
             the dimension indices for GPLVM
-            
+
         ard_indices : [indices]
             If you provided an own lvm_covariance, give the ard indices of the covariance here,
             to be able to use the correct hyperparameters for calculating the confounder covariance matrix.
-        
-        
+
+
         """
         if lvm_dimension_indices is None:
             lvm_dimension_indices = xrange(1, 1 + self.q)
@@ -144,10 +145,10 @@ class ConfounderTwoSample():
 
         lvm_hyperparams, _ = opt_hyper(self.gplvm, hyper,
                                        Ifilter=None, maxiter=10000,
-                                       gradcheck=False, bounds=None,
+                                       gradcheck=gradcheck, bounds=None,
                                        messages=messages,
                                        gradient_tolerance=gradient_tolerance)
-        
+
         self._Xlvm = self.gplvm.x
         self._init_conf_matrix(lvm_hyperparams, ard_indices, lvm_dimension_indices)
         # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
@@ -184,11 +185,13 @@ class ConfounderTwoSample():
         except:
             print "Confounders not yet learned"
             sys.exit(1)
-        
+
         return self.gplvm.predict(self._lvm_hyperparams, self._Xlvm, numpy.arange(self.d))
 
     def predict_likelihoods(self,
-                            indices=None,
+                            T,
+                            Y,
+                            # indices=None,
                             message="Predicting Likelihoods: ",
                             messages=False,
                             priors=None,
@@ -209,8 +212,8 @@ class ConfounderTwoSample():
         """
         self._check_data()
         assert self._initialized, "confounder matrix not yet learned, use learn_confounder_matrix() first"
-        if indices is None:
-            indices = xrange(self.d)
+        # if indices is None:
+        #    indices = xrange(self.d)
 
         kwargs['messages'] = messages
 
@@ -243,7 +246,7 @@ class ConfounderTwoSample():
 #            tmp = [inner(i, self._get_data_for(i)) for i in indices_inner]
 #            with appendlock:
 #                results.extend(tmp)
-#                
+#
 #        for indices_inner in numpy.array_split(indices, self.NUM_PROCS):
 #            processes.append(Thread(target=worker, args=[indices_inner], kwargs=kwargs))
 #        for p in processes:
@@ -266,15 +269,26 @@ class ConfounderTwoSample():
 #        assert (out_indices[sorting[1]] == indices).all()
 
         def distribute(i):
-            self.inq.put([i, deepcopy(self._get_data_for(indices[i]))])
+            self.inq.put([i,
+                          [T[0, :, :].ravel()[:, None],
+                          T[1, :, :].ravel()[:, None],
+                          Y[0, :, :, i].ravel()[:, None],
+                          Y[1, :, :, i].ravel()[:, None]
+                          ]])
 
-        processes.append(Thread(target=self._distributor, args=[distribute, len(indices)], name='distributor', verbose=self.__verbose))
+        processes.append(Thread(target=self._distributor,
+                                args=[distribute, Y.shape[-1]],
+                                name='distributor',
+                                verbose=self.__verbose))
 
         def collect(d):
             self._likelihoods.append(d[0])
             self._hyperparameters.append(d[1])
 
-        processes.append(Thread(target=self._collector, name='lik collector', args=[collect, message, len(indices)], verbose=self.__verbose))
+        processes.append(Thread(target=self._collector, 
+                                name='lik collector', 
+                                args=[collect, message, Y.shape[-1]], 
+                                verbose=self.__verbose))
 
         for i in xrange(self.NUM_PROCS):
             processes.append(Thread(target=self._lik_worker,
@@ -338,7 +352,7 @@ class ConfounderTwoSample():
 
         return self._mean_variances
 
-    def bayes_factors(self, likelihoods = None):
+    def bayes_factors(self, likelihoods=None):
         """
         get list of bayes_factors for all genes.
 
@@ -350,7 +364,7 @@ class ConfounderTwoSample():
         t = TwoSampleBase()
         f = lambda lik:t.bayes_factor(lik)
         return map(f, self._likelihoods)
-        
+
 
     def plot(self, indices=None,
              xlabel="input", ylabel="ouput", title=None,
@@ -390,14 +404,14 @@ class ConfounderTwoSample():
 
     def get_predicted_means_variances(self):
         return self._mean_variances
-    
+
     def get_twosample(self, priors=None):
         return self._TwoSampleObject(priors)
-    
+
     def get_covars(self):
         models = self.get_twosample()._models
         return {individual_id: models[individual_id].covar, common_id: models[common_id].covar}
-    
+
     def _invalidate_cache(self):
         self._likelihoods = None
         self._mean_variances = None
@@ -416,14 +430,14 @@ class ConfounderTwoSample():
             self.Y[0, :, :, i].ravel()[:, None], \
             self.Y[1, :, :, i].ravel()[:, None]
 
-    def _init_conf_matrix(self, lvm_hyperparams, conf_covar_name, lvm_dimension_indices):        
+    def _init_conf_matrix(self, lvm_hyperparams, conf_covar_name, lvm_dimension_indices):
         self._initialized = True
         self.X = lvm_hyperparams['x']
         self._lvm_hyperparams = lvm_hyperparams
-        #if ard_indices is None:
+        # if ard_indices is None:
         #    ard_indices = numpy.arange(1)
-        #ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
-        #self.K_conf = numpy.dot(self.X*ard, self.X.T)
+        # ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
+        # self.K_conf = numpy.dot(self.X*ard, self.X.T)
         try:
             self.gplvm
         except:
@@ -561,16 +575,16 @@ class ConfounderTwoSample():
             raise r
 
     def _gplvm(self, lvm_dimension_indices):
-        self._Xlvm[:,lvm_dimension_indices] = self.X
-        Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])        
-        return GPLVM(gplvm_dimensions=lvm_dimension_indices, covar_func=self._lvm_covariance, 
-            likelihood=GaussLikISO(), 
-            x=self._Xlvm, 
+        self._Xlvm[:, lvm_dimension_indices] = self.X
+        Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
+        return GPLVM(gplvm_dimensions=lvm_dimension_indices, covar_func=self._lvm_covariance,
+            likelihood=GaussLikISO(),
+            x=self._Xlvm,
             y=Y)
 
     def _x(self):
-        return numpy.concatenate((self.T.reshape(-1, 1), self.X, #self.X_r,
-                self.X_s), 
+        return numpy.concatenate((self.T.reshape(-1, 1), self.X,  # self.X_r,
+                self.X_s),
             axis=1)
 
 
@@ -580,7 +594,7 @@ if __name__ == '__main__':
     Ts = numpy.array([Tr, Tr])
 
     n, r, t, d = nrtd = Ts.shape + (20,)
-    
+
     covar = SqexpCFARD(1)
     K = covar.K(covar.get_de_reparametrized_theta([1, 13]), Tt)
     m = numpy.zeros(t)
@@ -589,32 +603,32 @@ if __name__ == '__main__':
         from scikits.learn.mixture import sample_gaussian
     except:
         raise "scikits needed for this example"
-        #raise r
-    
+        # raise r
+
     y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
     y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
-    
-    Y1 = numpy.zeros((t,d+d/2))
-    Y2 = numpy.zeros((t,d+d/2))
-    
-    Y1[:,:d] = y1
-    Y2[:,:d] = y2
-    
-    sames = numpy.random.randint(0,d,size=d/2)
-    
-    Y1[:,d:] = y2[:,sames]
-    Y2[:,d:] = y1[:,sames]
-    
-    Y = numpy.zeros((n,r,t,d+d/2))
+
+    Y1 = numpy.zeros((t, d + d / 2))
+    Y2 = numpy.zeros((t, d + d / 2))
+
+    Y1[:, :d] = y1
+    Y2[:, :d] = y2
+
+    sames = numpy.random.randint(0, d, size=d / 2)
+
+    Y1[:, d:] = y2[:, sames]
+    Y2[:, d:] = y1[:, sames]
+
+    Y = numpy.zeros((n, r, t, d + d / 2))
 
     sigma = .5
-    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d+d/2)
-    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d+d/2)
+    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d + d / 2)
+    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d + d / 2)
 
     c = ConfounderTwoSample(Ts, Y)
 #    c.__verbose = True
 
-    #lvm_hyperparams_file_name = 'lvm_hyperparams.pickle'
+    # lvm_hyperparams_file_name = 'lvm_hyperparams.pickle'
 
     c.learn_confounder_matrix()
 #    lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
@@ -628,7 +642,7 @@ if __name__ == '__main__':
     c.predict_likelihoods()
 
     c.predict_means_variances(numpy.linspace(0, 24, 100))
-    
+
     pylab.ion()
     pylab.figure()
     for _ in c.plot():

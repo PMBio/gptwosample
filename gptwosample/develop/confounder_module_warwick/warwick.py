@@ -7,7 +7,6 @@ import os
 import pickle
 import numpy
 import sys
-import csv
 import pylab
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from pygp.covar.linear import LinearCFISO
@@ -18,7 +17,6 @@ from pygp.covar.bias import BiasCF
 import logging
 from gptwosample.confounder import confounder
 from numpy.ma.core import ceil
-import itertools
 from gptwosample.confounder.data import read_and_handle_gt
 logging.basicConfig(level=logging.CRITICAL)
 del logging
@@ -142,7 +140,7 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
 #    Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
 #    Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
 #    Y = numpy.array([Y1, Y2])
-    T, Y, gene_names = read_and_handle_gt(sys.argv[4], sys.argv[5], gt_file_name, D=D)
+    T, Y, gene_names, Ygt, gt_names = read_and_handle_gt(sys.argv[4], sys.argv[5], gt_file_name, D=D)
     n, r, t, d = Y.shape
 
 #    T1 = numpy.tile(T1, r).T
@@ -193,21 +191,25 @@ if "onlydata" in sys.argv:
     sys.exit(0)
 
 #  gt read moved up to improve exit performance
-gt_file = open(gt_file_name, 'r')
-gt_read = csv.reader(gt_file)
-gt_names = list()
-gt_vals = list()
-for name, val in gt_read:
-    gt_names.append(name.upper())
-    gt_vals.append(val)
-indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
-gt_names = numpy.array(gt_names)[indices[1]]
-gt_vals = numpy.array(gt_vals)[indices[1]]
+#gt_file = open(gt_file_name, 'r')
+#gt_read = csv.reader(gt_file)
+#gt_names = list()
+#gt_vals = list()
+#for name, val in gt_read:
+#    gt_names.append(name.upper())
+#    gt_vals.append(val)
+#indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
+#gt_names = numpy.array(gt_names)[indices[1]]
+#gt_vals = numpy.array(gt_vals)[indices[1]]
+#
+## select subset of data to run on:
+#joblen = ceil(len(gt_names) / float(N))
+#jobslice = slice(Ni * joblen, (Ni + 1) * joblen)
+#jobindices = indices[0][jobslice]
 
-# select subset of data to run on:
 joblen = ceil(len(gt_names) / float(N))
 jobslice = slice(Ni * joblen, (Ni + 1) * joblen)
-jobindices = indices[0][jobslice]
+jobindices = numpy.arange(len(gt_names))[jobslice]
 
 if not len(jobindices):
     print "no more genes left to run"
@@ -523,7 +525,10 @@ if ('dolikelihood' in sys.argv and
     print s,
     sys.stdout.flush()
     sys.stdout.write("             \r")
-    likelihoods = conf_model.predict_likelihoods(messages=False, message=s, indices=jobindices)  # , priors=priors)
+    likelihoods = conf_model.predict_likelihoods(T, Ygt[:,:,:,jobindices],
+                                                 messages=False, 
+                                                 message=s, 
+                                                 )  # , priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
     # dataset.create_dataset(name="L", data=numpy.array(likelihoods), dtype=list, shape=(joblen,))
     # dataset.create_dataset(name="H", data=numpy.array(hyperparams), dtype=list, shape=(joblen,))

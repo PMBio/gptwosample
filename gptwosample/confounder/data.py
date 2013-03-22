@@ -39,19 +39,32 @@ def read_and_handle_gt(cond1_file, cond2_file, gt_file_name, D='all'):
     Y1 = numpy.zeros((n_replicates_1, T1.shape[0], D))
     Y2 = numpy.zeros((n_replicates_2, T2.shape[0], D))
 
+    for i, name in enumerate(numpy.random.permutation(gene_names_all)[:D]):
+        Y1[:,:,i] = cond1[name.upper()]
+        Y2[:,:,i] = cond2[name.upper()]
+        gene_names.append(name.upper())
+    
+    Ygt = numpy.zeros((2, n_replicates_1, T1.shape[0], len(gt_names)))
+    
     for i, name in enumerate(gt_names):
-        gene_names_all.remove(name.upper())
-        gene_names.append(name.upper())
-        Y1[:,:,i] = cond1.pop(name.upper())
-        Y2[:,:,i] = cond2.pop(name.upper())
+        Ygt[0,:,:,i] = cond1[name.upper()]
+        Ygt[1,:,:,i] = cond2[name.upper()]
 
-    # get random entries not from ground truth, to fill until D:
-    gt_len = len(gt_names)
-    for i, name in enumerate(numpy.random.permutation(gene_names_all)[:D - gt_len]):
-        Y1[:,:,i + gt_len] = cond1.pop(name.upper())
-        Y2[:,:,i + gt_len] = cond2.pop(name.upper())
-        gene_names.append(name.upper())
+#    for i, name in enumerate(gt_names):
+#        gene_names_all.remove(name.upper())
+#        gene_names.append(name.upper())
+#        Y1[:,:,i] = cond1.pop(name.upper())
+#        Y2[:,:,i] = cond2.pop(name.upper())
+#
+#    # get random entries not from ground truth, to fill until D:
+#    gt_len = len(gt_names)
+#    for i, name in enumerate(numpy.random.permutation(gene_names_all)[:D - gt_len]):
+#        Y1[:,:,i + gt_len] = cond1.pop(name.upper())
+#        Y2[:,:,i + gt_len] = cond2.pop(name.upper())
+#        gene_names.append(name.upper())
 
     Y = numpy.vstack((Y1[None], Y2[None]))
     
-    return T, Y, gene_names
+    return T, Y, gene_names, Ygt, gt_names 
+
+
