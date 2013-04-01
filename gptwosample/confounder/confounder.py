@@ -149,7 +149,7 @@ class ConfounderTwoSample():
                                        messages=messages,
                                        gradient_tolerance=gradient_tolerance)
 
-        self._Xlvm = self.gplvm.x
+        self._Xlvm = self.gplvm.getData()[0]
         self._init_conf_matrix(lvm_hyperparams, ard_indices, lvm_dimension_indices)
         # print "%s found optimum of F=%s" % (threading.current_thread().getName(), opt_f)
 
@@ -589,11 +589,11 @@ class ConfounderTwoSample():
 
 
 if __name__ == '__main__':
-    Tt = numpy.arange(0, 24, 2)[:, None]
-    Tr = numpy.tile(Tt, 4).T
+    Tt = numpy.arange(0, 16, 2)[:, None]
+    Tr = numpy.tile(Tt, 3).T
     Ts = numpy.array([Tr, Tr])
 
-    n, r, t, d = nrtd = Ts.shape + (20,)
+    n, r, t, d = nrtd = Ts.shape + (12,)
 
     covar = SqexpCFARD(1)
     K = covar.K(covar.get_de_reparametrized_theta([1, 13]), Tt)
@@ -639,8 +639,7 @@ if __name__ == '__main__':
 #    c._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)
 #    lvm_hyperparams_file.close()
 
-    c.predict_likelihoods()
-
+    c.predict_likelihoods(Ts, Y)
     c.predict_means_variances(numpy.linspace(0, 24, 100))
 
     pylab.ion()

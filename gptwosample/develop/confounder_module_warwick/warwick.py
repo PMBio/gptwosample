@@ -3,10 +3,10 @@ Created on Feb 26, 2013
 
 @author: Max
 '''
-#import sys
-#sys.path.append('/Users/stegle/research/users/stegle/pygp')
-#sys.path.append('./../../../..')
-#sys.path.append('./../../..')
+# import sys
+# sys.path.append('/Users/stegle/research/users/stegle/pygp')
+# sys.path.append('./../../../..')
+# sys.path.append('./../../..')
 import os
 import pickle
 import numpy
@@ -24,7 +24,6 @@ from numpy.ma.core import ceil
 from gptwosample.confounder.data import read_and_handle_gt
 logging.basicConfig(level=logging.CRITICAL)
 del logging
-import pdb
 
 _usage = """usage: python warwick.py root-dir data_dir out_name
 [warwick_control-file warwick_treatment-file]
@@ -36,16 +35,22 @@ warwick_control-file and warwick_treatment-file have to be given only in first r
 Q = 4
 Qsim = 4
 seed = 0
-conf_var = 0.4
+conf_var = 1.0
 N, Ni = 1, 0
 D = 'all'
 
 stats_lines = list()
 
 if 'debug' in sys.argv:
-    sys.argv = ['me','conf','data','prod_sample_sample','regplvm','D=5000','Q=4','norm_genesamples','unconfounded']
+    sys.argv = ['me', 'conf', 'data', 'sam', #'gradcheck', 
+                'regplvm', 'D=5000', 'Q=4', 
+                'norm_genesamples',
+                'debug',
+                "plot_confounder", "plot_predict",
+                #'unconfounded',
+                ]
 
-#parse command line:
+# parse command line:
 for ar in sys.argv:
     if ar.startswith("cores="):
         num_procs = int(ar.split("=")[1])
@@ -135,6 +140,7 @@ if "norm_genesamples" in sys.argv:
     norm = "norm=genesamples"
 else:  # norm=genes
     norm = "norm=genes"
+stats_lines.append(norm+os.linesep)
 
 data_file_path = os.path.join(data, "./data_seed={0!s}_Qsim={1!s}_D={2!s}_{norm}.pickle".format(seed, Qsim, D, norm=norm))
 
@@ -186,35 +192,41 @@ if not os.path.exists(data_file_path) or "redata" in sys.argv:
     Conf_sim = numpy.dot(X_sim, numpy.random.randn(Qsim, d))
 
     data_file = open(data_file_path, 'w')
-    pickle.dump([T, Y, gene_names, K_sim, Conf_sim, X_sim.reshape(n * r * t, Qsim)], data_file)
+    pickle.dump([T, Y, gene_names, 
+                 K_sim, Conf_sim, 
+                 X_sim.reshape(n * r * t, Qsim),
+                 Ygt, gt_names], data_file)
 else:
     if "onlydata" in sys.argv:
         sys.exit(0)
     sys.stdout.write("\r")
     data_file = open(data_file_path, 'r')
-    T, Y, gene_names, K_sim, Conf_sim, X_sim = pickle.load(data_file)
+    T, Y, gene_names, K_sim, Conf_sim, X_sim, Ygt, gt_names = pickle.load(data_file)
     n, r, t, d = Y.shape
 finished(s)
 data_file.close()
+
+gt_names = numpy.array(gt_names)
+
 if "onlydata" in sys.argv:
     sys.exit(0)
 
 #  gt read moved up to improve exit performance
-#gt_file = open(gt_file_name, 'r')
-#gt_read = csv.reader(gt_file)
-#gt_names = list()
-#gt_vals = list()
-#for name, val in gt_read:
+# gt_file = open(gt_file_name, 'r')
+# gt_read = csv.reader(gt_file)
+# gt_names = list()
+# gt_vals = list()
+# for name, val in gt_read:
 #    gt_names.append(name.upper())
 #    gt_vals.append(val)
-#indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
-#gt_names = numpy.array(gt_names)[indices[1]]
-#gt_vals = numpy.array(gt_vals)[indices[1]]
+# indices = numpy.where(numpy.array(gt_names)[None, :] == numpy.array(gene_names)[:, None])
+# gt_names = numpy.array(gt_names)[indices[1]]
+# gt_vals = numpy.array(gt_vals)[indices[1]]
 #
-## select subset of data to run on:
-#joblen = ceil(len(gt_names) / float(N))
-#jobslice = slice(Ni * joblen, (Ni + 1) * joblen)
-#jobindices = indices[0][jobslice]
+# # select subset of data to run on:
+# joblen = ceil(len(gt_names) / float(N))
+# jobslice = slice(Ni * joblen, (Ni + 1) * joblen)
+# jobindices = indices[0][jobslice]
 
 joblen = ceil(len(gt_names) / float(N))
 jobslice = slice(Ni * joblen, (Ni + 1) * joblen)
@@ -231,10 +243,10 @@ sys.stdout.write("\r")
 yvar = Y.var()
 stats_lines.append("Y.var()={}\n".format(Y.var()))
 
+conf = numpy.sqrt(conf_var * yvar) * Conf_sim.reshape(n, r, t, d) / Conf_sim.std()
+stats_lines.append("conf.var()={}\n".format(conf.var()))
+stats_lines.append("Y.var()/conf.var()={}\n".format(conf.var() / yvar))
 if not ("raw" in sys.argv) and not ("unconfounded" in sys.argv):
-    conf = numpy.sqrt(conf_var * yvar) * Conf_sim.reshape(n, r, t, d) / Conf_sim.std()
-    stats_lines.append("conf.var()={}\n".format(conf.var()))
-    stats_lines.append("Y.var()/conf.var()={}\n".format(conf.var() / yvar))
     Y = Y + conf
 
 stats_lines.append("Yconf.var()={}\n".format(Y.var()))
@@ -251,11 +263,10 @@ sam = LinearCFISO(dimension_indices=numpy.arange(1 + q + (n * r), 1 + q + (n * r
 lvm_covariance = None
 if "conf" in sys.argv:
     if 'prod_sample_sample' in sys.argv:
-        lvm_covariance =SumCF([sam,ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
+        lvm_covariance = SumCF([sam, ProductCF([sam, SqexpCFARD(dimension_indices=numpy.array([0]))]),
                                   BiasCF()],
-                               names=['sam','samprod', 'bias'])
+                               names=['sam', 'samprod', 'bias'])
         learn_name = 'prod_sample_sample'
-    
     elif "rep" in sys.argv:
         lvm_covariance = SumCF([LinearCFISO(dimension_indices=numpy.arange(1, 1 + q)),
                                   rep,
@@ -341,8 +352,18 @@ elif ((not os.path.exists(lvm_hyperparams_file_name)) or
       "regplvm" in sys.argv):
     s = 'learning confounder matrix... '
     p = start_mill(s)
-    pdb.set_trace()
-    conf_model.learn_confounder_matrix(x=x)
+    if 'debug' in sys.argv:   
+        pylab.figure(),pylab.imshow(numpy.cov(Y.reshape(-1,d))),pylab.colorbar()
+        pylab.figure(),pylab.imshow(numpy.cov(Conf_sim.reshape(-1,d))),pylab.colorbar()
+        pylab.ion(), pylab.draw(), pylab.show()
+        try:
+            import ipdb;ipdb.set_trace()
+        except:
+            import pdb; pdb.set_trace()
+        
+    conf_model.learn_confounder_matrix(x=x, 
+                                       gradcheck=('gradcheck' in sys.argv), 
+                                       maxiter=4000)
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
     pickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
     finished(s, process=p)
@@ -390,7 +411,8 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
     sigma = numpy.exp(2 * conf_model._lvm_hyperparams['lik'][0])
     logtheta = conf_model._lvm_hyperparams['covar']
     theta = conf_model._lvm_covariance.get_reparametrized_theta(logtheta)
-
+    
+    print "plotting Xsim"
     fig = pylab.figure()
     im = pylab.imshow(K_sim)
     pylab.title(r"$\mathbf{{XX}}sim$")
@@ -403,6 +425,37 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "KXXsim.pdf"))
 
+    try:
+        print "plotting Conf"
+        fig = pylab.figure()
+        im = pylab.imshow(conf.reshape(-1,d))
+        pylab.title(r"$\mathbf{{C}}sim$")
+        divider = make_axes_locatable(pylab.gca())
+        cax = divider.append_axes("right", "5%", pad="3%")
+        pylab.colorbar(im, cax=cax)
+        try:
+            fig.tight_layout()
+        except:
+            pass
+        pylab.savefig(os.path.join(root, outname, "C.pdf"))
+    except:
+        print "no conf"
+        pass
+    
+    print "plotting cov(Y)"
+    fig = pylab.figure()
+    im = pylab.imshow(numpy.cov(Y.reshape(-1,d)))
+    pylab.title(r"Cov$(\mathbf{{Y}})$")
+    divider = make_axes_locatable(pylab.gca())
+    cax = divider.append_axes("right", "5%", pad="3%")
+    pylab.colorbar(im, cax=cax)
+    try:
+        fig.tight_layout()
+    except:
+        pass
+    pylab.savefig(os.path.join(root, outname, "YCov.pdf"))
+
+    print "plotting XX"
     fig = pylab.figure()
     im = pylab.imshow(conf_model.K_conf)
     pylab.title(r"$\mathbf{{XX}}, var={:.3g}, \alpha={:.3g}$".format(numpy.trace(conf_model.K_conf) / conf_model.K_conf.shape[1], theta[0]))
@@ -415,6 +468,7 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
         pass
     pylab.savefig(os.path.join(root, outname, "KXXconf.pdf"))
 
+    print "plotting K"
     fig = pylab.figure()
     cov = conf_model._lvm_covariance
     K_whole = cov.K(conf_model._lvm_hyperparams['covar'], x)
@@ -430,6 +484,7 @@ if "plot_confounder" in sys.argv and "conf" in sys.argv:
     pylab.savefig(os.path.join(root, outname, "K.pdf"))
 
     for name in cov.names:
+        print "plotting K{}".format(name)
         fig = pylab.figure()
         K = cov.K(logtheta, x, x, [name])
         im = pylab.imshow(K)
@@ -541,9 +596,9 @@ if ('dolikelihood' in sys.argv and
     print s,
     sys.stdout.flush()
     sys.stdout.write("             \r")
-    likelihoods = conf_model.predict_likelihoods(T, Ygt[:,:,:,jobindices],
-                                                 messages=False, 
-                                                 message=s, 
+    likelihoods = conf_model.predict_likelihoods(T, Ygt[:, :, :, jobindices],
+                                                 messages=False,
+                                                 message=s,
                                                  )  # , priors=priors)
     hyperparams = conf_model.get_learned_hyperparameters()
     # dataset.create_dataset(name="L", data=numpy.array(likelihoods), dtype=list, shape=(joblen,))

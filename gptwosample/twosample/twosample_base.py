@@ -19,7 +19,7 @@ from pygp.plot.gpr_plot import plot_sausage, plot_training_data
 from copy import deepcopy
 from matplotlib import cm
 from pygp.likelihood.likelihood_base import GaussLikISO
-    
+
 class TwoSampleBase(object):
     """
     TwoSampleBase object with the given covariance function covar.
@@ -41,7 +41,7 @@ class TwoSampleBase(object):
             priors : {'covar': priors for covar, ...}
                 Default: None; The prior beliefs you provide for the hyperparamaters of the covariance function.
 
-                
+
         """
 
         self._learn_hyperparameters = learn_hyperparameters
@@ -49,9 +49,9 @@ class TwoSampleBase(object):
             self._priors = priors
         else:
             self._priors = get_model_structure(priors, priors)
-            
+
         self._models = dict()
-        
+
         if initial_hyperparameters is None and priors is not None:
             self._initial_hyperparameters = get_model_structure({}, {});
             for name, prior in self._priors.iteritems():
@@ -71,24 +71,24 @@ class TwoSampleBase(object):
         for name, hyper in self._initial_hyperparameters.iteritems():
             hyper['lik'] = numpy.log([0.1])
         self._invalidate_cache()
-    
+
     def set_data_by_xy_data(self, x1, x2, y1, y2):
-        not_missing = (numpy.isfinite(x1) * numpy.isfinite(x2) * numpy.isfinite(y1) * numpy.isfinite(y2)).flatten()
-        x1, x2 = x1[not_missing], x2[not_missing]
-        y1, y2 = y1[not_missing], y2[not_missing]
-        
+        #not_missing = (numpy.isfinite(x1) * numpy.isfinite(x2) * numpy.isfinite(y1) * numpy.isfinite(y2)).flatten()
+        #x1, x2 = x1[not_missing], x2[not_missing]
+        #y1, y2 = y1[not_missing], y2[not_missing]
+
         X = numpy.array([x1, x2]); Y = numpy.array([y1, y2])
         # set individual model's data
         self._models[individual_id].setData(X, Y)
         # set common model's data
         self._models[common_id].setData(scipy.concatenate(X), scipy.concatenate(Y))
-    
+
     def set_data(self, training_data):
         """
         Set the data of prediction.
-        
+
         **Parameters:**
-        
+
         training_data : dict traning_data
             The training data to learn from. Input are time-values and
             output are expression-values of e.g. a timeseries.
@@ -99,7 +99,7 @@ class TwoSampleBase(object):
                  'output' : {'group 1':[double] ... 'group n':[double]}}
 
         """
-        try:                
+        try:
             self.set_data_by_xy_data(training_data[input_id]['group_1'],
                                      training_data[input_id]['group_2'],
                                      training_data[output_id]['group_1'],
@@ -115,13 +115,13 @@ class TwoSampleBase(object):
         """
         Predict the probabilities of the models (individual and common) to describe the data.
         It will optimize hyperparameters respectively.
-        
+
         **Parameters**:
-        
+
         training_data : dict traning_data
             The training data to learn from. Input are time-values and
-            output are expression-values of e.g. a timeseries. 
-            If not given, training data must be given previously by 
+            output are expression-values of e.g. a timeseries.
+            If not given, training data must be given previously by
             :py:class:`gptwosample.twosample.basic.set_data`.
 
         interval_indices: :py:class:`gptwosample.data.data_base.get_model_structure()`
@@ -133,7 +133,7 @@ class TwoSampleBase(object):
 
         kwargs : {..}
             see :py:class:`pygp.gpr.gp_base.GP`
-        
+
         """
         if(training_data is not None):
             self.set_data(training_data)
@@ -150,7 +150,7 @@ class TwoSampleBase(object):
                 else:
                     self._learned_hyperparameters[name] = self._initial_hyperparameters[name]
             except ValueError as r:
-                print "caught error:", r.message, "\r", 
+                print "caught error:", r.message, "\r",
                 self._learned_hyperparameters[name] = self._initial_hyperparameters[name]
             self._model_likelihoods[name] = model.LML(self._learned_hyperparameters[name],
                                                               priors=self._priors)
@@ -175,12 +175,12 @@ class TwoSampleBase(object):
 
         hyperparams : {'covar':logtheta, ...}
             Default: learned hyperparameters. Hyperparams for the covariance function's prediction.
-    
+
         interval_indices : {'common':[boolean],'individual':[boolean]}
             Indices in which to predict, for each group, respectively.
         """
         if interpolation_interval.ndim < 2:
-            interpolation_interval = interpolation_interval[:,None]
+            interpolation_interval = interpolation_interval[:, None]
         if(hyperparams is None):
             hyperparams = self._learned_hyperparameters
         self._predicted_mean_variance = get_model_structure()
@@ -205,7 +205,7 @@ class TwoSampleBase(object):
             The likelihoods calculated by
             predict_model_likelihoods(training_data)
             for given training data training_data.
-            
+
         """
         if model_likelihoods is numpy.NaN:
             return numpy.NaN
@@ -235,41 +235,41 @@ class TwoSampleBase(object):
         If not yet predicted it will return 'individual' and 'common' empty.
         """
         return self._predicted_mean_variance
-        
-    def get_data(self, model=common_id, index=None, interval_indices=get_model_structure()):
+
+    def get_data(self, model=common_id, index=None):  # , interval_indices=get_model_structure()):
         """
         get inputs of model `model` with group index `index`.
         If index is None, the whole model group will be returned.
         """
         if(index is None):
-            return self._models[model].getData()[:, interval_indices[model]].squeeze()
+            return self._models[model].getData()  # [:, interval_indices[model]].squeeze()
         else:
-            return self._models[model].getData()[index][:, interval_indices[model]].squeeze()
-    
+            return self._models[model].getData()[index]  # [:, interval_indices[model]].squeeze()
+
     def plot(self,
              xlabel="input", ylabel="ouput", title=None,
              interval_indices=None, alpha=None, legend=True,
              replicate_indices=None, shift=None, *args, **kwargs):
         """
         Plot the results given by last prediction.
-    
+
         Two Instance Plots of comparing two groups to each other:
-    
+
         **Parameters:**
-        
+
         twosample_object : :py:class:`gptwosample.twosample`
             GPTwoSample object, on which already 'predict' was called.
-        
+
         **Differential Groups:**
-        
+
         .. image:: ../images/plotGPTwoSampleDifferential.png
             :height: 8cm
-            
+
         **Non-Differential Groups:**
-        
+
         .. image:: ../images/plotGPTwoSampleSame.png
             :height: 8cm
-        
+
         Returns:
             Proper rectangles for use in pylab.legend().
         """
@@ -283,7 +283,7 @@ class TwoSampleBase(object):
         import pylab
         if title is None:
             title = r'Prediction result: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (self.bayes_factor())
-    
+
     #        plparams = {'axes.labelsize': 20,
     #            'text.fontsize': 20,
     #            'legend.fontsize': 18,
@@ -291,16 +291,16 @@ class TwoSampleBase(object):
     #            'xtick.labelsize': 20,
     #            'ytick.labelsize': 20,
     #            'usetex': True }
-    
+
         legend_plots = []
         legend_names = []
-    
+
         calc_replicate_indices = replicate_indices is None
-    
+
         alpha_groups = alpha
         if alpha is not None:
             alpha_groups = 1 - alpha
-    
+
         for name, value in self._predicted_mean_variance.iteritems():
             mean = value['mean']
             var = numpy.sqrt(value['var'])
@@ -309,17 +309,30 @@ class TwoSampleBase(object):
                 first = True
                 for i in range(number_of_groups):
                     col_num = (i / (2. * number_of_groups))
-                    col = cm.jet(col_num) #(i/number_of_groups,i/number_of_groups,.8) @UndefinedVariable
-                    data = self.get_data(name, i)
-                    replicate_length = len(numpy.unique(data[0]))
-                    number_of_replicates = len(data[0]) / replicate_length
+                    col = cm.jet(col_num)  # (i/number_of_groups,i/number_of_groups,.8) @UndefinedVariable
+                    x, y = self.get_data(name, i)
+                    x, y = x.squeeze(), y.squeeze()
+                    replicate_length = len(numpy.unique(x))
+                    number_of_replicates = len(x) / replicate_length
                     if calc_replicate_indices:
                         # Assume replicates are appended one after another
-                        replicate_indices = numpy.concatenate([numpy.repeat(rep, replicate_length) for rep in range(number_of_replicates)])
+                        replicate_indices = []
+                        curr = x[0] - 1
+                        rep = 0
+                        replicate_length = 0
+                        for xi in x:
+                            if xi < curr:
+                                replicate_indices.append(numpy.repeat(rep, replicate_length))
+                                rep += 1
+                                replicate_length = 0
+                            replicate_length += 1
+                            curr = xi
+                        replicate_indices.append(numpy.repeat(rep, replicate_length))
+                        replicate_indices = numpy.concatenate(replicate_indices)
                     shifti = deepcopy(shift)
                     if shifti is not None:
                         shifti = shift[i * number_of_replicates:(i + 1) * number_of_replicates]
-                        #import pdb;pdb.set_trace()
+                        # import pdb;pdb.set_trace()
                         plot_sausage(self._interpolation_interval_cache[name] - numpy.mean(shifti), mean[i], var[i], format_fill={'alpha':0.2, 'facecolor':col}, format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
                     else:
                         plot_sausage(self._interpolation_interval_cache[name],
@@ -327,7 +340,7 @@ class TwoSampleBase(object):
                                           format_fill={'alpha':0.2, 'facecolor':col},
                                           format_line={'alpha':1, 'color':col, 'lw':3, 'ls':'--'}, alpha=alpha_groups)[0]
                     plot_training_data(
-                            numpy.array(data[0]), numpy.array(data[1]),
+                            numpy.array(x), numpy.array(y),
                             format_data={'alpha':.8,
                                          'marker':'.',
                                          'linestyle':'--',
@@ -339,12 +352,12 @@ class TwoSampleBase(object):
                     if(first):
                         legend_plots.append(pylab.Rectangle((0, 0), 1, 1, alpha=.2, fill=True, facecolor=col))
                         legend_names.append("%s %i" % (name, i + 1))
-                        #first=False
+                        # first=False
             else:
-                col = cm.jet(1.) #@UndefinedVariable
-                #data = self.get_data(name, interval_indices=interval_indices)   
-                #PLOT.plot_training_data(
-                #        data[0], data[1],
+                col = cm.jet(1.)  # @UndefinedVariable
+                # data = self.get_data(name, interval_indices=interval_indices)
+                # PLOT.plot_training_data(
+                #        x, y,
                 #        format_data={'alpha':.2,
     #                                 'marker':'.',
     #                                 'linestyle':'',
@@ -363,17 +376,17 @@ class TwoSampleBase(object):
                       mode="expand",
                       borderaxespad=0.,
                       fancybox=False, frameon=False)
-        
+
         pylab.xlabel(xlabel)
         pylab.ylabel(ylabel)
-    
+
         pylab.subplots_adjust(top=.88)
         pylab.title(title, fontsize=22)
-        
+
         return legend_plots
-        
-    
-    
+
+
+
 ######### PRIVATE ##############
 #    def _init_twosample_model(self, covar):
 #        """
@@ -407,19 +420,19 @@ class TwoSampleShare(TwoSampleBase):
         super(TwoSampleShare, self).__init__(*args, **kwargs)
         gpr1 = GP(deepcopy(covar), likelihood=GaussLikISO())
         gpr2 = GP(deepcopy(covar), likelihood=GaussLikISO())
-        #individual = GroupGP([gpr1,gpr2])
-        #common = GP(covar)
-        #self.covar = covar
+        # individual = GroupGP([gpr1,gpr2])
+        # common = GP(covar)
+        # self.covar = covar
         # set models for this TwoSampleBase Test
-        self._models = {individual_id:GroupGP([gpr1,gpr2]),
+        self._models = {individual_id:GroupGP([gpr1, gpr2]),
                         common_id:GP(deepcopy(covar), likelihood=GaussLikISO())}
-        
+
 class TwoSampleSeparate(TwoSampleBase):
     """
     This class provides comparison of two Timeline Groups to one another, inlcuding timeshifts in replicates, respectively.
 
     see :py:class:`gptwosample.twosample.twosample_base.TwoSampleBase` for detailed description of provided methods.
-    
+
     Note that this model will need one covariance function for each model, respectively!
     """
     def __init__(self, covar_individual_1, covar_individual_2, covar_common, **kwargs):
@@ -433,11 +446,10 @@ class TwoSampleSeparate(TwoSampleBase):
         super(TwoSampleSeparate, self).__init__(**kwargs)
         gpr1 = GP(deepcopy(covar_individual_1), likelihood=GaussLikISO())
         gpr2 = GP(deepcopy(covar_individual_2), likelihood=GaussLikISO())
-        #self.covar_individual_1 = covar_individual_1
-        #self.covar_individual_2 = covar_individual_2
-        #self.covar_common = covar_common
+        # self.covar_individual_1 = covar_individual_1
+        # self.covar_individual_2 = covar_individual_2
+        # self.covar_common = covar_common
         # set models for this TwoSampleBase Test
-        
-        
-        self._models = {individual_id:GroupGP([gpr1,gpr2]),common_id:GP(deepcopy(covar_common), likelihood=GaussLikISO())}
-    
+
+
+        self._models = {individual_id:GroupGP([gpr1, gpr2]), common_id:GP(deepcopy(covar_common), likelihood=GaussLikISO())}

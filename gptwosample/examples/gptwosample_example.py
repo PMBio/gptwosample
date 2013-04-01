@@ -1,81 +1,65 @@
 '''
-Small Example application of GPTwoSample
-========================================
+Created on Mar 30, 2013
 
-Please run script "generateToyExampleFiles.py" to generate Toy Data.
-This Example shows how to apply GPTwoSample to toy data, generated above.
-
-Created on Jun 9, 2011
-
-@author: Max Zwiessele, Oliver Stegle
+@author: Max
 '''
-
-from gptwosample.data import toy_data_generator
-from gptwosample.data.dataIO import get_data_from_csv
-from gptwosample.data.data_base import get_training_data_structure
-from gptwosample.plot.plot_basic import plot_results
-import logging as LG
-import pylab as PL
-import scipy as SP
-import os
-
+import numpy
+from pygp.covar.se import SqexpCFARD
+from gptwosample.twosample.twosample import TwoSample
+import pylab
 
 if __name__ == '__main__':
-    #cond1_file = './ToyCondition1.csv'; cond2_file = './ToyCondition2.csv'
-    cond1_file = './gsample1.csv'; cond2_file = './gsample2.csv'
-    
-        #full debug info:
-    LG.basicConfig(level=LG.INFO)
+    Tt = numpy.arange(0, 16, 2)[:, None]
+    Tr = numpy.tile(Tt, 3).T
+    Ts = numpy.array([Tr, Tr],dtype=float)
 
-    #1. read csv file
-    cond1 = get_data_from_csv(cond1_file, delimiter=',')
-    cond2 = get_data_from_csv(cond2_file, delimiter=",")
+    n, r, t, d = nrtd = Ts.shape + (12,)
 
-    #range where to create time local predictions ? 
-    #note: this needs to be [T x 1] dimensional: (newaxis)
-    Tpredict = SP.linspace(cond1["input"].min(), cond1["input"].max(), 100)[:, SP.newaxis]
-    T1 = cond1["input"]
-    T2 = cond2["input"]
-    
-    gene_names = sorted(cond1.keys())
-    assert gene_names == sorted(cond2.keys())
-    gene_names = SP.array(gene_names)
-    
-    twosample_object = toy_data_generator.get_twosample()
-    plots = "plots_{}".format(os.path.splitext(os.path.basename(__file__))[0])
-    if not os.path.exists(plots):
-        os.makedirs(plots)
-    #loop through genes
-    ind = SP.where((gene_names=="gene 2") + (gene_names=="gene 14") + (gene_names=="gene 41"))[0]
-    
-    for gene_name in gene_names[ind]:#SP.random.permutation(gene_names)[:20]:
-        if gene_name is "input":
-            continue
-        #expression levels: replicates x #time points
-        Y0 = cond1[gene_name]
-        Y1 = cond2[gene_name]
-        
-        #create data structure for GPTwwoSample:
-        #note; there is no need for the time points to be aligned for all replicates
-        #creates score and time local predictions
-        twosample_object.set_data(get_training_data_structure(SP.tile(T1,Y0.shape[0]).reshape(-1, 1),
-                                                              SP.tile(T2,Y1.shape[0]).reshape(-1, 1),
-                                                              Y0.reshape(-1, 1),
-                                                              Y1.reshape(-1, 1)))
-        twosample_object.predict_model_likelihoods()
-        twosample_object.predict_mean_variance(Tpredict)
-        PL.clf()
-        plot_results(twosample_object,
-                     title=r'%s: $\mathcal B = \ln(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()), xlabel="Time", ylabel="Expression Level")
-        PL.xlim(T1.min(), T1.max())
+    covar = SqexpCFARD(1)
+    K = covar.K(covar.get_de_reparametrized_theta([1, 13]), Tt)
+    m = numpy.zeros(t)
 
-        try:
-            PL.tight_layout()
-        except:
-            pass
-        print gene_name
-        PL.savefig(os.path.join(plots,"GPTwoSample_%s.pdf"%(gene_name)))
-        ## wait for window close
-        #PL.show()
+    try:
+        from scikits.learn.mixture import sample_gaussian
+    except:
+        raise "scikits needed for this example"
+        # raise r
 
-        pass
+    y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
+    y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
+
+    Y1 = numpy.zeros((t, d + d / 2))
+    Y2 = numpy.zeros((t, d + d / 2))
+
+    Y1[:, :d] = y1
+    Y2[:, :d] = y2
+
+    sames = numpy.random.randint(0, d, size=d / 2)
+
+    Y1[:, d:] = y2[:, sames]
+    Y2[:, d:] = y1[:, sames]
+
+    Y = numpy.zeros((n, r, t, d + d / 2))
+
+    sigma = .5
+    Y[0, :, :, :] = Y1 + sigma * numpy.random.randn(r, t, d + d / 2)
+    Y[1, :, :, :] = Y2 + sigma * numpy.random.randn(r, t, d + d / 2)
+
+    n, r, t, d = Y.shape
+
+    for _ in range((n*r*t*d)/4):
+        #Ts[numpy.random.randint(n),numpy.random.randint(r),numpy.random.randint(t)] = numpy.nan
+        Y[numpy.random.randint(n),numpy.random.randint(r),numpy.random.randint(t),numpy.random.randint(d)] = numpy.nan
+
+    
+
+    c = TwoSample(Ts, Y)
+
+    c.predict_likelihoods(Ts, Y)
+    c.predict_means_variances(numpy.linspace(Ts.min(), Ts.max(), 100))
+
+    pylab.ion()
+    pylab.figure()
+    for _ in c.plot():
+        raw_input("enter to continue")
+

@@ -37,7 +37,7 @@ for parent, folders, files in os.walk(root):
                     with open(os.path.join(parent,'likelihoods_job_{}_{}.pickle'.format(Ni, N)),'r') as liks, \
                          open(os.path.join(parent,'gt_names_job_{}_{}.pickle'.format(Ni, N)),'r') as gts:
                         write_bayes_factors(writer, pickle.load(gts), pickle.load(liks))
-                except IOError as io:
-                    pass
+                except:
+                    continue
                     #print io.message
                 
