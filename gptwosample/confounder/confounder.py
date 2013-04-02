@@ -25,8 +25,9 @@ from pygp.covar.bias import BiasCF
 import itertools
 from copy import deepcopy
 from pygp.util.pca import PCA
+from gptwosample.twosample.twosample import TwoSample
 
-class ConfounderTwoSample():
+class ConfounderTwoSample(TwoSample):
     """Learn Confounder and run GPTwoSample correcting for confounding variation.
 
     Fields:
@@ -99,7 +100,8 @@ class ConfounderTwoSample():
                                 messages=True,
                                 gradient_tolerance=1E-12,
                                 lvm_dimension_indices=None,
-                                gradcheck=False
+                                gradcheck=False,
+                                maxiter=10000,
                                 ):
         """
         Learn confounder matrix with this model.
@@ -144,7 +146,7 @@ class ConfounderTwoSample():
                  }
 
         lvm_hyperparams, _ = opt_hyper(self.gplvm, hyper,
-                                       Ifilter=None, maxiter=10000,
+                                       Ifilter=None,maxiter=maxiter,
                                        gradcheck=gradcheck, bounds=None,
                                        messages=messages,
                                        gradient_tolerance=gradient_tolerance)

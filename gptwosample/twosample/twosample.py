@@ -42,20 +42,14 @@ class TwoSample():
     """
     NUM_PROCS = 2  # min(max(1,cpu_count()-2),3)
     SENTINEL = object()
-    def __init__(self, T, Y, q=4,
-                 lvm_covariance=None,
-                 init="random",
+    def __init__(self, T, Y,
                  **kwargs):
         """
         **Parameters**:
             T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]
             Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]
-            q : Number of Confounders to use
-            lvm_covariance : optional - set covariance to use in confounder learning
-            init : [random, pca]
         """
         self.set_data(T, Y)
-        self.q = q
         self.__verbose = False
         self.__running_event = Event()
 
@@ -110,8 +104,8 @@ class TwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue(3)
-        self.inq = Queue(3)
+        self.outq = Queue()
+        self.inq = Queue()
 
         self._likelihoods = list()
         self._hyperparameters = list()
@@ -165,8 +159,8 @@ class TwoSample():
             indices = range(self.d)
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue(3)
-        self.outq = Queue(3)
+        self.inq = Queue()
+        self.outq = Queue()
 
         try:
             if self._hyperparameters is None:
@@ -278,21 +272,6 @@ class TwoSample():
             self.T[1, :, :].ravel()[:, None], \
             self.Y[0, :, :, i].ravel()[:, None], \
             self.Y[1, :, :, i].ravel()[:, None]
-
-    def _init_conf_matrix(self, lvm_hyperparams, conf_covar_name, lvm_dimension_indices):
-        self._initialized = True
-        self.X = lvm_hyperparams['x']
-        self._lvm_hyperparams = lvm_hyperparams
-        # if ard_indices is None:
-        #    ard_indices = numpy.arange(1)
-        # ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams['covar'])[ard_indices]
-        # self.K_conf = numpy.dot(self.X*ard, self.X.T)
-        try:
-            self.gplvm
-        except:
-            self.gplvm = self._gplvm(lvm_dimension_indices)
-        self.K_conf = self._lvm_covariance.K(self._lvm_hyperparams['covar'], self._Xlvm, self._Xlvm, names=['XX'])
-
 
     def _TwoSampleObject(self, priors=None):
         covar_common = SumCF([SqexpCFARD(1), BiasCF()])

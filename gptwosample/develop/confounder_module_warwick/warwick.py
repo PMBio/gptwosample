@@ -22,6 +22,7 @@ import logging
 from gptwosample.confounder import confounder
 from numpy.ma.core import ceil
 from gptwosample.confounder.data import read_and_handle_gt
+from gptwosample.twosample.twosample import TwoSample
 logging.basicConfig(level=logging.CRITICAL)
 del logging
 
@@ -35,7 +36,7 @@ warwick_control-file and warwick_treatment-file have to be given only in first r
 Q = 4
 Qsim = 4
 seed = 0
-conf_var = 1.0
+conf_var = 2.0
 N, Ni = 1, 0
 D = 'all'
 
@@ -43,11 +44,15 @@ stats_lines = list()
 
 if 'debug' in sys.argv:
     sys.argv = ['me', 'conf', 'data', 'sam', #'gradcheck', 
-                'regplvm', 'D=5000', 'Q=4', 
+                '../../examples/warwick_control.csv', '../../examples/warwick_treatment.csv',
+                #'regplvm', 
+                'D=2000', 'Q=4', 'gt100',
                 'norm_genesamples',
                 'debug',
-                "plot_confounder", "plot_predict",
-                #'unconfounded',
+                "plot_confounder", 
+                "plot_predict",
+                'dolikelihood',
+                'unconfounded',
                 ]
 
 # parse command line:
@@ -344,10 +349,7 @@ if "ideal" in sys.argv:
     conf_model.K_conf = K_sim
     conf_model._initialized = True
 elif "noconf" in sys.argv or "raw" in sys.argv:
-    conf_model.X = numpy.zeros((conf_model.n * conf_model.r * conf_model.t,
-                                conf_model.q))
-    conf_model.K_conf = numpy.dot(conf_model.X, conf_model.X.T)
-    conf_model._initialized = True
+    conf_model = TwoSample(T, Y)
 elif ((not os.path.exists(lvm_hyperparams_file_name)) or
       "regplvm" in sys.argv):
     s = 'learning confounder matrix... '
@@ -363,7 +365,7 @@ elif ((not os.path.exists(lvm_hyperparams_file_name)) or
         
     conf_model.learn_confounder_matrix(x=x, 
                                        gradcheck=('gradcheck' in sys.argv), 
-                                       maxiter=4000)
+                                       maxiter=10000)
     lvm_hyperparams_file = open(lvm_hyperparams_file_name, 'w')
     pickle.dump(conf_model._lvm_hyperparams, lvm_hyperparams_file)
     finished(s, process=p)

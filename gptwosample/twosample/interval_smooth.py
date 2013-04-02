@@ -18,7 +18,7 @@ import scipy as SP
 from pygp.gp.gpcEP import GPCEP
 from gptwosample.data.data_base import common_id, individual_id
 
-class TwoSampleInterval(object):
+class TwoSampleIntervalSmooth(object):
     '''
     Sample each x point by gibbs sampling, smoothing indicators by gpcEP with ProbitLikelihood.
     '''
