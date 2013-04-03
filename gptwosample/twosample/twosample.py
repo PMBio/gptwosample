@@ -104,8 +104,8 @@ class TwoSample():
 
         kwargs['messages'] = messages
 
-        self.outq = Queue()
-        self.inq = Queue()
+        self.outq = Queue(3)
+        self.inq = Queue(3)
 
         self._likelihoods = list()
         self._hyperparameters = list()
