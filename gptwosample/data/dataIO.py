@@ -11,10 +11,13 @@ Created on Jun 9, 2011
 
 import csv, scipy as SP, sys
 import os
+import numpy
 
 def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True):
     '''
     Return data from csv file with delimiter delimiter in form of a dictionary.
+    Missing Values are all values x which cannot be converted float(x)
+
     The file format has to fullfill following formation:
 
     ============ =============== ==== ===============
@@ -32,32 +35,40 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True):
     ============ =============== ==== ===============
 
     Returns: {"input":[x1,...,xl], "Gene Name 1":[[y1 replicate 1, ... yl replicate 1], ... ,[y1 replicate k, ..., yl replikate k]]}
+
     '''
+    def filter_(x):
+        try:
+            return float(str.strip(x))
+        except:
+            return numpy.nan
+    
     end = float(count_lines(path_to_file))
-    out_file = open(path_to_file, "Urb")
-    reader = csv.reader(out_file, delimiter=str(delimiter))
-    out = sys.stdout
-    current_line = 0
-    if verbose:
-        message = lambda x:"Reading File {1:s}: {0:.2%} ".format(x, os.path.basename(path_to_file))
-        out.write(message(0) + "                          \r")
-    data = {"input":reader.next()[1:]}
-    for line in reader:
-        if line:
-            gene_name = line[0]
-            if(data.has_key(gene_name)):
-                data[gene_name].append(line[1:])
-            else:
-                data[gene_name] = [line[1:]]
-        current_line += 1
+    with open(path_to_file, "r") as out_file:
+        reader = csv.reader(out_file, delimiter=str(delimiter))
+        out = sys.stdout
+        current_line = 0
         if verbose:
-            out.flush()
-            out.write(message(current_line / end) + "\r")
-#        progress += 1
-#        step_ahead = int((1.*progress/end)*60.)
-#        if(step_ahead > step):
-#            out.write("#"*(step_ahead-step))
-#            step = step_ahead
+            message = lambda x:"Reading File {1:s}: {0:.2%} ".format(x, os.path.basename(path_to_file))
+            out.write(message(0) + "                          \r")
+        data = {"input":map(filter_,reader.next()[1:])}
+        for line in reader:
+            if line:
+                gene_name = line[0]
+                l_filtered = [filter_(x) for x in line[1:]]
+                if(data.has_key(gene_name)):
+                    data[gene_name].append(l_filtered)
+                else:
+                    data[gene_name] = [l_filtered]
+            current_line += 1
+            if verbose:
+                out.flush()
+                out.write(message(current_line / end) + "\r")
+    #        progress += 1
+    #        step_ahead = int((1.*progress/end)*60.)
+    #        if(step_ahead > step):
+    #            out.write("#"*(step_ahead-step))
+    #            step = step_ahead
     out.flush()
     if verbose:
         try:

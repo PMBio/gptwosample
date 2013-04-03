@@ -5,13 +5,8 @@ Confounder Learning and Correction Module
 @author: Max Zwiessele
 '''
 import numpy
-from pygp.covar.linear import LinearCFISO, LinearCF
-from pygp.covar.combinators import SumCF, ProductCF
+from pygp.covar.combinators import SumCF
 from pygp.covar.se import SqexpCFARD
-from pygp.gp.gplvm import GPLVM
-from pygp.optimize.optimize_base import opt_hyper
-from pygp.covar.fixed import FixedCF
-from pygp.likelihood.likelihood_base import GaussLikISO
 from gptwosample.data.data_base import get_model_structure, common_id, \
     individual_id
 from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
@@ -19,14 +14,12 @@ from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
 from Queue import Queue
 import sys
 from threading import Thread, Event
-import pickle
 import pylab
 from pygp.covar.bias import BiasCF
 import itertools
 from copy import deepcopy
-from pygp.util.pca import PCA
 
-class TwoSample():
+class TwoSample(object):
     """Learn Confounder and run GPTwoSample correcting for confounding variation.
 
     Fields:
@@ -40,10 +33,12 @@ class TwoSample():
     * d: Genes
     * q: Confounder Components
     """
-    NUM_PROCS = 2  # min(max(1,cpu_count()-2),3)
+    NUM_PROCS = 1  # min(max(1,cpu_count()-2),3)
     SENTINEL = object()
     def __init__(self, T, Y,
-                 **kwargs):
+                 covar_common=None,
+                 covar_individual_1=None,
+                 covar_individual_2=None):
         """
         **Parameters**:
             T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]
@@ -52,6 +47,9 @@ class TwoSample():
         self.set_data(T, Y)
         self.__verbose = False
         self.__running_event = Event()
+        self.covar_comm = covar_common
+        self.covar_ind1 = covar_individual_1
+        self.covar_ind2 = covar_individual_2
 
     def set_data(self, T, Y):
         """
@@ -157,10 +155,11 @@ class TwoSample():
         """
         if indices is None:
             indices = range(self.d)
+        self.indices = indices
         self._mean_variances = list()
         self._interpolation_interval_cache = get_model_structure(interpolation_interval)
-        self.inq = Queue()
-        self.outq = Queue()
+        self.inq = Queue(3)
+        self.outq = Queue(3)
 
         try:
             if self._hyperparameters is None:
@@ -172,15 +171,15 @@ class TwoSample():
         processes = list()
 
         def distribute(i):
-            self.inq.put([i, deepcopy([self._get_data_for(indices[i]),
+            self.inq.put([i, deepcopy([self._get_data_for(self.indices[i]),
                               self._hyperparameters[i]])])
 
-        processes.append(Thread(target=self._distributor, args=[distribute, len(indices)], name='distributor', verbose=self.__verbose))
+        processes.append(Thread(target=self._distributor, args=[distribute, len(self.indices)], name='distributor', verbose=self.__verbose))
 
         def collect(d):
             self._mean_variances.append(deepcopy(d))
 
-        processes.append(Thread(target=self._collector, name='ms collector', args=[collect, message, len(indices)], verbose=self.__verbose))
+        processes.append(Thread(target=self._collector, name='ms collector', args=[collect, message, len(self.indices)], verbose=self.__verbose))
 
         for i in xrange(self.NUM_PROCS):
             processes.append(Thread(target=self._pred_worker,
@@ -204,15 +203,17 @@ class TwoSample():
         """
         if likelihoods is None:
             likelihoods = self._likelihoods
+        if likelihoods is None:
+            raise RuntimeError("Likelihoods not yet learned, use predict_likelihoods first")
         t = TwoSampleBase()
         f = lambda lik:t.bayes_factor(lik)
         return map(f, self._likelihoods)
 
 
-    def plot(self, indices=None,
+    def plot(self,
              xlabel="input", ylabel="ouput", title=None,
              interval_indices=None, alpha=None, legend=True,
-             replicate_indices=None, shift=None, *args, **kwargs):
+             replicate_indices=None, shift=None, timeshift=False, *args, **kwargs):
         """
         iterate through all genes and plot
         """
@@ -224,18 +225,20 @@ class TwoSample():
             print "Not yet predicted, use predict_means_variances before"
             return
         pylab.ion()
-        if indices is None:
-            indices = numpy.arange(self.d)
         t = self._TwoSampleObject()
-        for i in xrange(len(indices)):
+        for i in xrange(len(self.indices)):
             pylab.clf()
-            t.set_data_by_xy_data(*self._get_data_for(indices[i]))
+            t.set_data_by_xy_data(*self._get_data_for(self.indices[i]))
             t._predicted_mean_variance = self._mean_variances[i]
             t._interpolation_interval_cache = self._interpolation_interval_cache
             t._learned_hyperparameters = self._hyperparameters[i]
             t._model_likelihoods = self._likelihoods[i]
+            draw_arrows=None
+            if timeshift:
+                shift = t.get_covars()[common_id].get_timeshifts(t.get_learned_hyperparameters()[common_id]['covar'])
+                draw_arrows=2
             yield t.plot(xlabel, ylabel, title, interval_indices,
-                   alpha, legend, replicate_indices, shift,
+                   alpha, legend, replicate_indices, shift,draw_arrows=draw_arrows,
                    *args, **kwargs)
 
     def get_model_likelihoods(self):
@@ -274,12 +277,18 @@ class TwoSample():
             self.Y[1, :, :, i].ravel()[:, None]
 
     def _TwoSampleObject(self, priors=None):
-        covar_common = SumCF([SqexpCFARD(1), BiasCF()])
-        covar_individual_1 = SumCF([SqexpCFARD(1), BiasCF()])
-        covar_individual_2 = SumCF([SqexpCFARD(1), BiasCF()])
-
-        return TwoSampleSeparate(covar_individual_1, covar_individual_2,
+        if self.covar_comm is None:
+            self.covar_comm = SumCF((SqexpCFARD(1), BiasCF()))
+        if self.covar_ind1 is None:
+            self.covar_ind1 = SumCF((SqexpCFARD(1), BiasCF()))
+        if self.covar_ind2 is None:
+            self.covar_ind2 = SumCF((SqexpCFARD(1), BiasCF()))
+        covar_common = deepcopy(self.covar_comm)
+        covar_individual_1 = deepcopy(self.covar_ind1)
+        covar_individual_2 = deepcopy(self.covar_ind2)
+        tmp = TwoSampleSeparate(covar_individual_1, covar_individual_2,
                                  covar_common, priors=priors)
+        return tmp
 
     def _collector(self, collect, message, l):
         counter = itertools.count()
@@ -405,7 +414,7 @@ class TwoSample():
 if __name__ == '__main__':
     Tt = numpy.arange(0, 16, 2)[:, None]
     Tr = numpy.tile(Tt, 3).T
-    Ts = numpy.array([Tr, Tr],dtype=float)
+    Ts = numpy.array([Tr, Tr], dtype=float)
 
     n, r, t, d = nrtd = Ts.shape + (12,)
 
@@ -441,11 +450,11 @@ if __name__ == '__main__':
 
     n, r, t, d = Y.shape
 
-    for _ in range((n*r*t*d)/4):
-        #Ts[numpy.random.randint(n),numpy.random.randint(r),numpy.random.randint(t)] = numpy.nan
-        Y[numpy.random.randint(n),numpy.random.randint(r),numpy.random.randint(t),numpy.random.randint(d)] = numpy.nan
+    for _ in range((n * r * t * d) / 4):
+        # Ts[numpy.random.randint(n),numpy.random.randint(r),numpy.random.randint(t)] = numpy.nan
+        Y[numpy.random.randint(n), numpy.random.randint(r), numpy.random.randint(t), numpy.random.randint(d)] = numpy.nan
 
-    
+
 
     c = TwoSample(Ts, Y)
 

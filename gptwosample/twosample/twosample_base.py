@@ -213,6 +213,10 @@ class TwoSampleBase(object):
             model_likelihoods = self._model_likelihoods
         return  model_likelihoods[common_id] - model_likelihoods[individual_id]
 
+    def get_covars(self):
+        models = self._models
+        return {individual_id: models[individual_id].covar, common_id: models[common_id].covar}
+
     def get_model_likelihoods(self):
         """
         Returns all calculated likelihoods in model structure. If not calculated returns None in model structure.

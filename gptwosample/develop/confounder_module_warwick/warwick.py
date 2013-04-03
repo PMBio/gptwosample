@@ -329,7 +329,7 @@ if "init_pca" in sys.argv:
     init = 'pca'
 
 stats_file.write("init={}\n".format(init))
-conf_model = confounder.ConfounderTwoSample(T, Y, q=Q,
+conf_model = confounder.TwoSampleConfounder(T, Y, q=Q,
                                             lvm_covariance=lvm_covariance,
                                             init=init)
 conf_model.__verbose = 0
