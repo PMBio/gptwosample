@@ -4,7 +4,7 @@ from gptwosample.data.dataIO import get_data_from_csv
 import os
 
 __PREFIX__ = "GPTwoSample"
-message = lambda s:"{}:{}".format(__PREFIX__,s)
+message = lambda s:"{}: {}".format(__PREFIX__,s)
 
 def started(s):
     sys.stdout.write(message(s))
