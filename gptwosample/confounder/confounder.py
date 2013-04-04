@@ -20,9 +20,17 @@ from pygp.util.pca import PCA
 from gptwosample.twosample.twosample import TwoSample
 
 class TwoSampleConfounder(TwoSample):
-    """Learn Confounder and run GPTwoSample correcting for confounding variation.
+    """Run GPTwoSample on given Data
 
-    Fields:
+    **Parameters**:
+        - T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]
+        - Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]
+        - q : Number of Confounders to use
+        - lvm_covariance : optional - set covariance to use in confounder learning
+        - init : [random, pca]
+
+
+    **Fields**:
         * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
         * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
         * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
@@ -89,17 +97,17 @@ class TwoSampleConfounder(TwoSample):
 
         **Parameters**:
 
-        x : array-like
-            If you provided an own lvm_covariance you have to specify
-            the X to use within GPLVM
-
-        lvm_dimension_indices : [int]
-            If you specified an own lvm_covariance you have to specify
-            the dimension indices for GPLVM
-
-        ard_indices : [indices]
-            If you provided an own lvm_covariance, give the ard indices of the covariance here,
-            to be able to use the correct hyperparameters for calculating the confounder covariance matrix.
+            x : array-like
+                If you provided an own lvm_covariance you have to specify
+                the X to use within GPLVM
+    
+            lvm_dimension_indices : [int]
+                If you specified an own lvm_covariance you have to specify
+                the dimension indices for GPLVM
+    
+            ard_indices : [indices]
+                If you provided an own lvm_covariance, give the ard indices of the covariance here,
+                to be able to use the correct hyperparameters for calculating the confounder covariance matrix.
         """
         if lvm_dimension_indices is None:
             lvm_dimension_indices = xrange(1, 1 + self.q)

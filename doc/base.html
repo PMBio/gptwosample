@@ -66,9 +66,15 @@ different ones. This prediction is defined by which covariance function <tt clas
 <dt id="gptwosample.twosample.twosample.TwoSample">
 <em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample.</tt><tt class="descname">TwoSample</tt><big>(</big><em>T</em>, <em>Y</em>, <em>covar_common=None</em>, <em>covar_individual_1=None</em>, <em>covar_individual_2=None</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Learn Confounder and run GPTwoSample correcting for confounding variation.</p>
+<p>Run GPTwoSample on given data.</p>
 <dl class="docutils">
-<dt>Fields:</dt>
+<dt><strong>Parameters</strong>:</dt>
+<dd><ul class="first last simple">
+<li>T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]</li>
+<li>Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]</li>
+</ul>
+</dd>
+<dt><strong>Fields</strong>:</dt>
 <dd><ul class="first last simple">
 <li>T: Time Points [n x r x t] [Samples x Replicates x Timepoints]</li>
 <li>Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]</li>
@@ -103,7 +109,8 @@ different ones. This prediction is defined by which covariance function <tt clas
 <tt class="descname">predict_likelihoods</tt><big>(</big><em>T</em>, <em>Y</em>, <em>message='Predicting Likelihoods: '</em>, <em>messages=False</em>, <em>priors=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.predict_likelihoods" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict all likelihoods for all genes, given in Y</p>
 <p><strong>parameters</strong>:</p>
-<dl class="docutils">
+<blockquote>
+<div><dl class="docutils">
 <dt>indices <span class="classifier-delimiter">:</span> <span class="classifier">[int]</span></dt>
 <dd>list (or array-like) for gene indices to predict, if None all genes will be predicted</dd>
 <dt>message: str</dt>
@@ -111,6 +118,7 @@ different ones. This prediction is defined by which covariance function <tt clas
 <dt>kwargs: {...}</dt>
 <dd>kwargs for <tt class="xref py py-meth docutils literal"><span class="pre">gptwosample.twosample.GPTwoSampleBase.predict_model_likelihoods()</span></tt></dd>
 </dl>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -124,12 +132,14 @@ different ones. This prediction is defined by which covariance function <tt clas
 <tt class="descname">set_data</tt><big>(</big><em>T</em>, <em>Y</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.set_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set data by time T and expression matrix Y:</p>
 <p><strong>Parameters</strong>:</p>
-<dl class="docutils">
+<blockquote>
+<div><dl class="docutils">
 <dt>T <span class="classifier-delimiter">:</span> <span class="classifier">real [n x r x t]</span></dt>
 <dd>All Timepoints with shape [Samples x Replicates x Timepoints]</dd>
 <dt>Y <span class="classifier-delimiter">:</span> <span class="classifier">real [n x r x t x d]</span></dt>
 <dd>All expression values given in the form: [Samples x Replicates x Timepoints x Genes]</dd>
 </dl>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
@@ -138,20 +148,34 @@ different ones. This prediction is defined by which covariance function <tt clas
 <dt id="gptwosample.confounder.confounder.TwoSampleConfounder">
 <em class="property">class </em><tt class="descclassname">gptwosample.confounder.confounder.</tt><tt class="descname">TwoSampleConfounder</tt><big>(</big><em>T</em>, <em>Y</em>, <em>q=4</em>, <em>lvm_covariance=None</em>, <em>init='random'</em>, <em>covar_common=None</em>, <em>covar_individual_1=None</em>, <em>covar_individual_2=None</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gptwosample.twosample.twosample.TwoSample" title="gptwosample.twosample.twosample.TwoSample"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.twosample.TwoSample</span></tt></a></p>
-<p>Learn Confounder and run GPTwoSample correcting for confounding variation.</p>
-<p>Fields:
-* T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
-* Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
-* X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
-* lvm_covariance: GPLVM covaraince function used for confounder learning
-* n: Samples
-* r: Replicates
-* t: Timepoints
-* d: Genes
-* q: Confounder Components</p>
+<p>Run GPTwoSample on given Data</p>
+<dl class="docutils">
+<dt><strong>Parameters</strong>:</dt>
+<dd><ul class="first last simple">
+<li>T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]</li>
+<li>Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]</li>
+<li>q : Number of Confounders to use</li>
+<li>lvm_covariance : optional - set covariance to use in confounder learning</li>
+<li>init : [random, pca]</li>
+</ul>
+</dd>
+<dt><strong>Fields</strong>:</dt>
+<dd><ul class="first last simple">
+<li>T: Time Points [n x r x t] [Samples x Replicates x Timepoints]</li>
+<li>Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]</li>
+<li>X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]</li>
+<li>lvm_covariance: GPLVM covaraince function used for confounder learning</li>
+<li>n: Samples</li>
+<li>r: Replicates</li>
+<li>t: Timepoints</li>
+<li>d: Genes</li>
+<li>q: Confounder Components</li>
+</ul>
+</dd>
+</dl>
 <dl class="method">
 <dt id="gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance">
-<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x108ea36e0&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x108ea3410&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x108ea3500&gt;</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x112de7320&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x112de7140&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x112de7050&gt;</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>initialize twosample covariance with function covariance(XX), where XX
 is a FixedCF with the learned confounder matrix.</p>
 <p>default is SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])</p>
@@ -162,7 +186,8 @@ is a FixedCF with the learned confounder matrix.</p>
 <tt class="descname">learn_confounder_matrix</tt><big>(</big><em>ard_indices=None</em>, <em>x=None</em>, <em>messages=True</em>, <em>gradient_tolerance=1e-12</em>, <em>lvm_dimension_indices=None</em>, <em>gradcheck=False</em>, <em>maxiter=10000</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.learn_confounder_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Learn confounder matrix with this model.</p>
 <p><strong>Parameters</strong>:</p>
-<dl class="docutils">
+<blockquote>
+<div><dl class="docutils">
 <dt>x <span class="classifier-delimiter">:</span> <span class="classifier">array-like</span></dt>
 <dd>If you provided an own lvm_covariance you have to specify
 the X to use within GPLVM</dd>
@@ -173,6 +198,7 @@ the dimension indices for GPLVM</dd>
 <dd>If you provided an own lvm_covariance, give the ard indices of the covariance here,
 to be able to use the correct hyperparameters for calculating the confounder covariance matrix.</dd>
 </dl>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>

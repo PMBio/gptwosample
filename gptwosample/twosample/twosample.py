@@ -20,9 +20,13 @@ import itertools
 from copy import deepcopy
 
 class TwoSample(object):
-    """Learn Confounder and run GPTwoSample correcting for confounding variation.
+    """Run GPTwoSample on given data.
 
-    Fields:
+    **Parameters**:
+        - T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]
+        - Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]
+    
+    **Fields**:
         * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
         * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
         * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
@@ -57,11 +61,11 @@ class TwoSample(object):
 
         **Parameters**:
 
-        T : real [n x r x t]
-            All Timepoints with shape [Samples x Replicates x Timepoints]
-
-        Y : real [n x r x t x d]
-            All expression values given in the form: [Samples x Replicates x Timepoints x Genes]
+            T : real [n x r x t]
+                All Timepoints with shape [Samples x Replicates x Timepoints]
+    
+            Y : real [n x r x t x d]
+                All expression values given in the form: [Samples x Replicates x Timepoints x Genes]
         """
         self._invalidate_cache()
         self.T = T
@@ -89,14 +93,14 @@ class TwoSample(object):
 
         **parameters**:
 
-        indices : [int]
-            list (or array-like) for gene indices to predict, if None all genes will be predicted
-
-        message: str
-            printing message
-
-        kwargs: {...}
-            kwargs for :py:meth:`gptwosample.twosample.GPTwoSampleBase.predict_model_likelihoods`
+            indices : [int]
+                list (or array-like) for gene indices to predict, if None all genes will be predicted
+    
+            message: str
+                printing message
+    
+            kwargs: {...}
+                kwargs for :py:meth:`gptwosample.twosample.GPTwoSampleBase.predict_model_likelihoods`
         """
         self._check_data()
 
