@@ -1,7 +1,10 @@
 '''
+Plotting GPTwoSampleInterval Results
+====================================
+
 Created on Feb 18, 2011
 
-@author: maxz
+@author: Max Zwiessele, Oliver Stegle
 '''
 import pylab as PL
 import scipy as SP
@@ -11,12 +14,12 @@ from gptwosample.data.data_base import individual_id, common_id
 def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='expression level', title="", legend=False, *args, **kwargs):
         """
         Plot results of resampling of a (subclass of) 
-        :py:class:`gptwosample.twosample.twosample_interval`.
+        :py:class:`gptwosample.twosample.interval_smooth.GPTwoSampleInterval`.
         This method will predict some data new, for plotting purpose.
         
         **Parameters:**
         
-        twosample_interval_object: :py:class:`gptwosample.twosample.twosample_interval`
+        twosample_interval_object: :py:class:`gptwosample.twosample.interval_smooth`
             The GPTwosample resample object, from which to take the results.
         """
         
@@ -29,11 +32,11 @@ def plot_results_interval(twosample_interval_object, xlabel='Time/hr', ylabel='e
         # predict GPTwoSample object with indicators as interval_indices
         if(IS.any() and IJ.any()):
             twosample_interval_object._twosample_object.predict_model_likelihoods(\
-                interval_indices={individual_id:IS, common_id:IJ})
+                interval_indices={individual_id:IS, common_id:IJ}, messages=False)
             twosample_interval_object._twosample_object.predict_mean_variance(Xp,\
                 interval_indices={individual_id:IS, common_id:IJ})
         else:
-            twosample_interval_object._twosample_object.predict_model_likelihoods()
+            twosample_interval_object._twosample_object.predict_model_likelihoods(messages=False)
             twosample_interval_object._twosample_object.predict_mean_variance(Xp)
         #now plot stuff
         ax1 = PL.axes([0.15, 0.1, 0.8, 0.7])
