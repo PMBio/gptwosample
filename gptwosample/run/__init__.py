@@ -4,7 +4,7 @@ from gptwosample.data.dataIO import get_data_from_csv
 import os
 
 __PREFIX__ = "GPTwoSample"
-message = lambda s:"{}:{}".format(__PREFIX__,s)
+message = lambda s:"{}: {}".format(__PREFIX__,s)
 
 def started(s):
     sys.stdout.write(message(s))
@@ -55,8 +55,8 @@ def loaddata(cond1file, cond2file, verbose=0):
     s = "loading data..."
     started(s)
     if verbose: sys.stdout.write(os.linesep)
-    cond1 = get_data_from_csv(cond1file, verbose=verbose)
-    cond2 = get_data_from_csv(cond2file, verbose=verbose)
+    cond1 = get_data_from_csv(cond1file, verbose=verbose, message=message(s))
+    cond2 = get_data_from_csv(cond2file, verbose=verbose, message=message(s))
     T,Y,gene_names = twosampledata(cond1, cond2)
     finished(s)
     return T,Y,gene_names

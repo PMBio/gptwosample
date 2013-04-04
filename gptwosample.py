@@ -123,7 +123,7 @@ Where all entries not convertable by float() will be treated as missing
         if opts.verbose > 0:
             print(message("verbosity level = %d" % opts.verbose))
         if opts.outdir:
-            print(message("outfile = %s" % opts.outdir))
+            print(message("outdir = %s" % opts.outdir))
         if opts.timeshift:
             print(message("timeshift = %s" % opts.timeshift))
         if opts.confounder:
