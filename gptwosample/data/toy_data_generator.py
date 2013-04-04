@@ -1,21 +1,21 @@
-'''
-Created on Feb 16, 2011
+# '''
+# Created on Feb 16, 2011
 
-@author: maxz
-'''
-
+# @author: maxz
+# '''
 import scipy as SP
 
-from pygp.covar import se, combinators, noise
+from pygp.covar import se, combinators, noise, bias
 import pygp.priors.lnpriors as lnpriors
-
-import gptwosample.twosample.twosample_compare as TS
+from gptwosample.twosample.twosample_base import TwoSampleShare
 
 def get_toy_data(xmin=1, xmax=2.5 * SP.pi, step1=.7, step2=.4,
                  fy1=lambda x, b, C:b * x + C + 1 * SP.sin(x),
                  fy2=lambda x, b, C:(b * x + C + 1 * SP.sin(x)) * b + 1 * SP.cos(x),
                  sigma1=0.1, sigma2=0.1, b=0, C=2):
-
+    """
+    Create Toy Data
+    """
     x1 = SP.arange(xmin, xmax, step1)
     x2 = SP.arange(xmin, xmax, step2)    
 
@@ -29,21 +29,23 @@ def get_toy_data(xmin=1, xmax=2.5 * SP.pi, step1=.7, step2=.4,
     
     return x1, x2, y1, y2
 
-def get_twosample_object(dim=1):
+def get_twosample(dim=1):
     SECF = se.SqexpCFARD(dim)
     noiseCF = noise.NoiseCFISO()
-
+    
+    
     CovFun = combinators.SumCF((SECF, noiseCF))
+    CovFun = combinators.SumCF((SECF, bias.BiasCF()))
 
-    covar_priors = []
+    #covar_priors = []
     #scale
-    covar_priors.append([lnpriors.lnGammaExp, [1, 2]])
-    covar_priors.append([lnpriors.lnGammaExp, [1, 1]])
-    covar_priors.append([lnpriors.lnGammaExp, [1, 1]])
+    #covar_priors.append([lnpriors.lnGammaExp, [1, 2]])
+    #covar_priors.append([lnpriors.lnGammaExp, [1, 1]])
+    #covar_priors.append([lnpriors.lnGammaExp, [1, 1]])
 
-    priors = {'covar':SP.array(covar_priors)}
+    #priors = {'covar':SP.array(covar_priors)}
 
-    twosample_object = TS.GPTwoSampleMLII(CovFun, priors=priors)
+    twosample_object = TwoSampleShare(CovFun)
 
     return twosample_object
     
