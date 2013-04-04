@@ -22,6 +22,8 @@ and simple GPTwoSample.
 import sys
 import os
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import itertools
+from gptwosample.run import finished
 
 __all__ = []
 __version__ = 0.1
@@ -122,18 +124,18 @@ Where all entries not convertable by float() will be treated as missing
 
         if opts.verbose > 0:
             print(message("verbosity level = %d" % opts.verbose))
-        if opts.outdir:
-            print(message("outdir = %s" % opts.outdir))
-        if opts.timeshift:
-            print(message("timeshift = %s" % opts.timeshift))
-        if opts.confounder:
-            print(message("confounder = %s" % opts.confounder))
+            if opts.outdir:
+                print(message("outdir = %s" % opts.outdir))
+            if opts.timeshift:
+                print(message("timeshift = %s" % opts.timeshift))
+            if opts.confounder:
+                print(message("confounder = %s" % opts.confounder))
         # MAIN BODY #
 
-        T, Y, gene_names = loaddata(*opts.infiles, verbose=opts.verbose)
+        T, Y, gene_names, Ynorm = loaddata(*opts.infiles, verbose=opts.verbose)
         n, r, t, d = Y.shape
 
-        assert n == 2, message("Only comparison of two samples implemented")
+        assert n == 2, "Only comparison of two samples implemented"
         
         if opts.timeshift:
             import numpy
@@ -169,11 +171,37 @@ Where all entries not convertable by float() will be treated as missing
             twosample = TwoSample(T, Y, covarc, covar1, covar2)
 
         from gptwosample.run.twosample import run_twosample
-        run_twosample(twosample, gene_names, opts.outdir, opts.plot, timeshift=opts.timeshift)
+        twosample = run_twosample(twosample, gene_names, opts.outdir)
+        
+        if opts.plot:
+            mi = twosample.T.min()
+            ma = twosample.T.max()
+            s = "predicting means and variances"
+            started(s)
+            twosample.predict_means_variances(numpy.linspace(mi,ma,100), message=message(s))
+            #finished(s)
+            
+            s = "plotting..."
+            started(s)
+            import pylab
+            pylab.ion()
+            pylab.figure()
+            plotdir = os.path.join(opts.outdir, "plots")
+            if not os.path.exists(plotdir):
+                os.makedirs(plotdir)
+            for i,name,_ in itertools.izip(itertools.count(), gene_names, twosample.plot(timeshift=opts.timeshift)):
+                started("{0:s} {1:.3%}".format(name, float(i+1)/len(gene_names)))
+                try:
+                    pylab.savefig(os.path.join(plotdir, "{}.pdf".format(name)))
+                except:
+                    pylab.savefig(os.path.join(plotdir, "{}".format(name)))
+            finished(s) 
 
-    except Exception, e:
-        indent = len(program_name) * " "
-        sys.stderr.write(program_name + ": " + repr(e) + "\n")
+
+    except BaseException as e:
+        sys.stderr.write('\n')
+        indent = len(message("")) * " "
+        sys.stderr.write(message(repr(e) + "\n"))
         sys.stderr.write(indent + "  for help use --help" + "\n")
         return 2
 

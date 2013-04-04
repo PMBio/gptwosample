@@ -16,6 +16,8 @@ def run_confounder_twosample(confoundertwosample):
             # sys.stdout.flush()
             confoundertwosample.learn_confounder_matrix(messages=False, gradient_tolerance=gtol)
             break
+        except KeyboardInterrupt:
+            raise
         except:
             started("{} restart {}".format(s, r + 1))
             pass
