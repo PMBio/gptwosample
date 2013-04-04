@@ -7,7 +7,11 @@ It compares two timeseries against each other, depicting whether these two
 timeseries were more likely drawn from the same function, or from
 different ones. This prediction is defined by which covariance function :py:class:`pygp.covar` you use.
 
-To install the package run 
+To use gptwosample without installing:
+
+python gptwosample.py --help
+
+To install the package:
 
 python setup.py install
 
