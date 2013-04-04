@@ -4,5 +4,5 @@
   .. automodule:: gptwosample.plot.plot_basic
     :members:
 
-  .. automodule:: gptwosample.plot.interval
-    :members:
+#  .. automodule:: gptwosample.plot.interval
+#    :members:

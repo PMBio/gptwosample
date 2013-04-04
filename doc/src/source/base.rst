@@ -1,15 +1,17 @@
 .. automodule:: gptwosample
+ :members:
+ 
+ .. autoclass:: gptwosample.twosample.twosample.TwoSample
   :members:
 
-  .. automodule:: gptwosample.twosample
-    :members:
+ .. autoclass:: gptwosample.confounder.confounder.TwoSampleConfounder
+  :members:
 
-    .. automodule:: gptwosample.twosample.twosample_base
-      :members:
+ .. autoclass:: gptwosample.twosample.twosample_base.TwoSampleShare
+  :members:
+  
+ .. autoclass:: gptwosample.twosample.twosample_base.TwoSampleSeparate
+  :members:
 
-    .. automodule:: gptwosample.twosample.twosample_compare
-      :members:
-
-    .. automodule:: gptwosample.twosample.interval_smooth
-      :members:
-
+ .. autoclass:: gptwosample.twosample.twosample_base.TwoSampleBase
+  :members:
