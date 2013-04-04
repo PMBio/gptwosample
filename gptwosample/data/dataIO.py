@@ -125,12 +125,12 @@ def write_data_to_csv(data, path_to_file, header='GPTwoSample', delimiter=','):
     out_file.flush()
 
 def count_lines(filename):
-    f = open(filename)
-    lines = 1
-    buf_size = 1024 * 1024
-    read_f = f.read
-    buf = read_f(buf_size)
-    while buf:
-        lines += buf.count('\n')
+    with open(filename) as f:
+        lines = 1
+        buf_size = 1024 * 1024
+        read_f = f.read
         buf = read_f(buf_size)
-    return lines
+        while buf:
+            lines += buf.count('\n')
+            buf = read_f(buf_size)
+        return lines

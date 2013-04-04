@@ -19,12 +19,14 @@ def get_recursive_data_files(path):
 standard_params = dict(name='gptwosample',
       version = '0.0.7',
       description = __description__,
-      author = 'Oliver Stegle, Max Zwießele')
+      author = 'Max Zwießele, Oliver Stegle')
 
 setuptools.setup(
     install_requires = ['numpy','scipy','pygp'],
     packages = setuptools.find_packages('./'),#['gptwosample','examples'],
     package_data ={'gptwosample.examples':['*.csv','*.sh']},
-    data_files = [('',['README'])] + get_recursive_data_files('./doc'),
+    data_files = [('',['README'])] + get_recursive_data_files('./doc') + ['tests/*.csv', 'tests/*.h5f'],
+    test_suite="nose.collector",
+    tests_require="nose",
     **standard_params
     )
