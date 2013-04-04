@@ -23,15 +23,15 @@ class TwoSampleConfounder(TwoSample):
     """Learn Confounder and run GPTwoSample correcting for confounding variation.
 
     Fields:
-    * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
-    * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
-    * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
-    * lvm_covariance: GPLVM covaraince function used for confounder learning
-    * n: Samples
-    * r: Replicates
-    * t: Timepoints
-    * d: Genes
-    * q: Confounder Components
+        * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
+        * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
+        * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
+        * lvm_covariance: GPLVM covaraince function used for confounder learning
+        * n: Samples
+        * r: Replicates
+        * t: Timepoints
+        * d: Genes
+        * q: Confounder Components
     """
     def __init__(self, T, Y, q=4,
                  lvm_covariance=None,
