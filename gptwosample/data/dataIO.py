@@ -13,7 +13,7 @@ import csv, scipy as SP, sys
 import os
 import numpy
 
-def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True):
+def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, message="Reading File"):
     '''
     Return data from csv file with delimiter delimiter in form of a dictionary.
     Missing Values are all values x which cannot be converted float(x)
@@ -49,7 +49,7 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True):
         out = sys.stdout
         current_line = 0
         if verbose:
-            message = lambda x:"Reading File {1:s}: {0:.2%} ".format(x, os.path.basename(path_to_file))
+            message = lambda x:"{2:s} {1:s}: {0:.2%} ...".format(x, os.path.basename(path_to_file), message)
             out.write(message(0) + "                          \r")
         data = {"input":map(filter_,reader.next()[1:])}
         for line in reader:
