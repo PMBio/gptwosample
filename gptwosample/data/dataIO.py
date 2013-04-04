@@ -49,7 +49,7 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, mess
         out = sys.stdout
         current_line = 0
         if verbose:
-            message = lambda x:"{2:s} {1:s}: {0:.2%} ...".format(x, os.path.basename(path_to_file), message)
+            message = lambda x:"{2:s} {1:s}: {0:.2%}".format(x, os.path.basename(path_to_file), message)
             out.write(message(0) + "                          \r")
         data = {"input":map(filter_,reader.next()[1:])}
         for line in reader:
