@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Package for using GPTwoSample &mdash; GPTwoSample 0.7.0 documentation</title>
+    <title>Package for using GPTwoSample &mdash; GPTwoSample 0.1.7a documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.7.0',
+        VERSION:     '0.1.7a',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GPTwoSample 0.7.0 documentation" href="index.html" />
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
     <link rel="next" title="GPTwoSample plot" href="plot.html" />
     <link rel="prev" title="Welcome to GPTwoSample" href="index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to GPTwoSample"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -62,6 +62,121 @@ timeseries were more likely drawn from the same function, or from
 different ones. This prediction is defined by which covariance function <tt class="xref py py-class docutils literal"><span class="pre">pygp.covar</span></tt> you use.</p>
 <p>Created on Jun 15, 2011</p>
 <p>&#64;author: Max Zwiessele, Oliver Stegle</p>
+<dl class="class">
+<dt id="gptwosample.twosample.twosample.TwoSample">
+<em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample.</tt><tt class="descname">TwoSample</tt><big>(</big><em>T</em>, <em>Y</em>, <em>covar_common=None</em>, <em>covar_individual_1=None</em>, <em>covar_individual_2=None</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Learn Confounder and run GPTwoSample correcting for confounding variation.</p>
+<dl class="docutils">
+<dt>Fields:</dt>
+<dd><ul class="first last simple">
+<li>T: Time Points [n x r x t] [Samples x Replicates x Timepoints]</li>
+<li>Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]</li>
+<li>X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]</li>
+<li>lvm_covariance: GPLVM covaraince function used for confounder learning</li>
+<li>n: Samples</li>
+<li>r: Replicates</li>
+<li>t: Timepoints</li>
+<li>d: Genes</li>
+<li>q: Confounder Components</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="gptwosample.twosample.twosample.TwoSample.bayes_factors">
+<tt class="descname">bayes_factors</tt><big>(</big><em>likelihoods=None</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.bayes_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>get list of bayes_factors for all genes.</p>
+<dl class="docutils">
+<dt><strong>returns</strong>:</dt>
+<dd>bayes_factor for each gene in Y</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample.TwoSample.plot">
+<tt class="descname">plot</tt><big>(</big><em>xlabel='input'</em>, <em>ylabel='ouput'</em>, <em>title=None</em>, <em>interval_indices=None</em>, <em>alpha=None</em>, <em>legend=True</em>, <em>replicate_indices=None</em>, <em>shift=None</em>, <em>timeshift=False</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>iterate through all genes and plot</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample.TwoSample.predict_likelihoods">
+<tt class="descname">predict_likelihoods</tt><big>(</big><em>T</em>, <em>Y</em>, <em>message='Predicting Likelihoods: '</em>, <em>messages=False</em>, <em>priors=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.predict_likelihoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict all likelihoods for all genes, given in Y</p>
+<p><strong>parameters</strong>:</p>
+<dl class="docutils">
+<dt>indices <span class="classifier-delimiter">:</span> <span class="classifier">[int]</span></dt>
+<dd>list (or array-like) for gene indices to predict, if None all genes will be predicted</dd>
+<dt>message: str</dt>
+<dd>printing message</dd>
+<dt>kwargs: {...}</dt>
+<dd>kwargs for <tt class="xref py py-meth docutils literal"><span class="pre">gptwosample.twosample.GPTwoSampleBase.predict_model_likelihoods()</span></tt></dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample.TwoSample.predict_means_variances">
+<tt class="descname">predict_means_variances</tt><big>(</big><em>interpolation_interval</em>, <em>indices=None</em>, <em>message='Predicting means and variances: '</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.predict_means_variances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts means and variances for all genes given in Y for given interpolation_interval</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.twosample.twosample.TwoSample.set_data">
+<tt class="descname">set_data</tt><big>(</big><em>T</em>, <em>Y</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample.TwoSample.set_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set data by time T and expression matrix Y:</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt>T <span class="classifier-delimiter">:</span> <span class="classifier">real [n x r x t]</span></dt>
+<dd>All Timepoints with shape [Samples x Replicates x Timepoints]</dd>
+<dt>Y <span class="classifier-delimiter">:</span> <span class="classifier">real [n x r x t x d]</span></dt>
+<dd>All expression values given in the form: [Samples x Replicates x Timepoints x Genes]</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gptwosample.confounder.confounder.TwoSampleConfounder">
+<em class="property">class </em><tt class="descclassname">gptwosample.confounder.confounder.</tt><tt class="descname">TwoSampleConfounder</tt><big>(</big><em>T</em>, <em>Y</em>, <em>q=4</em>, <em>lvm_covariance=None</em>, <em>init='random'</em>, <em>covar_common=None</em>, <em>covar_individual_1=None</em>, <em>covar_individual_2=None</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gptwosample.twosample.twosample.TwoSample" title="gptwosample.twosample.twosample.TwoSample"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.twosample.TwoSample</span></tt></a></p>
+<p>Learn Confounder and run GPTwoSample correcting for confounding variation.</p>
+<p>Fields:
+* T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
+* Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
+* X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
+* lvm_covariance: GPLVM covaraince function used for confounder learning
+* n: Samples
+* r: Replicates
+* t: Timepoints
+* d: Genes
+* q: Confounder Components</p>
+<dl class="method">
+<dt id="gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance">
+<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x108ea36e0&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x108ea3410&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x108ea3500&gt;</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>initialize twosample covariance with function covariance(XX), where XX
+is a FixedCF with the learned confounder matrix.</p>
+<p>default is SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gptwosample.confounder.confounder.TwoSampleConfounder.learn_confounder_matrix">
+<tt class="descname">learn_confounder_matrix</tt><big>(</big><em>ard_indices=None</em>, <em>x=None</em>, <em>messages=True</em>, <em>gradient_tolerance=1e-12</em>, <em>lvm_dimension_indices=None</em>, <em>gradcheck=False</em>, <em>maxiter=10000</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.learn_confounder_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Learn confounder matrix with this model.</p>
+<p><strong>Parameters</strong>:</p>
+<dl class="docutils">
+<dt>x <span class="classifier-delimiter">:</span> <span class="classifier">array-like</span></dt>
+<dd>If you provided an own lvm_covariance you have to specify
+the X to use within GPLVM</dd>
+<dt>lvm_dimension_indices <span class="classifier-delimiter">:</span> <span class="classifier">[int]</span></dt>
+<dd>If you specified an own lvm_covariance you have to specify
+the dimension indices for GPLVM</dd>
+<dt>ard_indices <span class="classifier-delimiter">:</span> <span class="classifier">[indices]</span></dt>
+<dd>If you provided an own lvm_covariance, give the ard indices of the covariance here,
+to be able to use the correct hyperparameters for calculating the confounder covariance matrix.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="class">
 <dt id="gptwosample.twosample.twosample_base.TwoSampleShare">
 <em class="property">class </em><tt class="descclassname">gptwosample.twosample.twosample_base.</tt><tt class="descname">TwoSampleShare</tt><big>(</big><em>covar</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleShare" title="Permalink to this definition">¶</a></dt>
@@ -99,7 +214,7 @@ for given training data training_data.</dd>
 
 <dl class="method">
 <dt id="gptwosample.twosample.twosample_base.TwoSampleBase.get_data">
-<tt class="descname">get_data</tt><big>(</big><em>model='common'</em>, <em>index=None</em>, <em>interval_indices={'individual': None</em>, <em>'common': None}</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.get_data" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_data</tt><big>(</big><em>model='common'</em>, <em>index=None</em><big>)</big><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>get inputs of model <cite>model</cite> with group index <cite>index</cite>.
 If index is None, the whole model group will be returned.</p>
 </dd></dl>
@@ -174,8 +289,8 @@ It will optimize hyperparameters respectively.</p>
 <dl class="docutils">
 <dt>training_data <span class="classifier-delimiter">:</span> <span class="classifier">dict traning_data</span></dt>
 <dd>The training data to learn from. Input are time-values and
-output are expression-values of e.g. a timeseries. 
-If not given, training data must be given previously by 
+output are expression-values of e.g. a timeseries.
+If not given, training data must be given previously by
 <tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample.basic.set_data</span></tt>.</dd>
 <dt>interval_indices: <a class="reference internal" href="data.html#gptwosample.data.data_base.get_model_structure" title="gptwosample.data.data_base.get_model_structure"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.data.data_base.get_model_structure()</span></tt></a></dt>
 <dd>interval indices, which assign data to individual or common model,
@@ -201,76 +316,6 @@ output are expression-values of e.g. a timeseries.</p>
  'output' : {'group 1':[double] ... 'group n':[double]}}</pre>
 </div>
 </dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="gptwosample.confounder.confounder.ConfounderTwoSample">
-<em class="property">class </em><tt class="descclassname">gptwosample.confounder.confounder.</tt><tt class="descname">ConfounderTwoSample</tt><big>(</big><em>T</em>, <em>Y</em>, <em>q=4</em>, <em>lvm_covariance=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.ConfounderTwoSample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn Confounder and run GPTwoSample correcting for confounding variation.</p>
-<p>Fields:
-* T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
-* Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
-* X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+components]
-* lvm_covariance: GPLVM covaraince function used for confounder learning
-* n: Samples
-* r: Replicates
-* t: Timepoints
-* d: Genes
-* q: Confounder Components</p>
-<dl class="method">
-<dt id="gptwosample.confounder.confounder.ConfounderTwoSample.bayes_factors">
-<tt class="descname">bayes_factors</tt><big>(</big><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.ConfounderTwoSample.bayes_factors" title="Permalink to this definition">¶</a></dt>
-<dd><p>get list of bayes_factors for all genes.</p>
-<dl class="docutils">
-<dt><strong>returns</strong>:</dt>
-<dd>bayes_factor for each gene in Y</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gptwosample.confounder.confounder.ConfounderTwoSample.learn_confounder_matrix">
-<tt class="descname">learn_confounder_matrix</tt><big>(</big><em>ard_indices=None</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.ConfounderTwoSample.learn_confounder_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn confounder matrix with this model.</p>
-<p><strong>Parameters</strong>:</p>
-<dl class="docutils">
-<dt>ard_indices <span class="classifier-delimiter">:</span> <span class="classifier">[indices]</span></dt>
-<dd>If you provided an own lvm_covariance, give the ard indices of the covariance here,
-to be able to use the correct hyperparameters for calculating the confounder covariance matrix.</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gptwosample.confounder.confounder.ConfounderTwoSample.predict_likelihoods">
-<tt class="descname">predict_likelihoods</tt><big>(</big><em>message='Predicting Likelihoods: '</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.ConfounderTwoSample.predict_likelihoods" title="Permalink to this definition">¶</a></dt>
-<dd><p>Predict all likelihoods for all genes, given in Y</p>
-<p><strong>parameters</strong>:</p>
-<dl class="docutils">
-<dt>message: str</dt>
-<dd>printing message</dd>
-<dt>kwargs: {...}</dt>
-<dd>kwargs for <a href="#id1"><span class="problematic" id="id2">:py.meth:`gptwosample.twosample.GPTwoSampleBase.predict_model_likelihoods`</span></a></dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="gptwosample.confounder.confounder.ConfounderTwoSample.predict_means_variances">
-<tt class="descname">predict_means_variances</tt><big>(</big><em>interpolation_interval</em>, <em>message='Predicting means and variances: '</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.ConfounderTwoSample.predict_means_variances" title="Permalink to this definition">¶</a></dt>
-<dd><p>Predicts means and variances for all genes given in Y for given interpolation_interval</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="gptwosample.confounder.confounder.ConfounderTwoSample.set_data">
-<tt class="descname">set_data</tt><big>(</big><em>T</em>, <em>Y</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.ConfounderTwoSample.set_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set data by time T and expression matrix Y:</p>
-<p><strong>Parameters</strong>:</p>
-<dl class="docutils">
-<dt>T <span class="classifier-delimiter">:</span> <span class="classifier">real [n x r x t]    </span></dt>
-<dd>All Timepoints with shape [Samples x Replicates x Timepoints]</dd>
-<dt>Y <span class="classifier-delimiter">:</span> <span class="classifier">real [n x r x t x d]      </span></dt>
-<dd>All expression values given in the form: [Samples x Replicates x Timepoints x Genes]</dd>
 </dl>
 </dd></dl>
 
@@ -322,7 +367,7 @@ to be able to use the correct hyperparameters for calculating the confounder cov
         <li class="right" >
           <a href="index.html" title="Welcome to GPTwoSample"
              >previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

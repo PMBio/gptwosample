@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Package for data handling &mdash; GPTwoSample 0.7.0 documentation</title>
+    <title>Package for data handling &mdash; GPTwoSample 0.1.7a documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.7.0',
+        VERSION:     '0.1.7a',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GPTwoSample 0.7.0 documentation" href="index.html" />
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
     <link rel="prev" title="GPTwoSample plot" href="plot.html" /> 
   </head>
   <body>
@@ -41,7 +41,7 @@
         <li class="right" >
           <a href="plot.html" title="GPTwoSample plot"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -99,9 +99,10 @@ Make sure to use this method if you want to use the model structure in this pack
 <p>&#64;author: Max Zwiessele, Oliver Stegle</p>
 <dl class="function">
 <dt id="gptwosample.data.dataIO.get_data_from_csv">
-<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em>, <em>count=-1</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em>, <em>count=-1</em>, <em>verbose=True</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return data from csv file with delimiter delimiter in form of a dictionary.
-The file format has to fullfill following formation:</p>
+Missing Values are all values x which cannot be converted float(x)</p>
+<p>The file format has to fullfill following formation:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="26%" />
@@ -225,7 +226,7 @@ into file for path_to_file.</p>
         <li class="right" >
           <a href="plot.html" title="GPTwoSample plot"
              >previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

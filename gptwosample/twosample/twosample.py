@@ -23,15 +23,15 @@ class TwoSample(object):
     """Learn Confounder and run GPTwoSample correcting for confounding variation.
 
     Fields:
-    * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
-    * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
-    * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
-    * lvm_covariance: GPLVM covaraince function used for confounder learning
-    * n: Samples
-    * r: Replicates
-    * t: Timepoints
-    * d: Genes
-    * q: Confounder Components
+        * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]
+        * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]
+        * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]
+        * lvm_covariance: GPLVM covaraince function used for confounder learning
+        * n: Samples
+        * r: Replicates
+        * t: Timepoints
+        * d: Genes
+        * q: Confounder Components
     """
     NUM_PROCS = 1  # min(max(1,cpu_count()-2),3)
     SENTINEL = object()
