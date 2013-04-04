@@ -1,18 +1,24 @@
 '''
+TwoSampleInterval
+===================
+
+Resamples each input data point and elucidates the properties of both given samples in great detail.
+For each input point, a decision for `diferential` or `non-differential` is predicted.
+
+The Results of this class can be plottet by :py:class:`gptwosample.plot.interval`.
+
 Created on Apr 21, 2011
 
-@author: maxz
+@author: Max Zwiessele, Oliver Stegle
 '''
 from pygp.covar.combinators import SumCF
 from pygp.covar.noise import NoiseCFISO
 from pygp.covar.se import SqexpCFARD
 import scipy as SP
 from pygp.gp.gpcEP import GPCEP
-import logging
-import copy
 from gptwosample.data.data_base import common_id, individual_id
 
-class GPTwoSampleInterval(object):
+class TwoSampleIntervalSmooth(object):
     '''
     Sample each x point by gibbs sampling, smoothing indicators by gpcEP with ProbitLikelihood.
     '''
@@ -62,7 +68,7 @@ class GPTwoSampleInterval(object):
         # set everything up to begin with resampling:
         self.reset()
 
-        secf = SqexpCFARD()
+        secf = SqexpCFARD(1)
         noise = NoiseCFISO()
         covar = SumCF([secf, noise])
         self._indicator_regressor = GPCEP(covar_func=covar, 
@@ -71,7 +77,7 @@ class GPTwoSampleInterval(object):
         self._indicator_prior = indicator_prior
         
         
-    def predict_interval_probabilities(self, prediction_interval, hyperparams, number_of_gibbs_iterations=10):
+    def predict_interval_probabilities(self, prediction_interval, hyperparams, number_of_gibbs_iterations=10, messages=True):
         """
         Predict propability for each input point whether it 
         is more likely described by common, or individual model, respectively.
@@ -84,7 +90,7 @@ class GPTwoSampleInterval(object):
         [double] : P(input_values correspond to common model, respectively?),\
         [double] : prediction interval
         """
-        self._twosample_object.predict_model_likelihoods()
+        self._twosample_object.predict_model_likelihoods(messages=False)
         self._twosample_object.bayes_factor()
         
         probabilities = SP.zeros((number_of_gibbs_iterations, self._input.shape[0]),dtype='bool')
@@ -92,14 +98,14 @@ class GPTwoSampleInterval(object):
             for interval_index in xrange(self._input.shape[0]):
                 self._indicators[interval_index] = self._resample_interval_index(interval_index, hyperparams)
             probabilities[iteration,:] = self._indicators
-            logging.info("Gibbs Iteration: %i"%(iteration))
-            logging.info("Current Indicator: %s"% (self._indicators))
+#            logging.info("Gibbs Iteration: %i"%(iteration))
+#            logging.info("Current Indicator: %s"% (self._indicators))
         
         probabilities = SP.array(probabilities, dtype='bool')
         
         #get rid of training runs (first half)
         probabilities = probabilities[SP.ceil(number_of_gibbs_iterations/2):]
-        logging.info("End: Indicators %s"% (probabilities.mean(0)))
+#        logging.info("End: Indicators %s"% (probabilities.mean(0)))
         
         self._predicted_model_distribution = self._calculate_indicator_mean(probabilities, hyperparams, prediction_interval)
         self._predicted_indicators = probabilities.mean(0) > .5
@@ -158,10 +164,12 @@ class GPTwoSampleInterval(object):
         comm_interval_indicator = ~self._indicators & ~interval_indicator
 
         # predict output at interval_indicator
-        target_prediction = self._twosample_object.predict_mean_variance(\
-                      self._input[interval_indicator],\
-                      interval_indices={individual_id: ~SP.tile(ind_interval_indicator,self._n_replicates_ind),\
-                                        common_id:   ~SP.tile(comm_interval_indicator, self._n_replicates_comm)})
+        target_prediction = \
+            self._twosample_object.predict_mean_variance(\
+                 self._input[interval_indicator],\
+                 interval_indices={individual_id: ~SP.tile(ind_interval_indicator,self._n_replicates_ind),\
+                                   common_id: ~SP.tile(comm_interval_indicator, self._n_replicates_comm)},
+                 )
         
         ind1 = [target_prediction[individual_id]['mean'][0], target_prediction[individual_id]['var'][0]]
         ind2 = [target_prediction[individual_id]['mean'][1], target_prediction[individual_id]['var'][1]]
