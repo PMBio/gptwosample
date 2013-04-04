@@ -25,7 +25,7 @@ setuptools.setup(
     install_requires = ['numpy','scipy','pygp'],
     packages = setuptools.find_packages('./'),#['gptwosample','examples'],
     package_data ={'gptwosample.examples':['*.csv','*.sh']},
-    data_files = [('',['README','gptwosample.py'])] + \
+    data_files = [('',['README','gptwosample.py','__main__.py'])] + \
         get_recursive_data_files('./doc') + \
         [('tests/',['*.py'])],
     test_suite='tests',
