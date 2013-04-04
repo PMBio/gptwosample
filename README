@@ -8,12 +8,14 @@ timeseries were more likely drawn from the same function, or from
 different ones. This prediction is defined by which covariance function :py:class:`pygp.covar` you use.
 
 To use gptwosample without installing:
+$ python gptwosample.py --help
 
-python gptwosample.py --help
+e.g:
+$ exdir=gptwosample/examples/
+$ python gptwosample.py -vtpo toy $exdir/ToyCondition1.csv $exdir/ToyCondition2.csv
 
 To install the package:
-
-python setup.py install
+$ python setup.py install
 
 After installation you can use GPTwoSample with all it's features.
 See doc/index.html for the documentation in your site-packages folder, see www.python.org for further details.
