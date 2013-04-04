@@ -10,7 +10,7 @@ from gptwosample.data.data_base import common_id, individual_id
 import itertools
 from gptwosample.run import started, finished, get_header_for_covar, message
 
-def run_twosample(twosample, gene_names, outdir, plot=True, timeshift=False):    
+def run_twosample(twosample, gene_names, outdir):    
     s = "predicting likelihoods..."
     #started(s)
     twosample.predict_likelihoods(twosample.T, twosample.Y, message=message(s))
@@ -40,31 +40,7 @@ def run_twosample(twosample, gene_names, outdir, plot=True, timeshift=False):
             csvout.writerow(line)
             resultfile.flush()
         finished(s)
-    
-    if plot:
-        mi = twosample.T.min()
-        ma = twosample.T.max()
-        s = "predicting means and variances"
-        started(s)
-        twosample.predict_means_variances(numpy.linspace(mi,ma,100), message=message(s))
-        #finished(s)
-        
-        s = "plotting..."
-        started(s)
-        import pylab
-        pylab.ion()
-        pylab.figure()
-        plotdir = os.path.join(outdir, "plots")
-        if not os.path.exists(plotdir):
-            os.makedirs(plotdir)
-        for i,name,_ in itertools.izip(itertools.count(), gene_names, twosample.plot(timeshift=timeshift)):
-            started("{0:s} {1:.3%}".format(name, float(i+1)/len(gene_names)))
-            try:
-                pylab.savefig(os.path.join(plotdir, "{}.pdf".format(name)))
-            except:
-                pylab.savefig(os.path.join(plotdir, "{}".format(name)))
-        finished(s)
-    return 0
+    return twosample
     
 if __name__ == '__main__':
     run_twosample("../examples/gsample1.csv", "../examples/gsample2.csv", "./test", True)

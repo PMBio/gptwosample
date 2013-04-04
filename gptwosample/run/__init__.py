@@ -6,16 +6,16 @@ import os
 __PREFIX__ = "GPTwoSample"
 message = lambda s:"{}: {}".format(__PREFIX__,s)
 
-def started(s):
+def started(s, verbose=1):
     sys.stdout.write(message(s))
     sys.stdout.flush()
-    sys.stdout.write("                  \r")
+    sys.stdout.write("            \r")
     
-def finished(s):
+def finished(s, verbose=1):
     try:
-        sys.stdout.write(message(s) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                              \n')
+        sys.stdout.write(message(s) + " " + '\033[92m' + u"\u2713" + '\033[0m' + '              \n')
     except:
-        sys.stdout.write(message(s) + " done                            \n")
+        sys.stdout.write(message(s) + " done              \n")
     sys.stdout.flush()
 
 def get_header_for_covar(CovFun, CovFunInd=None):
@@ -48,15 +48,18 @@ def twosampledata(cond1, cond2):
     
     del T1, T2, Y1, Y2, cond1, cond2
     
-    Y -= Y.mean(1).mean(1)[:, None, None, :]
-    return T,Y, gene_names
+    Ynorm = Y.mean(1).mean(1)[:, None, None, :]
+    Y -= Ynorm
+    return T,Y, gene_names, Ynorm
 
 def loaddata(cond1file, cond2file, verbose=0):
     s = "loading data..."
     started(s)
-    if verbose: sys.stdout.write(os.linesep)
+    #if verbose: sys.stdout.write(os.linesep)
     cond1 = get_data_from_csv(cond1file, verbose=verbose, message=message(s))
+    s += " " + os.path.basename(cond1file)
     cond2 = get_data_from_csv(cond2file, verbose=verbose, message=message(s))
-    T,Y,gene_names = twosampledata(cond1, cond2)
+    s += " " + os.path.basename(cond2file)
+    T,Y,gene_names, Ynorm = twosampledata(cond1, cond2)
     finished(s)
-    return T,Y,gene_names
+    return T,Y,gene_names,Ynorm

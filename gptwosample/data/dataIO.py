@@ -49,9 +49,9 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, mess
         out = sys.stdout
         current_line = 0
         if verbose:
-            message = "{2:s} {1:s}".format(os.path.basename(path_to_file), message)
+            message = "{1:s} {0:s}".format(os.path.basename(path_to_file), message)
             mess = lambda x: "{1:s}: {0:.2%}".format(x, message)
-            out.write(mess(0) + "                          \r")
+            out.write(mess(0) + " \r")
         data = {"input":map(filter_,reader.next()[1:])}
         for line in reader:
             if line:
@@ -73,9 +73,9 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, mess
     out.flush()
     if verbose:
         try:
-            out.write(message + " " + '\033[92m' + u"\u2713" + '\033[0m' + '                     \n')
+            out.write(message + " " + '\033[92m' + u"\u2713" + '\033[0m' + '         \r')
         except:
-            out.write(message + " done                    \n")
+            out.write(message + " done         \r")
     for name, expr in data.iteritems():
         try:
             data[name] = SP.array(expr, dtype='float')

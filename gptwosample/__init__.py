@@ -13,4 +13,3 @@ Created on Jun 15, 2011
 @author: Max Zwiessele, Oliver Stegle
 """
 
-__import__('pkg_resources').declare_namespace(__name__)
