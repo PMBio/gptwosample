@@ -1,0 +1,7 @@
+input,1,2,3,
+g1,.3,.4,,.6
+g1,.3,.4,.5,.6
+g2,4,3,ignorethis,1
+g2,4,3,2,1
+othername,1,2,3,4
+othername,1,2,3,4

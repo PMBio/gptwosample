@@ -1,1 +1,0 @@
-gptwosample.py
