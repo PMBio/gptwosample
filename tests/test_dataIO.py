@@ -7,17 +7,30 @@ import unittest
 from gptwosample.data.dataIO import get_data_from_csv
 from StringIO import StringIO
 import numpy
+from contextlib import closing
+import os
+
+teststring = """input,1,2,3,\n
+g1,.3,.4,,.6\n
+g1,.3,.4,.5,.6\n
+g2,4,3,ignorethis,1\n
+g2,4,3,2,1\n
+othername,1,2,3,4\n
+othername,1,2,3,4\n"""
 
 class Test(unittest.TestCase):
 
     def setUp(self):
+        with open('tmp.csv','w') as f:
+            f.write(teststring)
         pass
 
     def tearDown(self):
+        os.remove('tmp.csv')
         pass
 
     def testRead(self):
-        d = get_data_from_csv('test.csv')
+        d = get_data_from_csv('tmp.csv')
         for name in ['g1','g2','othername']:
             assert name in d
             assert d[name].shape == (2,4)
@@ -27,4 +40,5 @@ class Test(unittest.TestCase):
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
+    #d = get_data_from_csv(teststring)
     unittest.main()
