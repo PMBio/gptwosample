@@ -202,7 +202,7 @@ Where all entries not convertable by float() will be treated as missing
         sys.stderr.write('\n')
         indent = len(message("")) * " "
         sys.stderr.write(message(repr(e) + "\n"))
-        sys.stderr.write(indent + "  for help use --help" + "\n")
+        sys.stderr.write(indent + "for help use --help" + "\n")
         return 2
 
 
