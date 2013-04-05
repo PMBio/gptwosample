@@ -143,6 +143,9 @@ class TwoSampleConfounder(TwoSample):
         self._init_conf_matrix(lvm_hyperparams, ard_indices, lvm_dimension_indices)
         self.initialize_twosample_covariance()
 
+    def predict_lvm(self):
+        return self.gplvm.predict(self._lvm_hyperparams, self._Xlvm, numpy.arange(self.d))
+
     def initialize_twosample_covariance(self, covar_common=lambda x: SumCF([SqexpCFARD(1), x, BiasCF()]),
                                             covar_individual_1=lambda x: SumCF([SqexpCFARD(1), x, BiasCF()]),
                                             covar_individual_2=lambda x: SumCF([SqexpCFARD(1), x, BiasCF()]),
