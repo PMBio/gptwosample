@@ -22,7 +22,7 @@ standard_params = dict(name='gptwosample',
       author = 'Max Zwießele, Oliver Stegle')
 
 setuptools.setup(
-    install_requires = ['numpy','scipy','pygp'],
+    install_requires = ['numpy','scipy','pygp >=1.1.0'],
     packages = setuptools.find_packages('./'),#['gptwosample','examples'],
     package_data ={'gptwosample.examples':['*.csv','*.sh']},
     data_files = [('',['README','gptwosample.py','__main__.py'])] + \
