@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 '''
-twosample -- GPTwoSample on given Data
+gpttwosample -- GPTwoSample on given Data
 
-twosample is a program to perform GPTwoSample on given treatment and control timeseries.
+gpttwosample is a program to perform GPTwoSample on given treatment and control timeseries.
 It defines several different classes to perform GPTwoSample tasks,
 including accounting for timeshifts between timeseries,
 accounting confounding variation using GPLVM
@@ -23,8 +23,8 @@ import sys
 import os
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import itertools
-from gptwosample.run import finished
-
+from gptwosample.run import finished, loaddata, message, started
+        
 __all__ = []
 __version__ = 0.1
 __date__ = '2013-04-03'
@@ -117,7 +117,6 @@ Where all entries not convertable by float() will be treated as missing
         # process options
         opts = parser.parse_args(argv)
 
-        from gptwosample.run import loaddata, message, started
         from pygp.covar.combinators import ShiftCF, SumCF
         from pygp.covar.se import SqexpCFARD
         from pygp.covar.bias import BiasCF
@@ -196,14 +195,18 @@ Where all entries not convertable by float() will be treated as missing
                 except:
                     pylab.savefig(os.path.join(plotdir, "{}".format(name)))
             finished(s) 
-
-
-    except BaseException as e:
-        sys.stderr.write('\n')
-        indent = len(message("")) * " "
-        sys.stderr.write(message(repr(e) + "\n"))
-        sys.stderr.write(indent + "for help use --help" + "\n")
+    except KeyboardInterrupt as e:
+        exception(e)
+        return 3
+    except Exception as e:
+        exception(e)
         return 2
+
+def exception(e):
+    sys.stderr.write('\n')
+    indent = len(message("")) * " "
+    sys.stderr.write(message(repr(e) + "\n"))
+    sys.stderr.write(indent + "for help use --help" + "\n")
 
 
 if __name__ == "__main__":
@@ -224,3 +227,4 @@ if __name__ == "__main__":
         statsfile.close()
         sys.exit(0)
     sys.exit(main())
+
