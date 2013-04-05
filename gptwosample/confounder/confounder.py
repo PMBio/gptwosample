@@ -60,6 +60,9 @@ class TwoSampleConfounder(TwoSample):
                                                   covar_individual_2=covar_individual_2)
         self.q = q
         self.init = init
+        
+        self.init_X(Y, init)
+        
         if lvm_covariance is not None:
             self._lvm_covariance = lvm_covariance
         else:
@@ -186,7 +189,7 @@ class TwoSampleConfounder(TwoSample):
         self.K_conf = self._lvm_covariance.K(self._lvm_hyperparams['covar'], self._Xlvm, self._Xlvm, names=['XX'])
 
     def _gplvm(self, lvm_dimension_indices):
-        self._Xlvm[:, lvm_dimension_indices] = self.X
+        self._Xlvm = self._x()
         Y = self.Y.reshape(numpy.prod(self.n * self.r * self.t), self.Y.shape[3])
         return GPLVM(gplvm_dimensions=lvm_dimension_indices, covar_func=self._lvm_covariance,
             likelihood=GaussLikISO(),
