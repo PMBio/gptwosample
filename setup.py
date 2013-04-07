@@ -13,7 +13,7 @@ def get_recursive_data_files(path):
     return out
 
 standard_params = dict(name='gptwosample',
-      version = '0.1.7a',
+      version = '0.1.7b',
       description = __description__,
       author = 'Max Zwießele, Oliver Stegle',
       author_email='ibinbei@gmail.com',
