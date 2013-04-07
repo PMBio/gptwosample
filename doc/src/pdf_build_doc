@@ -1,0 +1,7 @@
+#!/bin/sh
+sphinx-build-2.7 -b latex ./source/ ../latex/
+
+cd ../latex/
+pdflatex GPTwoSample.tex
+pdflatex GPTwoSample.tex
+cd ../src

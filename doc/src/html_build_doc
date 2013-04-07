@@ -1,0 +1,4 @@
+#!/bin/sh
+sphinx-build-2.7 -b html ./source/ ../html/
+#sphinx-build-2.7 -b singlehtml ./source/ ../singlehtml/
+

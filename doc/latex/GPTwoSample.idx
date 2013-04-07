@@ -1,0 +1,34 @@
+\indexentry{gptwosample (module)|hyperpage}{9}
+\indexentry{TwoSample (class in gptwosample.twosample.twosample)|hyperpage}{9}
+\indexentry{bayes\_factors() (gptwosample.twosample.twosample.TwoSample method)|hyperpage}{9}
+\indexentry{plot() (gptwosample.twosample.twosample.TwoSample method)|hyperpage}{9}
+\indexentry{predict\_likelihoods() (gptwosample.twosample.twosample.TwoSample method)|hyperpage}{10}
+\indexentry{predict\_means\_variances() (gptwosample.twosample.twosample.TwoSample method)|hyperpage}{10}
+\indexentry{set\_data() (gptwosample.twosample.twosample.TwoSample method)|hyperpage}{10}
+\indexentry{TwoSampleConfounder (class in gptwosample.confounder.confounder)|hyperpage}{10}
+\indexentry{initialize\_twosample\_covariance() (gptwosample.confounder.confounder.TwoSampleConfounder method)|hyperpage}{11}
+\indexentry{learn\_confounder\_matrix() (gptwosample.confounder.confounder.TwoSampleConfounder method)|hyperpage}{11}
+\indexentry{TwoSampleShare (class in gptwosample.twosample.twosample\_base)|hyperpage}{11}
+\indexentry{TwoSampleSeparate (class in gptwosample.twosample.twosample\_base)|hyperpage}{11}
+\indexentry{TwoSampleBase (class in gptwosample.twosample.twosample\_base)|hyperpage}{11}
+\indexentry{bayes\_factor() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{11}
+\indexentry{get\_data() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{12}
+\indexentry{get\_learned\_hyperparameters() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{12}
+\indexentry{get\_model\_likelihoods() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{12}
+\indexentry{get\_predicted\_mean\_variance() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{12}
+\indexentry{plot() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{12}
+\indexentry{predict\_mean\_variance() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{13}
+\indexentry{predict\_model\_likelihoods() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{13}
+\indexentry{set\_data() (gptwosample.twosample.twosample\_base.TwoSampleBase method)|hyperpage}{13}
+\indexentry{gptwosample.plot (module)|hyperpage}{14}
+\indexentry{gptwosample.plot.plot\_basic (module)|hyperpage}{14}
+\indexentry{plot\_results() (in module gptwosample.plot.plot\_basic)|hyperpage}{14}
+\indexentry{gptwosample.data (module)|hyperpage}{15}
+\indexentry{gptwosample.data.data\_base (module)|hyperpage}{15}
+\indexentry{DataStructureError|hyperpage}{16}
+\indexentry{get\_model\_structure() (in module gptwosample.data.data\_base)|hyperpage}{16}
+\indexentry{get\_training\_data\_structure() (in module gptwosample.data.data\_base)|hyperpage}{16}
+\indexentry{has\_model\_structure() (in module gptwosample.data.data\_base)|hyperpage}{16}
+\indexentry{gptwosample.data.dataIO (module)|hyperpage}{16}
+\indexentry{get\_data\_from\_csv() (in module gptwosample.data.dataIO)|hyperpage}{16}
+\indexentry{write\_data\_to\_csv() (in module gptwosample.data.dataIO)|hyperpage}{16}
