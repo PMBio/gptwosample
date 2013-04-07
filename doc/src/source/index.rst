@@ -13,7 +13,8 @@ Contents:
 
 .. toctree:: 
    :maxdepth: 4
-
+   
+   Usage Tutorial <tutorial>
    GPTwoSample Comparing two timelines to each other <base>
    Generate beautiful plots with gptwosample.plot <plot>
    Data handling for GPTwoSample taksks <data>

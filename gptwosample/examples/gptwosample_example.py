@@ -8,6 +8,20 @@ from pygp.covar.se import SqexpCFARD
 from gptwosample.twosample.twosample import TwoSample
 import pylab
 
+def sample_gaussian(mean, covar, n_samples=1):
+    n_dim = len(mean)
+    rand = numpy.random.randn(n_dim, n_samples)
+    if n_samples == 1:
+        rand.shape = (n_dim,)
+
+    from scipy import linalg
+    U, s, V = linalg.svd(covar)
+    sqrtS = numpy.diag(numpy.sqrt(s))
+    sqrt_covar = numpy.dot(U, numpy.dot(sqrtS, V))
+    rand = numpy.dot(sqrt_covar, rand)
+
+    return (rand.T + mean).T
+
 if __name__ == '__main__':
     Tt = numpy.arange(0, 16, 2)[:, None]
     Tr = numpy.tile(Tt, 3).T
@@ -19,14 +33,8 @@ if __name__ == '__main__':
     K = covar.K(covar.get_de_reparametrized_theta([1, 13]), Tt)
     m = numpy.zeros(t)
 
-    try:
-        from scikits.learn.mixture import sample_gaussian
-    except:
-        raise "scikits needed for this example"
-        # raise r
-
-    y1 = sample_gaussian(m, K, cvtype='full', n_samples=d)
-    y2 = sample_gaussian(m, K, cvtype='full', n_samples=d)
+    y1 = sample_gaussian(m, K, n_samples=d)
+    y2 = sample_gaussian(m, K, n_samples=d)
 
     Y1 = numpy.zeros((t, d + d / 2))
     Y2 = numpy.zeros((t, d + d / 2))
