@@ -1,0 +1,124 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Timeshift detection between replicates &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="next" title="Result structure" href="results.html" />
+    <link rel="prev" title="Accounting for confounding factors" href="confounders.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="results.html" title="Result structure"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="confounders.html" title="Accounting for confounding factors"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="timeshift-detection-between-replicates">
+<span id="timeshift"></span><h1>Timeshift detection between replicates<a class="headerlink" href="#timeshift-detection-between-replicates" title="Permalink to this headline">¶</a></h1>
+<p>A novel covariance function detecting timehifts between
+time series accounts for temporal mismatches between time series, (of
+replicates and samples) which share similar patterns, shifted in
+time. This allows for additional correction of confounding variation
+in time, as treatment might slow down reaction time of cell-cycle
+genes, leading to a bunch of falsely positive predicted non differential
+expressed genes downstream.</p>
+<p>To enable timeshift detection add the flag <tt class="docutils literal"><span class="pre">-t</span></tt> to the run
+script. Timeshifts for all replicates will be reported in
+<tt class="docutils literal"><span class="pre">results.csv</span></tt>, where the order of replicates is the same order as in
+the input files <tt class="docutils literal"><span class="pre">FILE</span> <span class="pre">FILE</span></tt> (see <a class="reference internal" href="usage.html#usage"><em>Parameter options</em></a>).</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="confounders.html"
+                        title="previous chapter">Accounting for confounding factors</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="results.html"
+                        title="next chapter">Result structure</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="results.html" title="Result structure"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="confounders.html" title="Accounting for confounding factors"
+             >previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

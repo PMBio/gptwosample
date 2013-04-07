@@ -1,7 +1,7 @@
 .. _usage:
 
-Usage
----------
+Parameter options
+----------------------
 
 Calling signature::
 
@@ -41,4 +41,4 @@ The format of the two ``.csv`` files (``FILE FILE`` in usage) is as follows:
     ============ =============== ==== ===============
 
 where all values, which cannot be translated by :py:func:`float` will be 
-treated as missing values and ignored.
+treated as missing values in the model.

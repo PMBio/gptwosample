@@ -1,0 +1,216 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to GPTwoSample &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="#" />
+    <link rel="next" title="Parameter options" href="usage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="Parameter options"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-gptwosample">
+<h1>Welcome to GPTwoSample<a class="headerlink" href="#welcome-to-gptwosample" title="Permalink to this headline">¶</a></h1>
+<p>gptwosample.py is a tool to run two-sample tests on time series
+differential gene expression experiments. It can either be called form
+the command line or using the interactive Python Modules. Here, we
+will explore usage from the command line, for detailed description,
+refers to the other sections.</p>
+<div class="section" id="command-line-tool">
+<h2>Command line Tool<a class="headerlink" href="#command-line-tool" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">gptwosample</span></tt> is designed to compare two gene expression time series
+experiments, including the possibility for several replicates in each
+experiment. The test fits latent functions to both time series,
+comparing the assumption that all data originated from a single latent
+process (<cite>common model fit</cite>) or a two distinct separate time series
+(<cite>individual model fit</cite>). See <a class="reference internal" href="#stegle2010">[Stegle2010]</a> for details. The Raw gene expression data can
+be supplied via simple CSV files, one for each experiments. The data
+format is flexible, permits missing values and non-synchronized time
+points. Fur full details please see <a class="reference internal" href="usage.html#dataformat"><em>Data format</em></a>.</p>
+<div class="section" id="installing-the-package">
+<span id="install"></span><h3>Installing the package<a class="headerlink" href="#installing-the-package" title="Permalink to this headline">¶</a></h3>
+<p>To install <tt class="docutils literal"><span class="pre">gptwosample</span></tt> run:</p>
+<div class="highlight-python"><pre>python setup install</pre>
+</div>
+<p>from <tt class="docutils literal"><span class="pre">gptwosample</span></tt> directory.</p>
+<p>Try printing the full help of the script using:</p>
+<div class="highlight-python"><pre>python gptwosample --help</pre>
+</div>
+<p>To run optional package tests before installing run:</p>
+<div class="highlight-python"><pre>python setup test</pre>
+</div>
+</div>
+<div class="section" id="example-usage">
+<h3>Example usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h3>
+<p>Once the data has been prepared, GPTwoSample can be executed from the
+unix command line.</p>
+<p>General command line parameters of interest include:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">--</span><span class="n">help</span>
+<span class="o">-</span><span class="n">v</span>
+</pre></div>
+</div>
+<p>Also, to create plots of the fitted functions, which creates verbose plots illustrating the fit for every tested gene:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">-</span><span class="n">p</span>
+</pre></div>
+</div>
+<p>For example, to run the basic <tt class="docutils literal"><span class="pre">gptwosample</span></tt> model on the tutorial
+datasets provided alongside the package including verbose output and
+plots, run:</p>
+<div class="highlight-python"><pre>python gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
+</div>
+<p>This stores results in <tt class="docutils literal"><span class="pre">./examplerun/</span></tt>. Quantitative readouts
+summarizing the differential expression stores ares provided in
+&#8220;results.csv&#8221; (see <a class="reference internal" href="results.html#results"><em>Result structure</em></a> for format). Plots in will be saved
+in a subfolder <tt class="docutils literal"><span class="pre">./examplerun/plots/</span></tt>.</p>
+</div>
+<div class="section" id="further-details">
+<h3>Further Details<a class="headerlink" href="#further-details" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Parameter options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html#data-format">Data format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="confounders.html">Accounting for confounding factors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeshift.html">Timeshift detection between replicates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">Result structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Step by step tutorial &amp; examples</a></li>
+</ul>
+</div>
+<table class="docutils citation" frame="void" id="lawrence2004" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[Lawrence2004]</td><td>Neil Lawrence, <cite>Gaussian process latent variable models for visualisation of high dimensional data</cite>, Advances in neural information processing systems, <cite>2004</cite></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="stegle2010" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[Stegle2010]</a></td><td>Stegle, Oliver and Denby, Katherine J and Cooke, Emma J and Wild, David L and Ghahramani, Zoubin and Borgwardt, Karsten M, <cite>A robust Bayesian two-sample test for detecting intervals of differential gene expression in microarray time series</cite>, Journal of Computational Biology, <cite>2010</cite></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="developer">
+<h2>Developer<a class="headerlink" href="#developer" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="base.html">GPTwoSample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">Generate beautiful plots with gptwosample.plot</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="plot.html#plot-gptwosample-predictions">Plot GPTwoSample predictions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data handling for GPTwoSample taksks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#data-structure-module">Data Structure Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#data-io-tool">Data IO tool</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to GPTwoSample</a><ul>
+<li><a class="reference internal" href="#command-line-tool">Command line Tool</a><ul>
+<li><a class="reference internal" href="#installing-the-package">Installing the package</a></li>
+<li><a class="reference internal" href="#example-usage">Example usage</a></li>
+<li><a class="reference internal" href="#further-details">Further Details</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#developer">Developer</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="usage.html"
+                        title="next chapter">Parameter options</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="Parameter options"
+             >next</a> |</li>
+        <li><a href="#">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GPTwoSample plot &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="next" title="Package for data handling" href="data.html" />
+    <link rel="prev" title="Package for using GPTwoSample" href="base.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="data.html" title="Package for data handling"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="base.html" title="Package for using GPTwoSample"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-gptwosample.plot"></span><div class="section" id="gptwosample-plot">
+<h1>GPTwoSample plot<a class="headerlink" href="#gptwosample-plot" title="Permalink to this headline">¶</a></h1>
+<p>The easiest way to plot your results in an easy and convenient way.</p>
+<span class="target" id="module-gptwosample.plot.plot_basic"></span><div class="section" id="plot-gptwosample-predictions">
+<h2>Plot GPTwoSample predictions<a class="headerlink" href="#plot-gptwosample-predictions" title="Permalink to this headline">¶</a></h2>
+<p>Module for easy plotting of GPTwoSample results.</p>
+<p><a class="reference internal" href="#gptwosample.plot.plot_basic.plot_results" title="gptwosample.plot.plot_basic.plot_results"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.plot.plot_basic.plot_results</span></tt></a> plots
+training data, as well as sausage_plots for a GPTwoSample
+experiment. You can give interval indices for plotting, if u chose</p>
+<p>Created on Feb 10, 2011</p>
+<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
+<dl class="function">
+<dt id="gptwosample.plot.plot_basic.plot_results">
+<tt class="descclassname">gptwosample.plot.plot_basic.</tt><tt class="descname">plot_results</tt><big>(</big><em>twosample_object</em>, <em>xlabel='input'</em>, <em>ylabel='ouput'</em>, <em>title=None</em>, <em>interval_indices=None</em>, <em>alpha=None</em>, <em>legend=True</em>, <em>replicate_indices=None</em>, <em>shift=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/plot/plot_basic.html#plot_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.plot.plot_basic.plot_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the results given by last prediction.</p>
+<p>Two Instance Plots of comparing two groups to each other:</p>
+<p><strong>Parameters:</strong></p>
+<dl class="docutils">
+<dt>twosample_object <span class="classifier-delimiter">:</span> <span class="classifier"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.twosample</span></tt></span></dt>
+<dd>GPTwoSample object, on which already &#8216;predict&#8217; was called.</dd>
+</dl>
+<p><strong>Differential Groups:</strong></p>
+<img alt="_images/plotGPTwoSampleDifferential.pdf" src="_images/plotGPTwoSampleDifferential.pdf" style="height: 8cm;" />
+<p><strong>Non-Differential Groups:</strong></p>
+<img alt="_images/plotGPTwoSampleSame.pdf" src="_images/plotGPTwoSampleSame.pdf" style="height: 8cm;" />
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>Proper rectangles for use in pylab.legend().</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<p>#  .. automodule:: gptwosample.plot.interval
+#    :members:</p>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GPTwoSample plot</a><ul>
+<li><a class="reference internal" href="#plot-gptwosample-predictions">Plot GPTwoSample predictions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="base.html"
+                        title="previous chapter">Package for using GPTwoSample</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="data.html"
+                        title="next chapter">Package for data handling</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="data.html" title="Package for data handling"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="base.html" title="Package for using GPTwoSample"
+             >previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

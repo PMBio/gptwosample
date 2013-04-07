@@ -16,3 +16,7 @@ provides a covariance structure of confounders in the dataset. We take
 this covariance structure between features to build up a two-sample
 Gaussian Process model taking confounding factors throughout the
 dataset into account.  
+
+To account for confounding factors in ``gptwosample`` simply at the
+option ``-c N`` to the run call, where ``N`` is the number of
+confounding factors to learn.

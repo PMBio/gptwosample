@@ -1,5 +1,5 @@
-Running GPTwoSample
--------------------------------
+Step by step tutorial & examples
+----------------------------------------
 
 Once the data has been prepared, ``gptwosample`` can be executed from
 the unix command line. See the full usage information in :ref:`usage`. 

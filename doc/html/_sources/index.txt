@@ -12,6 +12,18 @@ the command line or using the interactive Python Modules. Here, we
 will explore usage from the command line, for detailed description,
 refers to the other sections. 
 
+Command line Tool
+======================
+``gptwosample`` is designed to compare two gene expression time series
+experiments, including the possibility for several replicates in each
+experiment. The test fits latent functions to both time series,
+comparing the assumption that all data originated from a single latent
+process (`common model fit`) or a two distinct separate time series
+(`individual model fit`). See [Stegle2010]_ for details. The Raw gene expression data can
+be supplied via simple CSV files, one for each experiments. The data
+format is flexible, permits missing values and non-synchronized time
+points. Fur full details please see :ref:`dataformat`.
+
 .. _install:
 
 Installing the package
@@ -29,18 +41,6 @@ Try printing the full help of the script using::
 To run optional package tests before installing run::
 
  python setup test
-
-Requirements
-------------------
-``gptwosample`` is designed to compare two gene expression time series
-experiments, including the possibility for several replicates in each
-experiment. The test fits latent functions to both time series,
-comparing the assumption that all data originated from a single latent
-process (`common model fit`) or a two distinct separate time series
-(`individual model fit`). See [Stegle2010]_ for details. The Raw gene expression data can
-be supplied via simple CSV files, one for each experiments. The data
-format is flexible, permits missing values and non-synchronized time
-points. Fur full details please see :ref:`dataformat`.
 
 Example usage
 ----------------------------
@@ -68,7 +68,7 @@ summarizing the differential expression stores ares provided in
 in a subfolder ``./examplerun/plots/``.
 
 
-Advanced usage and model options
+Further Details
 ----------------------------------
 .. toctree::
   usage

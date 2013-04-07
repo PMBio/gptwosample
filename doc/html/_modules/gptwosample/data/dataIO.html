@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gptwosample.data.dataIO &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gptwosample.data.dataIO</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Data IO tool</span>
+<span class="sd">============</span>
+
+<span class="sd">For convienent usage this module provides IO operations for data</span>
+
+<span class="sd">Created on Jun 9, 2011</span>
+
+<span class="sd">@author: Max Zwiessele, Oliver Stegle</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">csv</span><span class="o">,</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">SP</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<div class="viewcode-block" id="get_data_from_csv"><a class="viewcode-back" href="../../../data.html#gptwosample.data.dataIO.get_data_from_csv">[docs]</a><span class="k">def</span> <span class="nf">get_data_from_csv</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Reading File&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Return data from csv file with delimiter delimiter in form of a dictionary.</span>
+<span class="sd">    Missing Values are all values x which cannot be converted float(x)</span>
+
+<span class="sd">    The file format has to fullfill following formation:</span>
+
+<span class="sd">    ============ =============== ==== ===============</span>
+<span class="sd">    *arbitrary*  x1              ...  xl</span>
+<span class="sd">    ============ =============== ==== ===============</span>
+<span class="sd">    Gene Name 1  y1 replicate 1  ...  yl replicate 1</span>
+<span class="sd">    ...          ...             ...  ...</span>
+<span class="sd">    Gene Name 1  y1 replicate k1 ...  yl replicate k1</span>
+
+<span class="sd">    ...</span>
+
+<span class="sd">    Gene Name n  y1 replicate 1  ...  yl replicate 1</span>
+<span class="sd">    ...          ...             ...  ...</span>
+<span class="sd">    Gene Name n  y1 replicate kn ...  yl replicate kn</span>
+<span class="sd">    ============ =============== ==== ===============</span>
+
+<span class="sd">    Returns: {&quot;input&quot;:[x1,...,xl], &quot;Gene Name 1&quot;:[[y1 replicate 1, ... yl replicate 1], ... ,[y1 replicate k, ..., yl replikate k]]}</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">filter_</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+    
+    <span class="n">end</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">count_lines</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_file</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">delimiter</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="n">current_line</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;{1:s} {0:s}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">),</span> <span class="n">message</span><span class="p">)</span>
+            <span class="n">mess</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s">&quot;{1:s}: {0:.2%}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mess</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; </span><span class="se">\r</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;input&quot;</span><span class="p">:</span><span class="nb">map</span><span class="p">(</span><span class="n">filter_</span><span class="p">,</span><span class="n">reader</span><span class="o">.</span><span class="n">next</span><span class="p">()[</span><span class="mi">1</span><span class="p">:])}</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">gene_name</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">l_filtered</span> <span class="o">=</span> <span class="p">[</span><span class="n">filter_</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">gene_name</span><span class="p">)):</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">gene_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_filtered</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">gene_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">l_filtered</span><span class="p">]</span>
+            <span class="n">current_line</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mess</span><span class="p">(</span><span class="n">current_line</span> <span class="o">/</span> <span class="n">end</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\r</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="c">#        progress += 1</span>
+    <span class="c">#        step_ahead = int((1.*progress/end)*60.)</span>
+    <span class="c">#        if(step_ahead &gt; step):</span>
+    <span class="c">#            out.write(&quot;#&quot;*(step_ahead-step))</span>
+    <span class="c">#            step = step_ahead</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[92m&#39;</span> <span class="o">+</span> <span class="s">u&quot;</span><span class="se">\u2713</span><span class="s">&quot;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[0m&#39;</span> <span class="o">+</span> <span class="s">&#39;         </span><span class="se">\r</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s">&quot; done         </span><span class="se">\r</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">SP</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;float&#39;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s">&#39;input&#39;</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s">&quot;Caught Failure on dataset with name </span><span class="si">%s</span><span class="s">: &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">print</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c">#            else:</span>
+<span class="c">#                print &quot;input is header and cannot be converted, this is NO error \r&quot;,</span>
+    <span class="k">return</span> <span class="n">data</span>
+</div>
+<div class="viewcode-block" id="write_data_to_csv"><a class="viewcode-back" href="../../../data.html#gptwosample.data.dataIO.write_data_to_csv">[docs]</a><span class="k">def</span> <span class="nf">write_data_to_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">path_to_file</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="s">&#39;GPTwoSample&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write given data in training_data_structure (see :py:class:`gptwosample.data.data_base` for details)</span>
+<span class="sd">    into file for path_to_file.</span>
+
+<span class="sd">    **Parameters:**</span>
+
+<span class="sd">    data : dict</span>
+<span class="sd">        data to write in training_data_structure</span>
+
+<span class="sd">    path_to_file : String</span>
+<span class="sd">        The path to the file to write to</span>
+
+<span class="sd">    header : String</span>
+<span class="sd">        Name of the table</span>
+
+<span class="sd">    delimiter : character</span>
+<span class="sd">        delimiter for the csv file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path_to_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.csv&quot;</span><span class="p">):</span>
+        <span class="n">path_to_file</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;.csv&quot;</span><span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">]</span>
+    <span class="n">line</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;input&quot;</span><span class="p">))</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[[</span><span class="n">name</span><span class="p">]]</span> <span class="o">*</span> <span class="n">line</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">SP</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">l</span><span class="p">,</span> <span class="n">line</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">SP</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">l</span><span class="p">,</span> <span class="n">line</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+    <span class="n">out_file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</div>
+<span class="k">def</span> <span class="nf">count_lines</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">buf_size</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
+    <span class="n">read_f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">read_f</span><span class="p">(</span><span class="n">buf_size</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">buf</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="n">buf</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">read_f</span><span class="p">(</span><span class="n">buf_size</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lines</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

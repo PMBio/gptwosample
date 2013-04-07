@@ -1,0 +1,566 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gptwosample.twosample.twosample &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gptwosample.twosample.twosample</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Confounder Learning and Correction Module</span>
+<span class="sd">-----------------------------------------</span>
+
+<span class="sd">@author: Max Zwiessele</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.combinators</span> <span class="kn">import</span> <span class="n">SumCF</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.se</span> <span class="kn">import</span> <span class="n">SqexpCFARD</span>
+<span class="kn">from</span> <span class="nn">gptwosample.data.data_base</span> <span class="kn">import</span> <span class="n">get_model_structure</span><span class="p">,</span> <span class="n">common_id</span><span class="p">,</span> \
+    <span class="n">individual_id</span>
+<span class="kn">from</span> <span class="nn">gptwosample.twosample.twosample_base</span> <span class="kn">import</span> <span class="n">TwoSampleSeparate</span><span class="p">,</span> \
+    <span class="n">TwoSampleBase</span>
+<span class="kn">from</span> <span class="nn">Queue</span> <span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Event</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.bias</span> <span class="kn">import</span> <span class="n">BiasCF</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<div class="viewcode-block" id="TwoSample"><a class="viewcode-back" href="../../../base.html#gptwosample.twosample.twosample.TwoSample">[docs]</a><span class="k">class</span> <span class="nc">TwoSample</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run GPTwoSample on given data.</span>
+
+<span class="sd">    **Parameters**:</span>
+<span class="sd">        - T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]</span>
+<span class="sd">        - Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">    </span>
+<span class="sd">    **Fields**:</span>
+<span class="sd">        * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]</span>
+<span class="sd">        * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">        * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]</span>
+<span class="sd">        * lvm_covariance: GPLVM covaraince function used for confounder learning</span>
+<span class="sd">        * n: Samples</span>
+<span class="sd">        * r: Replicates</span>
+<span class="sd">        * t: Timepoints</span>
+<span class="sd">        * d: Genes</span>
+<span class="sd">        * q: Confounder Components</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">NUM_PROCS</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># min(max(1,cpu_count()-2),3)</span>
+    <span class="n">SENTINEL</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span>
+                 <span class="n">covar_common</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">covar_individual_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">covar_individual_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        **Parameters**:</span>
+<span class="sd">            T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]</span>
+<span class="sd">            Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_comm</span> <span class="o">=</span> <span class="n">covar_common</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind1</span> <span class="o">=</span> <span class="n">covar_individual_1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind2</span> <span class="o">=</span> <span class="n">covar_individual_2</span>
+
+<div class="viewcode-block" id="TwoSample.set_data"><a class="viewcode-back" href="../../../base.html#gptwosample.twosample.twosample.TwoSample.set_data">[docs]</a>    <span class="k">def</span> <span class="nf">set_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set data by time T and expression matrix Y:</span>
+
+<span class="sd">        **Parameters**:</span>
+
+<span class="sd">            T : real [n x r x t]</span>
+<span class="sd">                All Timepoints with shape [Samples x Replicates x Timepoints]</span>
+<span class="sd">    </span>
+<span class="sd">            Y : real [n x r x t x d]</span>
+<span class="sd">                All expression values given in the form: [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_invalidate_cache</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Timepoints must be given as [n x r x t] matrix!&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Expression must be given as [n x r x t x d] matrix!&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">T</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="s">&#39;Shape mismatch, must be n*r*t timepoints per gene.&#39;</span>
+</div>
+<div class="viewcode-block" id="TwoSample.predict_likelihoods"><a class="viewcode-back" href="../../../base.html#gptwosample.twosample.twosample.TwoSample.predict_likelihoods">[docs]</a>    <span class="k">def</span> <span class="nf">predict_likelihoods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">T</span><span class="p">,</span>
+                            <span class="n">Y</span><span class="p">,</span>
+                            <span class="c"># indices=None,</span>
+                            <span class="n">message</span><span class="o">=</span><span class="s">&quot;Predicting Likelihoods: &quot;</span><span class="p">,</span>
+                            <span class="n">messages</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">priors</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict all likelihoods for all genes, given in Y</span>
+
+<span class="sd">        **parameters**:</span>
+
+<span class="sd">            indices : [int]</span>
+<span class="sd">                list (or array-like) for gene indices to predict, if None all genes will be predicted</span>
+<span class="sd">    </span>
+<span class="sd">            message: str</span>
+<span class="sd">                printing message</span>
+<span class="sd">    </span>
+<span class="sd">            kwargs: {...}</span>
+<span class="sd">                kwargs for :py:meth:`gptwosample.twosample.GPTwoSampleBase.predict_model_likelihoods`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">()</span>
+
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;messages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">messages</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">outq</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inq</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">processes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">distribute</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">i</span><span class="p">,</span>
+                          <span class="p">[</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">],</span>
+                          <span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">],</span>
+                          <span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">],</span>
+                          <span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">]</span>
+                          <span class="p">]])</span>
+
+        <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_distributor</span><span class="p">,</span>
+                                <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">distribute</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                                <span class="n">name</span><span class="o">=</span><span class="s">&#39;distributor&#39;</span><span class="p">,</span>
+                                <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">collect</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_collector</span><span class="p">,</span>
+                                <span class="n">name</span><span class="o">=</span><span class="s">&#39;lik collector&#39;</span><span class="p">,</span>
+                                <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">collect</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                                <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NUM_PROCS</span><span class="p">):</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lik_worker</span><span class="p">,</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;lik worker </span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span>
+                                    <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_TwoSampleObject</span><span class="p">(),</span>
+                                          <span class="n">priors</span><span class="p">],</span>
+                                    <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span><span class="p">))</span>
+
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s">&#39;                 </span><span class="se">\r</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_main_loop</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span>
+</div>
+<div class="viewcode-block" id="TwoSample.predict_means_variances"><a class="viewcode-back" href="../../../base.html#gptwosample.twosample.twosample.TwoSample.predict_means_variances">[docs]</a>    <span class="k">def</span> <span class="nf">predict_means_variances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">interpolation_interval</span><span class="p">,</span>
+                                <span class="n">indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">message</span><span class="o">=</span><span class="s">&quot;Predicting means and variances: &quot;</span><span class="p">,</span>
+                                <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predicts means and variances for all genes given in Y for given interpolation_interval</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_variances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span> <span class="o">=</span> <span class="n">get_model_structure</span><span class="p">(</span><span class="n">interpolation_interval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inq</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outq</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;likelihoods not yet predicted, running predict_model_likelihoods...&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">predict_likelihoods</span><span class="p">()</span>
+
+        <span class="n">processes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">distribute</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">deepcopy</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_data_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span><span class="p">[</span><span class="n">i</span><span class="p">]])])</span>
+
+        <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_distributor</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">distribute</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)],</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;distributor&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">collect</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mean_variances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+
+        <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_collector</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;ms collector&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">collect</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NUM_PROCS</span><span class="p">):</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pred_worker</span><span class="p">,</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="s">&#39;lik worker </span><span class="si">%i</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span>
+                                    <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_TwoSampleObject</span><span class="p">(),</span>
+                                          <span class="n">interpolation_interval</span><span class="p">],</span>
+                                    <span class="n">kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__verbose</span><span class="p">))</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s">&#39;                 </span><span class="se">\r</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_main_loop</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_variances</span>
+</div>
+<div class="viewcode-block" id="TwoSample.bayes_factors"><a class="viewcode-back" href="../../../base.html#gptwosample.twosample.twosample.TwoSample.bayes_factors">[docs]</a>    <span class="k">def</span> <span class="nf">bayes_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">likelihoods</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get list of bayes_factors for all genes.</span>
+
+<span class="sd">        **returns**:</span>
+<span class="sd">            bayes_factor for each gene in Y</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">likelihoods</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">likelihoods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span>
+        <span class="k">if</span> <span class="n">likelihoods</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Likelihoods not yet learned, use predict_likelihoods first&quot;</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">TwoSampleBase</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">lik</span><span class="p">:</span><span class="n">t</span><span class="o">.</span><span class="n">bayes_factor</span><span class="p">(</span><span class="n">lik</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="TwoSample.plot"><a class="viewcode-back" href="../../../base.html#gptwosample.twosample.twosample.TwoSample.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">xlabel</span><span class="o">=</span><span class="s">&quot;input&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s">&quot;ouput&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">interval_indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+             <span class="n">replicate_indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">timeshift</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        iterate through all genes and plot</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Not yet predicted, use predict_means_variances before&quot;</span>
+            <span class="k">return</span>
+        <span class="kn">import</span> <span class="nn">pylab</span>
+        <span class="n">pylab</span><span class="o">.</span><span class="n">ion</span><span class="p">()</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TwoSampleObject</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)):</span>
+            <span class="n">pylab</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">set_data_by_xy_data</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_data_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">_predicted_mean_variance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_variances</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">_learned_hyperparameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">_model_likelihoods</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">draw_arrows</span><span class="o">=</span><span class="bp">None</span>
+            <span class="k">if</span> <span class="n">timeshift</span><span class="p">:</span>
+                <span class="n">shift</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">get_covars</span><span class="p">()[</span><span class="n">common_id</span><span class="p">]</span><span class="o">.</span><span class="n">get_timeshifts</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">get_learned_hyperparameters</span><span class="p">()[</span><span class="n">common_id</span><span class="p">][</span><span class="s">&#39;covar&#39;</span><span class="p">])</span>
+                <span class="n">draw_arrows</span><span class="o">=</span><span class="mi">2</span>
+            <span class="k">yield</span> <span class="n">t</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">interval_indices</span><span class="p">,</span>
+                   <span class="n">alpha</span><span class="p">,</span> <span class="n">legend</span><span class="p">,</span> <span class="n">replicate_indices</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span><span class="n">draw_arrows</span><span class="o">=</span><span class="n">draw_arrows</span><span class="p">,</span>
+                   <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">get_model_likelihoods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_hyperparameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span>
+        <span class="c"># raise ValueError(&quot;Hyperparameters are not saved due to memory issues&quot;)</span>
+
+    <span class="k">def</span> <span class="nf">get_predicted_means_variances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_variances</span>
+
+    <span class="k">def</span> <span class="nf">get_twosample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priors</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TwoSampleObject</span><span class="p">(</span><span class="n">priors</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_covars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_twosample</span><span class="p">()</span><span class="o">.</span><span class="n">_models</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">individual_id</span><span class="p">:</span> <span class="n">models</span><span class="p">[</span><span class="n">individual_id</span><span class="p">]</span><span class="o">.</span><span class="n">covar</span><span class="p">,</span> <span class="n">common_id</span><span class="p">:</span> <span class="n">models</span><span class="p">[</span><span class="n">common_id</span><span class="p">]</span><span class="o">.</span><span class="n">covar</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_invalidate_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_likelihoods</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_variances</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hyperparameters</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_check_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">T</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Data has not been set or is None, use set_data(Y,T) to set data&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_data_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">],</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">],</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">],</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:,</span> <span class="bp">None</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_TwoSampleObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">priors</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">covar_comm</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">covar_comm</span> <span class="o">=</span> <span class="n">SumCF</span><span class="p">((</span><span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">BiasCF</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind1</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind1</span> <span class="o">=</span> <span class="n">SumCF</span><span class="p">((</span><span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">BiasCF</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind2</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind2</span> <span class="o">=</span> <span class="n">SumCF</span><span class="p">((</span><span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">BiasCF</span><span class="p">()))</span>
+        <span class="n">covar_common</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covar_comm</span><span class="p">)</span>
+        <span class="n">covar_individual_1</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covar_ind1</span><span class="p">)</span>
+        <span class="n">covar_individual_2</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covar_ind2</span><span class="p">)</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">TwoSampleSeparate</span><span class="p">(</span><span class="n">covar_individual_1</span><span class="p">,</span> <span class="n">covar_individual_2</span><span class="p">,</span>
+                                 <span class="n">covar_common</span><span class="p">,</span> <span class="n">priors</span><span class="o">=</span><span class="n">priors</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tmp</span>
+
+    <span class="k">def</span> <span class="nf">_collector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collect</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">buff</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c"># Keep running until we see numprocs SENTINEL messages</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NUM_PROCS</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SENTINEL</span><span class="p">):</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">counter</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{1:s} {2}/{3} {0:.3%}             </span><span class="se">\r</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">l</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                        <span class="k">continue</span>
+                    <span class="c"># verify rows are in order, if not save in buff</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">cur</span><span class="p">:</span>
+                        <span class="n">buff</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c"># if yes are write it out and make sure no waiting rows exist</span>
+                        <span class="n">collect</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                        <span class="c"># print i, d[0][&#39;common&#39;] - d[0][&#39;individual&#39;]</span>
+                        <span class="n">cur</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">while</span> <span class="n">cur</span> <span class="ow">in</span> <span class="n">buff</span><span class="p">:</span>
+                            <span class="n">collect</span><span class="p">(</span><span class="n">buff</span><span class="p">[</span><span class="n">cur</span><span class="p">])</span>
+                            <span class="c"># print cur, buff[cur][0][&#39;common&#39;] - buff[cur][0][&#39;individual&#39;]</span>
+                            <span class="k">del</span> <span class="n">buff</span><span class="p">[</span><span class="n">cur</span><span class="p">]</span>
+                            <span class="n">cur</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[92m&#39;</span> <span class="o">+</span> <span class="s">u&quot;</span><span class="se">\u2713</span><span class="s">&quot;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[0m&#39;</span> <span class="o">+</span> <span class="s">&#39;                         </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s">&quot; done                      </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;ERROR: Caught Exception in _collector&quot;</span>
+            <span class="k">raise</span>
+
+    <span class="k">def</span> <span class="nf">_distributor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="k">break</span>
+                <span class="n">main</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="c"># time.sleep(min(.3,2./float(NUM_PROCS)))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;ERROR: Caught Exception in _distributor&quot;</span>
+            <span class="k">raise</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NUM_PROCS</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SENTINEL</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_lik_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">twosample</span><span class="p">,</span> <span class="n">priors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">da</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SENTINEL</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">twosample</span><span class="o">.</span><span class="n">set_data_by_xy_data</span><span class="p">(</span><span class="o">*</span><span class="n">da</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">lik</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">twosample</span><span class="o">.</span><span class="n">predict_model_likelihoods</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+                        <span class="n">hyp</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">twosample</span><span class="o">.</span><span class="n">get_learned_hyperparameters</span><span class="p">())</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">lik</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+                        <span class="n">hyp</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="p">[</span><span class="n">lik</span><span class="p">,</span> <span class="n">hyp</span><span class="p">]])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;ERROR: Caught Exception in _lik_worker&quot;</span>
+            <span class="k">raise</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SENTINEL</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_pred_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">twosample</span><span class="p">,</span> <span class="n">interpolation_interval</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">[</span><span class="n">da</span><span class="p">,</span> <span class="n">hyperparams</span><span class="p">]</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SENTINEL</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                    <span class="k">continue</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">twosample</span><span class="o">.</span><span class="n">set_data_by_xy_data</span><span class="p">(</span><span class="o">*</span><span class="n">da</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ms</span> <span class="o">=</span> <span class="n">twosample</span><span class="o">.</span><span class="n">predict_mean_variance</span><span class="p">(</span><span class="n">interpolation_interval</span><span class="p">,</span> <span class="n">hyperparams</span><span class="o">=</span><span class="n">hyperparams</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">ms</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">ms</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inq</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;ERROR: Caught Exception in _pred_worker&quot;</span>
+            <span class="k">raise</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outq</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SENTINEL</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_main_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">processes</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c"># Some processes still running</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>  <span class="c"># iter through running processes</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>  <span class="c"># Process finished</span>
+                        <span class="n">processes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>  <span class="c"># can be deleted</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>  <span class="c"># Join in process</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">stopping threads                                    </span><span class="se">\r</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__running_event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c"># Wait for all processes to terminate</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>  <span class="c"># iter through running processes</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;stopping {} ...                                   </span><span class="se">\r</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>  <span class="c"># Process finished</span>
+                        <span class="n">processes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>  <span class="c"># can be deleted</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">.</span><span class="mi">2</span><span class="p">)</span>  <span class="c"># Join in process</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;stopping threads... &quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[92m&#39;</span> <span class="o">+</span> <span class="s">u&quot;</span><span class="se">\u2713</span><span class="s">&quot;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\033</span><span class="s">[0m&#39;</span> <span class="o">+</span> <span class="s">&#39;                         </span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot; done                      </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+            <span class="k">raise</span> <span class="n">r</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Tt</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
+    <span class="n">Tr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Tt</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">Ts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Tr</span><span class="p">,</span> <span class="n">Tr</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">nrtd</span> <span class="o">=</span> <span class="n">Ts</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">12</span><span class="p">,)</span>
+
+    <span class="n">covar</span> <span class="o">=</span> <span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">covar</span><span class="o">.</span><span class="n">K</span><span class="p">(</span><span class="n">covar</span><span class="o">.</span><span class="n">get_de_reparametrized_theta</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span><span class="p">]),</span> <span class="n">Tt</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">scikits.learn.mixture</span> <span class="kn">import</span> <span class="n">sample_gaussian</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="s">&quot;scikits needed for this example&quot;</span>
+        <span class="c"># raise r</span>
+
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">sample_gaussian</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">cvtype</span><span class="o">=</span><span class="s">&#39;full&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">sample_gaussian</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">cvtype</span><span class="o">=</span><span class="s">&#39;full&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+
+    <span class="n">Y1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">Y2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">Y1</span><span class="p">[:,</span> <span class="p">:</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">y1</span>
+    <span class="n">Y2</span><span class="p">[:,</span> <span class="p">:</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">y2</span>
+
+    <span class="n">sames</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">Y1</span><span class="p">[:,</span> <span class="n">d</span><span class="p">:]</span> <span class="o">=</span> <span class="n">y2</span><span class="p">[:,</span> <span class="n">sames</span><span class="p">]</span>
+    <span class="n">Y2</span><span class="p">[:,</span> <span class="n">d</span><span class="p">:]</span> <span class="o">=</span> <span class="n">y1</span><span class="p">[:,</span> <span class="n">sames</span><span class="p">]</span>
+
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">sigma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+    <span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Y1</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Y2</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">n</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="c"># Ts[numpy.random.randint(n),numpy.random.randint(r),numpy.random.randint(t)] = numpy.nan</span>
+        <span class="n">Y</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+
+
+
+    <span class="n">c</span> <span class="o">=</span> <span class="n">TwoSample</span><span class="p">(</span><span class="n">Ts</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+
+    <span class="n">c</span><span class="o">.</span><span class="n">predict_likelihoods</span><span class="p">(</span><span class="n">Ts</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">predict_means_variances</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Ts</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">Ts</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">))</span>
+    
+    <span class="kn">import</span> <span class="nn">pylab</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">ion</span><span class="p">()</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">plot</span><span class="p">():</span>
+        <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;enter to continue&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

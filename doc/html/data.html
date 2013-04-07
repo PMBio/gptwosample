@@ -1,0 +1,237 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Package for data handling &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="prev" title="GPTwoSample plot" href="plot.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plot.html" title="GPTwoSample plot"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-gptwosample.data"></span><div class="section" id="package-for-data-handling">
+<h1>Package for data handling<a class="headerlink" href="#package-for-data-handling" title="Permalink to this headline">¶</a></h1>
+<p>Use this Package for easiest way to handle the data for GPTwoSample.</p>
+<span class="target" id="module-gptwosample.data.data_base"></span><div class="section" id="data-structure-module">
+<h2>Data Structure Module<a class="headerlink" href="#data-structure-module" title="Permalink to this headline">¶</a></h2>
+<p>This Module is for easy access to data structures gptwosample works with.</p>
+<p>Created on Mar 18, 2011</p>
+<p>&#64;author: Max Zwiessele</p>
+<dl class="exception">
+<dt id="gptwosample.data.data_base.DataStructureError">
+<em class="property">exception </em><tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">DataStructureError</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#DataStructureError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.DataStructureError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.TypeError</span></tt></p>
+<p>Thrown, if DataStructure given does not fit.
+Training data training_data has following structure:</p>
+<div class="highlight-python"><pre>{input_id : {'group 1':[double] ... 'group n':[double]},
+ output_id : {'group 1':[double] ... 'group n':[double]}}</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="gptwosample.data.data_base.get_model_structure">
+<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">get_model_structure</tt><big>(</big><em>individual=None</em>, <em>common=None</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#get_model_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.get_model_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the valid structure for model dictionaries, used in gptwosample.
+Make sure to use this method if you want to use the model structure in this package!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gptwosample.data.data_base.get_training_data_structure">
+<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">get_training_data_structure</tt><big>(</big><em>x1</em>, <em>x2</em>, <em>y1</em>, <em>y2</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#get_training_data_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.get_training_data_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the structure for training data, given two inputs x1 and x2
+with corresponding outputs y1 and y2. Make sure, that replicates have
+to be tiled one after the other for proper resampling of data!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gptwosample.data.data_base.has_model_structure">
+<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">has_model_structure</tt><big>(</big><em>structure</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#has_model_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.has_model_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the valid structure for model dictionaries, used in gptwosample.
+Make sure to use this method if you want to use the model structure in this package!</p>
+</dd></dl>
+
+</div>
+<span class="target" id="module-gptwosample.data.dataIO"></span><div class="section" id="data-io-tool">
+<h2>Data IO tool<a class="headerlink" href="#data-io-tool" title="Permalink to this headline">¶</a></h2>
+<p>For convienent usage this module provides IO operations for data</p>
+<p>Created on Jun 9, 2011</p>
+<p>&#64;author: Max Zwiessele, Oliver Stegle</p>
+<dl class="function">
+<dt id="gptwosample.data.dataIO.get_data_from_csv">
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em>, <em>count=-1</em>, <em>verbose=True</em>, <em>message='Reading File'</em>, <em>fil=None</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/dataIO.html#get_data_from_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data from csv file with delimiter delimiter in form of a dictionary.
+Missing Values are all values x which cannot be converted float(x)</p>
+<p>The file format has to fullfill following formation:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="33%" />
+<col width="9%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><em>arbitrary</em></th>
+<th class="head">x1</th>
+<th class="head">...</th>
+<th class="head">xl</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Gene Name 1</td>
+<td>y1 replicate 1</td>
+<td>...</td>
+<td>yl replicate 1</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="row-even"><td>Gene Name 1</td>
+<td>y1 replicate k1</td>
+<td>...</td>
+<td>yl replicate k1</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>Gene Name n</td>
+<td>y1 replicate 1</td>
+<td>...</td>
+<td>yl replicate 1</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="row-even"><td>Gene Name n</td>
+<td>y1 replicate kn</td>
+<td>...</td>
+<td>yl replicate kn</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: {&#8220;input&#8221;:[x1,...,xl], &#8220;Gene Name 1&#8221;:[[y1 replicate 1, ... yl replicate 1], ... ,[y1 replicate k, ..., yl replikate k]]}</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gptwosample.data.dataIO.write_data_to_csv">
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">write_data_to_csv</tt><big>(</big><em>data</em>, <em>path_to_file</em>, <em>header='GPTwoSample'</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/dataIO.html#write_data_to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.dataIO.write_data_to_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write given data in training_data_structure (see <a class="reference internal" href="#module-gptwosample.data.data_base" title="gptwosample.data.data_base"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.data.data_base</span></tt></a> for details)
+into file for path_to_file.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="docutils">
+<dt>data <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>data to write in training_data_structure</dd>
+<dt>path_to_file <span class="classifier-delimiter">:</span> <span class="classifier">String</span></dt>
+<dd>The path to the file to write to</dd>
+<dt>header <span class="classifier-delimiter">:</span> <span class="classifier">String</span></dt>
+<dd>Name of the table</dd>
+<dt>delimiter <span class="classifier-delimiter">:</span> <span class="classifier">character</span></dt>
+<dd>delimiter for the csv file</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Package for data handling</a><ul>
+<li><a class="reference internal" href="#data-structure-module">Data Structure Module</a></li>
+<li><a class="reference internal" href="#data-io-tool">Data IO tool</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plot.html"
+                        title="previous chapter">GPTwoSample plot</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plot.html" title="GPTwoSample plot"
+             >previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
