@@ -55,15 +55,15 @@ The FILE format has to fullfill following formation:
     ============ =============== ==== ===============
     *arbitrary*  x1              ...  xl
     ============ =============== ==== ===============
-    Gene ID 1  y1 replicate 1  ...  yl replicate 1
+    Gene ID 1    y1 replicate 1  ...  yl replicate 1
     ...          ...             ...  ...
-    Gene ID 1  y1 replicate k1 ...  yl replicate k1
+    Gene ID 1    y1 replicate k1 ...  yl replicate k1
 
     ...
 
-    Gene ID n  y1 replicate 1  ...  yl replicate 1
+    Gene ID n    y1 replicate 1  ...  yl replicate 1
     ...          ...             ...  ...
-    Gene ID n  y1 replicate kn ...  yl replicate kn
+    Gene ID n    y1 replicate kn ...  yl replicate kn
     ============ =============== ==== ===============
 
 Where all entries not convertable by float() will be treated as missing

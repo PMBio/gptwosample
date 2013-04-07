@@ -35,9 +35,11 @@ def get_header_for_covar(CovFun, CovFunInd=None):
                    CovFunInd.get_hyperparameter_names()))
     return ret
 
-def twosampledata(cond1, cond2):
+def twosampledata(cond1, cond2, filter=None):
     T1 = numpy.array(cond1.pop("input"))[:, None]
     T2 = numpy.array(cond2.pop("input"))[:, None]
+    
+    cond1 = dict((k, v) for k, v in cond1.iteritems() if k in filter)
     
     Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
     Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
@@ -61,7 +63,7 @@ def twosampledata(cond1, cond2):
     Y -= Ynorm
     return T,Y, gene_names, Ynorm
 
-def loaddata(cond1file, cond2file, verbose=0):
+def loaddata(cond1file, cond2file, verbose=0, filter=None):
     s = "loading data..."
     started(s)
     #if verbose: sys.stdout.write(os.linesep)
