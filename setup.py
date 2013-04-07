@@ -3,7 +3,15 @@
 import setuptools,os
 
 with open("README",'r') as r:
-    __description__ = str(r.read())
+    README_TEXT = r.read()
+    
+__description__ = """
+    gptwosample is a python package for differential expression detection between gene expression time series experiments.
+
+    It allows for confounder correction in data through latent variable detection and timeshift detection between replicates in data.
+
+    See README for more information.
+    """
 
 def get_recursive_data_files(path):
     out = []
@@ -13,11 +21,12 @@ def get_recursive_data_files(path):
     return out
 
 standard_params = dict(name='gptwosample',
-      version = '0.1.7b',
+      version = '0.1.7c',
       description = __description__,
+      long_description = README_TEXT,
       author = 'Max Zwießele, Oliver Stegle',
       author_email='ibinbei@gmail.com',
-      url='http://',
+      url='https://pypi.python.org/pypi/gptwosample',
       license='Apache v2.0')
 
 setuptools.setup(
