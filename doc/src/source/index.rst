@@ -30,12 +30,16 @@ Installing the package
 ------------------------
 To install ``gptwosample`` run::
 
- python setup install
+ pip install gptwosample 
 
-from ``gptwosample`` directory.
+or run::
+
+ python setup.py install
+
+from ``gptwosample`` directory if you downloaded the source.
 
 This will install a script ``gptwosample`` into you python bin. In
-some cases this bin is not in $PATH and must be included extra
+some cases this bin is not in $PATH and must be included extra.
 
 Try printing the full help of the script using::
 
