@@ -35,11 +35,9 @@ def get_header_for_covar(CovFun, CovFunInd=None):
                    CovFunInd.get_hyperparameter_names()))
     return ret
 
-def twosampledata(cond1, cond2, filter=None):
+def twosampledata(cond1, cond2, fil=None):
     T1 = numpy.array(cond1.pop("input"))[:, None]
     T2 = numpy.array(cond2.pop("input"))[:, None]
-    
-    cond1 = dict((k, v) for k, v in cond1.iteritems() if k in filter)
     
     Y1 = numpy.array(cond1.values()).T.swapaxes(0, 1)
     Y2 = numpy.array(cond2.values()).T.swapaxes(0, 1)
@@ -63,13 +61,13 @@ def twosampledata(cond1, cond2, filter=None):
     Y -= Ynorm
     return T,Y, gene_names, Ynorm
 
-def loaddata(cond1file, cond2file, verbose=0, filter=None):
+def loaddata(cond1file, cond2file, verbose=0, fil=None):
     s = "loading data..."
     started(s)
     #if verbose: sys.stdout.write(os.linesep)
-    cond1 = get_data_from_csv(cond1file, verbose=verbose, message=message(s))
+    cond1 = get_data_from_csv(cond1file, verbose=verbose, message=message(s), fil=fil)
     s += " " + os.path.basename(cond1file)
-    cond2 = get_data_from_csv(cond2file, verbose=verbose, message=message(s))
+    cond2 = get_data_from_csv(cond2file, verbose=verbose, message=message(s), fil=fil)
     s += " " + os.path.basename(cond2file)
     T,Y,gene_names, Ynorm = twosampledata(cond1, cond2)
     finished(s)

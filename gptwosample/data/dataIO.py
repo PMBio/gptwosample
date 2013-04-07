@@ -12,8 +12,9 @@ Created on Jun 9, 2011
 import csv, scipy as SP, sys
 import os
 import numpy
+from re import compile
 
-def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, message="Reading File"):
+def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, message="Reading File", fil=None):
     '''
     Return data from csv file with delimiter delimiter in form of a dictionary.
     Missing Values are all values x which cannot be converted float(x)
@@ -44,6 +45,18 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, mess
             return numpy.nan
     
     end = float(count_lines(path_to_file))
+    
+    if fil is not None:
+        import ipdb;ipdb.set_trace()
+        fil = map(compile,fil)
+        filtered = []    
+        def matchesin(name, fil):
+            for f in fil:
+                import ipdb;ipdb.set_trace()
+                if f.match(name):
+                    return True
+            return False
+    
     with open(path_to_file, "r") as out_file:
         reader = csv.reader(out_file, delimiter=str(delimiter))
         out = sys.stdout
@@ -56,6 +69,12 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, mess
         for line in reader:
             if line:
                 gene_name = line[0]
+                if fil is not None:
+                    if gene_name in filtered:
+                        continue
+                    if not matchesin(gene_name, fil):
+                        filtered.append(gene_name)
+                        continue            
                 l_filtered = [filter_(x) for x in line[1:]]
                 if(data.has_key(gene_name)):
                     data[gene_name].append(l_filtered)

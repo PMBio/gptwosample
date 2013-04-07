@@ -74,7 +74,7 @@ Where all entries not convertable by float() will be treated as missing
 
     if argv is None:
         argv = sys.argv[1:]
-    try:
+#    try:
         # setup option parser
         parser = ArgumentParser(version=program_version_string,
                                 epilog=program_longdesc,
@@ -112,6 +112,8 @@ Where all entries not convertable by float() will be treated as missing
                             default=0)
         parser.add_argument('--version', action='version',
                             version='%(prog)s {}'.format(__version__))
+        parser.add_argument('--filter', dest="filter", metavar="FILE",default=None,
+                            help="file containing gene names to use")
         parser.add_argument("infiles", nargs=2, metavar="FILE",
                             help="treatment/control files to compare against each other")
         parser.add_argument("--backend", dest="backend", metavar="[PDF,...]",default="System default",
@@ -142,13 +144,20 @@ Where all entries not convertable by float() will be treated as missing
             
             
         # MAIN BODY #
+        import numpy
+        
+        if opts.filter:
+            with open(opts.filter,'r') as f:
+                fil = numpy.array(f.read().split('\n'))
+            import ipdb;ipdb.set_trace()
+        else:
+            fil=None
 
-        T, Y, gene_names, Ynorm = loaddata(*opts.infiles, verbose=opts.verbose)
+        T, Y, gene_names, Ynorm = loaddata(*opts.infiles, verbose=opts.verbose, fil=fil)
         n, r, t, d = Y.shape
 
         assert n == 2, "Only comparison of two samples implemented"
         
-        import numpy
             
         if opts.timeshift:
             repindices = (numpy.arange(n * r)[:, None] * numpy.ones((n * r, t))).flatten()
@@ -213,12 +222,12 @@ Where all entries not convertable by float() will be treated as missing
                     pylab.savefig(os.path.join(plotdir, "{}".format(name)))
             finished(s) 
 
-    except KeyboardInterrupt as e:
-        exception(e)
-        return 3
-    except Exception as e:
-        exception(e)
-        return 2
+#    except KeyboardInterrupt as e:
+#        exception(e)
+#        return 3
+#    except Exception as e:
+#        exception(e)
+#        return 2
 
 def exception(e):
     sys.stderr.write('\n' + message(str(e) + "\n" + "for help use --help") + "\n")
