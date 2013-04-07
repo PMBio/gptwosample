@@ -42,7 +42,7 @@ be supplied via simple CSV files, one for each experiments. The data
 format is flexible, permits missing values and non-synchronized time
 points. Fur full details please see :ref:`dataformat`.
 
-Running GPTwoSample
+Example usage
 ----------------------------
 Once the data has been prepared, GPTwoSample can be executed from the
 unix command line.
