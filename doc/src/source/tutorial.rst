@@ -1,21 +1,25 @@
-Hands on tutorial for ``gptwosample``
-=========================================
+Running GPTwoSample
+-------------------------------
 
-In this tutorial we will process a full run example of
-``gptwosample``. See the full usage information in :ref:`usage`. See
-format for input data ``.csv`` files in :ref:`dataformat`. Make sure
-you ``cd`` into the extracted gptwosample folder before running this tutorial. 
+Once the data has been prepared, ``gptwosample`` can be executed from
+the unix command line. See the full usage information in :ref:`usage`. 
+
+See format for input data ``.csv`` files in :ref:`dataformat`. 
+
+Make sure you either install gptwosample (:ref:`install`) or ``cd``
+into the extracted gptwosample folder before running this tutorial. 
+
 Try printing the full help of the script using::
 
  python gptwosample --help
 
 If an error occurs, you probably ``cd`` one level too deep and you can
-``cd ..`` up one level.
+``cd ..`` up one level. 
 
-We will build up the whole running signature step by step in the following.
-We want to run the script verbosly and with that the script so far looks like::
+In this tutorial we will build up a full usage call of ``gptwosample``.
+First, we want to run gptwosample verbosly, thus the call so far looks like::
 
- python gptwosample -v
+ gptwosample -v
 
 To enable plotting we provide the switch ``-p`` to the script::
 
@@ -32,8 +36,7 @@ for them while two-sampling::
 
  python gptwosample -v -p -t -c x
 
-but we do not want to account for confounders in this tutorial,
-leaving the data files to run on.
+but we do not want to account for confounders in this tutorial.
 
 The output of the script shall be in the subfolder ``./tutorial/``, so
 we add the output flag ``-o ./tutorial/``:
@@ -64,4 +67,5 @@ The results are saved in the ``results.csv``, which contains all
 predicted Bayes Factors and learnt covariance function parameters for
 all genes (:ref:`results`).
 
-For more tutorials and example files on how to use this package see ``gptwosample/examples``.
+For more tutorials and example files on how to use this package see
+``gptwosample/examples``.

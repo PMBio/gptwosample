@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Hands on tutorial for gptwosample &mdash; GPTwoSample 0.1.7a documentation</title>
+    <title>Running GPTwoSample &mdash; GPTwoSample 0.1.7a documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -26,8 +26,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
-    <link rel="next" title="Usage" href="usage.html" />
-    <link rel="prev" title="Welcome to GPTwoSample" href="index.html" /> 
+    <link rel="next" title="Package for using GPTwoSample" href="base.html" />
+    <link rel="prev" title="Result structure" href="results.html" /> 
   </head>
   <body>
     <div class="related">
@@ -40,10 +40,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="usage.html" title="Usage"
+          <a href="base.html" title="Package for using GPTwoSample"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to GPTwoSample"
+          <a href="results.html" title="Result structure"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
@@ -54,20 +54,22 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="hands-on-tutorial-for-gptwosample">
-<h1>Hands on tutorial for <tt class="docutils literal"><span class="pre">gptwosample</span></tt><a class="headerlink" href="#hands-on-tutorial-for-gptwosample" title="Permalink to this headline">¶</a></h1>
-<p>In this tutorial we will process a full run example of
-<tt class="docutils literal"><span class="pre">gptwosample</span></tt>. See the full usage information in <a class="reference internal" href="usage.html#usage"><em>Usage</em></a>. See
-format for input data <tt class="docutils literal"><span class="pre">.csv</span></tt> files in <a class="reference internal" href="usage.html#dataformat"><em>Data format</em></a>. Make sure
-you <tt class="docutils literal"><span class="pre">cd</span></tt> into the extracted gptwosample folder before running this tutorial.
-Try printing the full help of the script using:</p>
+  <div class="section" id="running-gptwosample">
+<h1>Running GPTwoSample<a class="headerlink" href="#running-gptwosample" title="Permalink to this headline">¶</a></h1>
+<p>Once the data has been prepared, <tt class="docutils literal"><span class="pre">gptwosample</span></tt> can be executed from
+the unix command line. See the full usage information in <a class="reference internal" href="usage.html#usage"><em>Usage</em></a>.</p>
+<p>See format for input data <tt class="docutils literal"><span class="pre">.csv</span></tt> files in <a class="reference internal" href="usage.html#dataformat"><em>Data format</em></a>.</p>
+<p>Make sure you either install gptwosample (<a class="reference internal" href="index.html#install"><em>Installing the package</em></a>) or <tt class="docutils literal"><span class="pre">cd</span></tt>
+into the extracted gptwosample folder before running this tutorial.</p>
+<p>Try printing the full help of the script using:</p>
 <div class="highlight-python"><pre>python gptwosample --help</pre>
 </div>
 <p>If an error occurs, you probably <tt class="docutils literal"><span class="pre">cd</span></tt> one level too deep and you can
 <tt class="docutils literal"><span class="pre">cd</span> <span class="pre">..</span></tt> up one level.</p>
-<p>We will build up the whole running signature step by step in the following.
-We want to run the script verbosly and with that the script so far looks like:</p>
-<div class="highlight-python"><pre>python gptwosample -v</pre>
+<p>In this tutorial we will build up a full usage call of <tt class="docutils literal"><span class="pre">gptwosample</span></tt>.
+First, we want to run gptwosample verbosly, thus the call so far looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">gptwosample</span> <span class="o">-</span><span class="n">v</span>
+</pre></div>
 </div>
 <p>To enable plotting we provide the switch <tt class="docutils literal"><span class="pre">-p</span></tt> to the script:</p>
 <div class="highlight-python"><pre>python gptwosample -v -p</pre>
@@ -81,8 +83,7 @@ enable the timeshift switch <tt class="docutils literal"><span class="pre">-t</s
 for them while two-sampling:</p>
 <div class="highlight-python"><pre>python gptwosample -v -p -t -c x</pre>
 </div>
-<p>but we do not want to account for confounders in this tutorial,
-leaving the data files to run on.</p>
+<p>but we do not want to account for confounders in this tutorial.</p>
 <p>The output of the script shall be in the subfolder <tt class="docutils literal"><span class="pre">./tutorial/</span></tt>, so
 we add the output flag <tt class="docutils literal"><span class="pre">-o</span> <span class="pre">./tutorial/</span></tt>:</p>
 <blockquote>
@@ -105,7 +106,8 @@ in the ToyCondition files and plots each gene into
 <p>The results are saved in the <tt class="docutils literal"><span class="pre">results.csv</span></tt>, which contains all
 predicted Bayes Factors and learnt covariance function parameters for
 all genes (<a class="reference internal" href="results.html#results"><em>Result structure</em></a>).</p>
-<p>For more tutorials and example files on how to use this package see <tt class="docutils literal"><span class="pre">gptwosample/examples</span></tt>.</p>
+<p>For more tutorials and example files on how to use this package see
+<tt class="docutils literal"><span class="pre">gptwosample/examples</span></tt>.</p>
 </div>
 
 
@@ -115,11 +117,11 @@ all genes (<a class="reference internal" href="results.html#results"><em>Result 
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">Welcome to GPTwoSample</a></p>
+  <p class="topless"><a href="results.html"
+                        title="previous chapter">Result structure</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="usage.html"
-                        title="next chapter">Usage</a></p>
+  <p class="topless"><a href="base.html"
+                        title="next chapter">Package for using GPTwoSample</a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -147,10 +149,10 @@ all genes (<a class="reference internal" href="results.html#results"><em>Result 
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="usage.html" title="Usage"
+          <a href="base.html" title="Package for using GPTwoSample"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to GPTwoSample"
+          <a href="results.html" title="Result structure"
              >previous</a> |</li>
         <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>

@@ -16,6 +16,3 @@ provides a covariance structure of confounders in the dataset. We take
 this covariance structure between features to build up a two-sample
 Gaussian Process model taking confounding factors throughout the
 dataset into account.  
-
-.. [Lawrence2004]   Neil Lawrence, `Gaussian process latent variable models for visualisation of high dimensional data`, Advances in neural information processing systems, `2004`
-.. [Stegle2010]        Stegle, Oliver and Denby, Katherine J and Cooke, Emma J and Wild, David L and Ghahramani, Zoubin and Borgwardt, Karsten M, `A robust Bayesian two-sample test for detecting intervals of differential gene expression in microarray time series`, Journal of Computational Biology, `2010`

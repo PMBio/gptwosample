@@ -58,10 +58,10 @@
 <span id="confounders"></span><h1>Accounting for confounding factors<a class="headerlink" href="#accounting-for-confounding-factors" title="Permalink to this headline">¶</a></h1>
 <p>We detect common confounding factors using probabilistic principal component
 analysis modeled by gaussian process latent variable models (GPLVM)
-<a class="reference internal" href="#lawrence2004">[Lawrence2004]</a>. This probabilistic approach to detect low
+<a class="reference internal" href="index.html#lawrence2004">[Lawrence2004]</a>. This probabilistic approach to detect low
 dimensional significant features can be interpreted as detecting
 common confounding factors in time series experiments by applying
-GPLVM in advance to two-sample tests of <a class="reference internal" href="#stegle2010">[Stegle2010]</a> on the
+GPLVM in advance to two-sample tests of <a class="reference internal" href="index.html#id2">[Stegle2010]</a> on the
 whole dataset. Two-sample tests on Gaussian Processes decide
 differential expression based on the bayes factor of marginal probabilities
 for control and treatment being modeled by one common or two separate
@@ -70,18 +70,6 @@ provides a covariance structure of confounders in the dataset. We take
 this covariance structure between features to build up a two-sample
 Gaussian Process model taking confounding factors throughout the
 dataset into account.</p>
-<table class="docutils citation" frame="void" id="lawrence2004" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[Lawrence2004]</a></td><td>Neil Lawrence, <cite>Gaussian process latent variable models for visualisation of high dimensional data</cite>, Advances in neural information processing systems, <cite>2004</cite></td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="stegle2010" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[Stegle2010]</a></td><td>Stegle, Oliver and Denby, Katherine J and Cooke, Emma J and Wild, David L and Ghahramani, Zoubin and Borgwardt, Karsten M, <cite>A robust Bayesian two-sample test for detecting intervals of differential gene expression in microarray time series</cite>, Journal of Computational Biology, <cite>2010</cite></td></tr>
-</tbody>
-</table>
 </div>
 
 

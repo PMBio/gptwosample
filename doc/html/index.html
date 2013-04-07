@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="GPTwoSample 0.1.7a documentation" href="#" />
-    <link rel="next" title="Hands on tutorial for gptwosample" href="tutorial.html" /> 
+    <link rel="next" title="Usage" href="usage.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,7 +39,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="tutorial.html" title="Hands on tutorial for gptwosample"
+          <a href="usage.html" title="Usage"
              accesskey="N">next</a> |</li>
         <li><a href="#">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
@@ -55,16 +55,82 @@
 <div class="section" id="command-line-tool">
 <h2>Command line tool<a class="headerlink" href="#command-line-tool" title="Permalink to this headline">¶</a></h2>
 <p>gptwosample.py is a tool to run two-sample tests on time series
-differential gene expression experiments.</p>
+differential gene expression experiments. It can either be called form
+the command line or using the interactive Python Modules. Here, we
+will explore usage from the command line, for detailed description,
+refers to the other sections.</p>
+<div class="section" id="installing-the-package">
+<span id="install"></span><h3>Installing the package<a class="headerlink" href="#installing-the-package" title="Permalink to this headline">¶</a></h3>
+<p>To install <tt class="docutils literal"><span class="pre">gptwosample</span></tt> run:</p>
+<div class="highlight-python"><pre>python setup install</pre>
+</div>
+<p>from <tt class="docutils literal"><span class="pre">gptwosample</span></tt> directory.</p>
+<p>Try printing the full help of the script using:</p>
+<div class="highlight-python"><pre>python gptwosample --help</pre>
+</div>
+<p>To run optional package tests before installing run:</p>
+<div class="highlight-python"><pre>python setup test</pre>
+</div>
+</div>
+<div class="section" id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<p><tt class="docutils literal"><span class="pre">gptwosample</span></tt> is designed to compare two gene expression time series
+experiments, including the possibility for several replicates in each
+experiment. The test fits latent functions to both time series,
+comparing the assumption that all data originated from a single latent
+process (<cite>common model fit</cite>) or a two distinct separate time series
+(<cite>individual model fit</cite>). See <a class="reference internal" href="#stegle2010">[Stegle2010]</a> for details. The Raw gene expression data can
+be supplied via simple CSV files, one for each experiments. The data
+format is flexible, permits missing values and non-synchronized time
+points. Fur full details please see <a class="reference internal" href="usage.html#dataformat"><em>Data format</em></a>.</p>
+</div>
+<div class="section" id="running-gptwosample">
+<h3>Running GPTwoSample<a class="headerlink" href="#running-gptwosample" title="Permalink to this headline">¶</a></h3>
+<p>Once the data has been prepared, GPTwoSample can be executed from the
+unix command line.</p>
+<p>General command line parameters of interest include:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">--</span><span class="n">help</span>
+<span class="o">-</span><span class="n">v</span>
+</pre></div>
+</div>
+<p>Also, to create plots of the fitted functions, which creates verbose plots illustrating the fit for every tested gene:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">-</span><span class="n">p</span>
+</pre></div>
+</div>
+<p>For example, to run the basic <tt class="docutils literal"><span class="pre">gptwosample</span></tt> model on the tutorial
+datasets provided alongside the package including verbose output and
+plots, run:</p>
+<div class="highlight-python"><pre>python gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
+</div>
+<p>This stores results in <tt class="docutils literal"><span class="pre">./examplerun/</span></tt>. Quantitative readouts
+summarizing the differential expression stores ares provided in
+&#8220;results.csv&#8221; (see <a class="reference internal" href="results.html#results"><em>Result structure</em></a> for format). Plots in will be saved
+in a subfolder <tt class="docutils literal"><span class="pre">./examplerun/plots/</span></tt>.</p>
+</div>
+<div class="section" id="advanced-usage-and-model-options">
+<h3>Advanced usage and model options<a class="headerlink" href="#advanced-usage-and-model-options" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Hands on tutorial for <tt class="docutils literal"><span class="pre">gptwosample</span></tt></a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html#data-format">Data format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="confounders.html">Accounting for confounding factors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timeshift.html">Timeshift detection between replicates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="results.html">Result structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Running GPTwoSample</a></li>
 </ul>
+</div>
+<table class="docutils citation" frame="void" id="lawrence2004" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[Lawrence2004]</td><td>Neil Lawrence, <cite>Gaussian process latent variable models for visualisation of high dimensional data</cite>, Advances in neural information processing systems, <cite>2004</cite></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="stegle2010" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[Stegle2010]</a></td><td>Stegle, Oliver and Denby, Katherine J and Cooke, Emma J and Wild, David L and Ghahramani, Zoubin and Borgwardt, Karsten M, <cite>A robust Bayesian two-sample test for detecting intervals of differential gene expression in microarray time series</cite>, Journal of Computational Biology, <cite>2010</cite></td></tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section" id="developer">
@@ -96,6 +162,12 @@ differential gene expression experiments.</p>
   <ul>
 <li><a class="reference internal" href="#">Welcome to GPTwoSample</a><ul>
 <li><a class="reference internal" href="#command-line-tool">Command line tool</a><ul>
+<li><a class="reference internal" href="#installing-the-package">Installing the package</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#running-gptwosample">Running GPTwoSample</a></li>
+<li><a class="reference internal" href="#advanced-usage-and-model-options">Advanced usage and model options</a><ul>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#developer">Developer</a><ul>
@@ -106,8 +178,8 @@ differential gene expression experiments.</p>
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="tutorial.html"
-                        title="next chapter">Hands on tutorial for <tt class="docutils literal"><span class="pre">gptwosample</span></tt></a></p>
+  <p class="topless"><a href="usage.html"
+                        title="next chapter">Usage</a></p>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -135,7 +207,7 @@ differential gene expression experiments.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="tutorial.html" title="Hands on tutorial for gptwosample"
+          <a href="usage.html" title="Usage"
              >next</a> |</li>
         <li><a href="#">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
       </ul>
