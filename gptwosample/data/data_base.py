@@ -9,8 +9,8 @@ Created on Mar 18, 2011
 @author: Max Zwiessele
 '''
 replicate_indices_id = 'replicate'
-individual_id = 'individual'
-common_id = 'common'
+individual_id = 'individual model fit'
+common_id = 'common model fit'
 input_id = 'in'
 output_id = 'out'
 

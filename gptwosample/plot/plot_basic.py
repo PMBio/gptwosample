@@ -37,12 +37,12 @@ def plot_results(twosample_object,
     
     **Differential Groups:**
     
-    .. image:: ../images/plotGPTwoSampleDifferential.png
+    .. image:: ../images/plotGPTwoSampleDifferential.pdf
         :height: 8cm
         
     **Non-Differential Groups:**
     
-    .. image:: ../images/plotGPTwoSampleSame.png
+    .. image:: ../images/plotGPTwoSampleSame.pdf
         :height: 8cm
     
     Returns:

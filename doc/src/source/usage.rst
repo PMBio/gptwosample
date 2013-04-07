@@ -39,3 +39,6 @@ The format of the two ``.csv`` files (``FILE FILE`` in usage) is as follows:
     ...          ...             ...  ...
     Gene ID n    y1 replicate kn ...  yl replicate kn
     ============ =============== ==== ===============
+
+where all values, which cannot be translated by :py:func:`float` will be 
+treated as missing values and ignored.

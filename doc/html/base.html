@@ -175,7 +175,7 @@ different ones. This prediction is defined by which covariance function <tt clas
 </dl>
 <dl class="method">
 <dt id="gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance">
-<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x1157011b8&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x115701140&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x1157010c8&gt;</em><big>)</big><a class="reference internal" href="_modules/gptwosample/confounder/confounder.html#TwoSampleConfounder.initialize_twosample_covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x114d2c488&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x114d2c410&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x114d2c140&gt;</em><big>)</big><a class="reference internal" href="_modules/gptwosample/confounder/confounder.html#TwoSampleConfounder.initialize_twosample_covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>initialize twosample covariance with function covariance(XX), where XX
 is a FixedCF with the learned confounder matrix.</p>
 <p>default is SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])</p>
@@ -240,7 +240,7 @@ for given training data training_data.</dd>
 
 <dl class="method">
 <dt id="gptwosample.twosample.twosample_base.TwoSampleBase.get_data">
-<tt class="descname">get_data</tt><big>(</big><em>model='common'</em>, <em>index=None</em><big>)</big><a class="reference internal" href="_modules/gptwosample/twosample/twosample_base.html#TwoSampleBase.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.get_data" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_data</tt><big>(</big><em>model='common model fit'</em>, <em>index=None</em><big>)</big><a class="reference internal" href="_modules/gptwosample/twosample/twosample_base.html#TwoSampleBase.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>get inputs of model <cite>model</cite> with group index <cite>index</cite>.
 If index is None, the whole model group will be returned.</p>
 </dd></dl>
@@ -278,9 +278,9 @@ If index is None, the whole model group will be returned.</p>
 <dd>GPTwoSample object, on which already &#8216;predict&#8217; was called.</dd>
 </dl>
 <p><strong>Differential Groups:</strong></p>
-<img alt="_images/plotGPTwoSampleDifferential.png" src="_images/plotGPTwoSampleDifferential.png" style="height: 8cm;" />
+<img alt="_images/plotGPTwoSampleDifferential.pdf" src="_images/plotGPTwoSampleDifferential.pdf" style="height: 8cm;" />
 <p><strong>Non-Differential Groups:</strong></p>
-<img alt="_images/plotGPTwoSampleSame.png" src="_images/plotGPTwoSampleSame.png" style="height: 8cm;" />
+<img alt="_images/plotGPTwoSampleSame.pdf" src="_images/plotGPTwoSampleSame.pdf" style="height: 8cm;" />
 <dl class="docutils">
 <dt>Returns:</dt>
 <dd>Proper rectangles for use in pylab.legend().</dd>
@@ -289,7 +289,7 @@ If index is None, the whole model group will be returned.</p>
 
 <dl class="method">
 <dt id="gptwosample.twosample.twosample_base.TwoSampleBase.predict_mean_variance">
-<tt class="descname">predict_mean_variance</tt><big>(</big><em>interpolation_interval</em>, <em>hyperparams=None</em>, <em>interval_indices={'individual': None</em>, <em>'common': None}</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/twosample/twosample_base.html#TwoSampleBase.predict_mean_variance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.predict_mean_variance" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">predict_mean_variance</tt><big>(</big><em>interpolation_interval</em>, <em>hyperparams=None</em>, <em>interval_indices={'common model fit': None</em>, <em>'individual model fit': None}</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/twosample/twosample_base.html#TwoSampleBase.predict_mean_variance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.predict_mean_variance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predicts the mean and variance of both models.
 Returns:</p>
 <div class="highlight-python"><pre>{'individual':{'mean':[pointwise mean], 'var':[pointwise variance]},
@@ -308,7 +308,7 @@ Returns:</p>
 
 <dl class="method">
 <dt id="gptwosample.twosample.twosample_base.TwoSampleBase.predict_model_likelihoods">
-<tt class="descname">predict_model_likelihoods</tt><big>(</big><em>training_data=None</em>, <em>interval_indices={'individual': None</em>, <em>'common': None}</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/twosample/twosample_base.html#TwoSampleBase.predict_model_likelihoods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.predict_model_likelihoods" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">predict_model_likelihoods</tt><big>(</big><em>training_data=None</em>, <em>interval_indices={'common model fit': None</em>, <em>'individual model fit': None}</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/twosample/twosample_base.html#TwoSampleBase.predict_model_likelihoods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.twosample.twosample_base.TwoSampleBase.predict_model_likelihoods" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict the probabilities of the models (individual and common) to describe the data.
 It will optimize hyperparameters respectively.</p>
 <p><strong>Parameters</strong>:</p>

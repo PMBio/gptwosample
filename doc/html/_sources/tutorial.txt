@@ -63,3 +63,5 @@ in the ToyCondition files and plots each gene into
 The results are saved in the ``results.csv``, which contains all
 predicted Bayes Factors and learnt covariance function parameters for
 all genes (:ref:`results`).
+
+For more tutorials and example files on how to use this package see ``gptwosample/examples``.

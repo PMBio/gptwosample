@@ -57,8 +57,7 @@
   <div class="section" id="result-structure">
 <span id="results"></span><h1>Result structure<a class="headerlink" href="#result-structure" title="Permalink to this headline">¶</a></h1>
 <p>The results are given in form of a <tt class="docutils literal"><span class="pre">results.csv</span></tt>. Each line corresponds to the results for one gene. The results file is structured as follows:</p>
-<div class="line-block">
-<div class="line">Gene ID | Bayes Factor | [Learnt covariance function parameters] |</div>
+<div class="highlight-python"><pre>| Gene ID | Bayes Factor | [Learnt covariance function parameters] |</pre>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">Gene</span> <span class="pre">ID</span></tt> is the ID given in the input files. The <tt class="docutils literal"><span class="pre">Bayes</span> <span class="pre">Factor</span></tt> is a log-score for model comparison of the individual model against the common model. The individual model assumes both samples (treatment and control) to be modelled individually by one Gaussian process each. In contrast the common model assumes both samples to be modelled by one Gaussian Process. Both likelihoods are computed and the score is created by contrasting the both likelihoods:</p>
 <div class="math">
