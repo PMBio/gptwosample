@@ -148,8 +148,7 @@ Where all entries not convertable by float() will be treated as missing
         
         if opts.filter:
             with open(opts.filter,'r') as f:
-                fil = numpy.array(f.read().split('\n'))
-            import ipdb;ipdb.set_trace()
+                fil = numpy.array(f.read().strip(os.linesep).split(os.linesep))
         else:
             fil=None
 

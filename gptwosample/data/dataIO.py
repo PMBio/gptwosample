@@ -47,12 +47,10 @@ def get_data_from_csv(path_to_file, delimiter=',', count= -1, verbose=True, mess
     end = float(count_lines(path_to_file))
     
     if fil is not None:
-        import ipdb;ipdb.set_trace()
         fil = map(compile,fil)
         filtered = []    
         def matchesin(name, fil):
             for f in fil:
-                import ipdb;ipdb.set_trace()
                 if f.match(name):
                     return True
             return False
