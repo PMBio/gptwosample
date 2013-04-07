@@ -10,5 +10,9 @@ fi
 # Make sure gptwosample is reachable:
 export PYTHONPATH=$PYTHONPATH:../../:
 
-# run verbose (-v) gptwosample on toy example genes:
-python ../../gptwosample.py -vo ./gptwosample_example/ ToyCondition1.csv ToyCondition2.csv
+# run gptwosample:
+# -v   : verbose 
+# -p   : and plot
+# -o D : write results in directory D
+# on ToyConditions{1,2}.csv
+python ../../gptwosample.py -v -p -o ./gptwosample_example/ ToyCondition1.csv ToyCondition2.csv $*

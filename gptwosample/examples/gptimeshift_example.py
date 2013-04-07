@@ -19,7 +19,6 @@ from pygp.covar import se, noise, combinators
 from pygp.priors import lnpriors
 import logging as LG
 import numpy.random as random
-import pylab as PL
 import scipy as SP
 from gptwosample.data.dataIO import get_data_from_csv
 from gptwosample.twosample.twosample_base import TwoSampleShare,\
@@ -116,7 +115,8 @@ def run_demo(cond1_file, cond2_file):
         gptwosample_object.predict_mean_variance(Tpredict)
         
         #PL.suptitle("Example for GPTwoSample_individual_covariance with simulated data", fontsize=24)
-    
+        
+        import pylab as PL
         PL.subplot(212)
         plot_results(gptwosample_object, 
                      shift=gptwosample_object.get_learned_hyperparameters()[common_id]['covar'][2:2+2*n_replicates], 

@@ -10,5 +10,10 @@ fi
 # Make sure gptwosample is reachable:
 export PYTHONPATH=$PYTHONPATH:../../:
 
-# run verbose (-v) gptwosample with timeshift detection (-t) on toy example genes and plot (-p):
-python ../../gptwosample.py -vtpo ./gptimeshift_example/ ToyCondition1.csv ToyCondition2.csv
+# run gptwosample:
+# -v   : verbose 
+# -p   : and plot
+# -t   : with timeshift detection
+# -o D : write results in directory D
+# on ToyConditions{1,2}.csv
+python ../../gptwosample.py -v -t -p -o ./gptimeshift_example/ ToyCondition1.csv ToyCondition2.csv $*

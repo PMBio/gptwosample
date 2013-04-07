@@ -5,9 +5,7 @@ Created on Apr 3, 2013
 '''
 import unittest
 from gptwosample.data.dataIO import get_data_from_csv
-from StringIO import StringIO
 import numpy
-from contextlib import closing
 import os
 
 teststring = """input,1,2,3,\n

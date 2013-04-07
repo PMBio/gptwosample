@@ -14,8 +14,7 @@ from gptwosample.data.dataIO import get_data_from_csv
 import logging as LG
 import scipy as SP
 import numpy
-import pylab
-from gptwosample.confounder.confounder import ConfounderTwoSample
+from gptwosample.confounder.confounder import TwoSampleConfounder
 
 
 if __name__ == '__main__':
@@ -50,12 +49,13 @@ if __name__ == '__main__':
     for _ in range(4):
         Y[ri(n), ri(r), ri(t), ri(d)] = numpy.nan
     
-    confounder_object = ConfounderTwoSample(T, Y, q=2)
+    confounder_object = TwoSampleConfounder(T, Y, q=2)
     confounder_object.learn_confounder_matrix()
     confounder_object.predict_likelihoods(T,Y)
     
     Tpredict = numpy.linspace(T1.min(), T1.max(), 100)[:,None]
     it = confounder_object.predict_means_variances(Tpredict)
+    import pylab
     pylab.ion()
     pylab.figure()
     for _ in confounder_object.plot():

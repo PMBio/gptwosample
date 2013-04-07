@@ -10,5 +10,10 @@ fi
 # Make sure gptwosample is reachable:
 export PYTHONPATH=$PYTHONPATH:../../:
 
-# run verbose (-v) gptwosample with 4 confounders (-c4) on toy example genes:
-python ../../gptwosample.py -vc4 -o ./gptwosample_confounder_example/ ToyCondition1.csv ToyCondition2.csv
+# run gptwosample:
+# -v   : verbose 
+# -p   : and plot
+# -c 4 : with 4 confounders
+# -o D : write results in directory D
+# on ToyConditions{1,2}.csv
+python ../../gptwosample.py -v -p -c4 -o ./gptwosample_confounder_example/ ToyCondition1.csv ToyCondition2.csv $*

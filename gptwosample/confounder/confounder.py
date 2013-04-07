@@ -12,10 +12,7 @@ from pygp.gp.gplvm import GPLVM
 from pygp.optimize.optimize_base import opt_hyper
 from pygp.covar.fixed import FixedCF
 from pygp.likelihood.likelihood_base import GaussLikISO
-import sys
-import pylab
 from pygp.covar.bias import BiasCF
-import itertools
 from pygp.util.pca import PCA
 from gptwosample.twosample.twosample import TwoSample
 
@@ -255,7 +252,8 @@ if __name__ == '__main__':
 
     c.predict_likelihoods(Ts, Y)
     c.predict_means_variances(numpy.linspace(0, 24, 100))
-
+    
+    import pylab
     pylab.ion()
     pylab.figure()
     for _ in c.plot():

@@ -15,7 +15,6 @@ from gptwosample.data.dataIO import get_data_from_csv
 from gptwosample.data.data_base import get_training_data_structure
 from gptwosample.plot.plot_basic import plot_results
 import logging as LG
-import pylab as PL
 import scipy as SP
 import os
 
@@ -64,6 +63,8 @@ if __name__ == '__main__':
                                                               Y1.reshape(-1, 1)))
         twosample_object.predict_model_likelihoods()
         twosample_object.predict_mean_variance(Tpredict)
+        
+        import pylab as PL
         PL.clf()
         plot_results(twosample_object,
                      title=r'%s: $\mathcal B = \ln(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = %.2f $' % (gene_name, twosample_object.bayes_factor()), xlabel="Time", ylabel="Expression Level")

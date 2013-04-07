@@ -20,7 +20,6 @@ import scipy as SP
 from gptwosample.data.data_base import get_model_structure, common_id, \
     individual_id
 from copy import deepcopy
-from matplotlib.cm import jet #@UnresolvedImport
 
 def plot_results(twosample_object,
                  xlabel="input", ylabel="ouput", title=None,
@@ -76,6 +75,8 @@ def plot_results(twosample_object,
     alpha_groups = alpha
     if alpha is not None:
         alpha_groups = 1 - alpha
+    
+    from matplotlib.cm import jet #@UnresolvedImport
 
     for name, value in twosample_object._predicted_mean_variance.iteritems():
         mean = value['mean']

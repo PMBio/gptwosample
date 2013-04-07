@@ -6,7 +6,6 @@ Created on Mar 30, 2013
 import numpy
 from pygp.covar.se import SqexpCFARD
 from gptwosample.twosample.twosample import TwoSample
-import pylab
 
 def sample_gaussian(mean, covar, n_samples=1):
     n_dim = len(mean)
@@ -65,7 +64,8 @@ if __name__ == '__main__':
 
     c.predict_likelihoods(Ts, Y)
     c.predict_means_variances(numpy.linspace(Ts.min(), Ts.max(), 100))
-
+    
+    import pylab
     pylab.ion()
     pylab.figure()
     for _ in c.plot():

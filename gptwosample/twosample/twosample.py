@@ -14,7 +14,6 @@ from gptwosample.twosample.twosample_base import TwoSampleSeparate, \
 from Queue import Queue
 import sys
 from threading import Thread, Event
-import pylab
 from pygp.covar.bias import BiasCF
 import itertools
 from copy import deepcopy
@@ -228,6 +227,7 @@ class TwoSample(object):
         except:
             print "Not yet predicted, use predict_means_variances before"
             return
+        import pylab
         pylab.ion()
         t = self._TwoSampleObject()
         for i in xrange(len(self.indices)):
@@ -464,7 +464,8 @@ if __name__ == '__main__':
 
     c.predict_likelihoods(Ts, Y)
     c.predict_means_variances(numpy.linspace(Ts.min(), Ts.max(), 100))
-
+    
+    import pylab
     pylab.ion()
     pylab.figure()
     for _ in c.plot():
