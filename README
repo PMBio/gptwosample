@@ -10,14 +10,10 @@ different ones. This prediction is defined by which covariance function :py:clas
 To use gptwosample without installing:
 $ python gptwosample --help
 
-e.g:
-$ exdir=gptwosample/examples/
-$ python gptwosample.py -vtpo toy $exdir/ToyCondition1.csv $exdir/ToyCondition2.csv
-
 To install gptwosample run:
- pip install gptwosample 
+$ pip install gptwosample 
 or run::
- python setup.py install
+$ python setup.py install
 from gptwosample directory if you downloaded the source.
 This will install a script gptwosample into you python bin. In
 some cases this bin is not in $PATH and must be included extra.
@@ -34,6 +30,10 @@ See doc/index.html for the documentation in your site-packages folder, see www.p
 
 Examples:
 Please see 'ready-to-use' example scripts in ./gptwosample/examples. (In your python site-packages folder, see www.python.org for further details)
+
+Example run:
+$ exdir=gptwosample/examples/
+$ gptwosample -vtpo toy $exdir/ToyCondition1.csv $exdir/ToyCondition2.csv
 
 To see for example GPTimeShift example, run
 
