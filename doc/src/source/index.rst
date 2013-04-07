@@ -39,7 +39,9 @@ some cases this bin is not in $PATH and must be included extra
 
 Try printing the full help of the script using::
 
- python gptwosample --help
+ gptwosample --help
+
+restart your unix shell if it is not yet registered.
 
 To run optional package tests before installing run::
 
@@ -63,7 +65,7 @@ For example, to run the basic ``gptwosample`` model on the tutorial
 datasets provided alongside the package including verbose output and
 plots, run::
 
- python gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv
+ gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv
 
 This stores results in ``./examplerun/``. Quantitative readouts
 summarizing the differential expression stores ares provided in

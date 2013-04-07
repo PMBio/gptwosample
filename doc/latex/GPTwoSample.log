@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.8.19)  7 APR 2013 19:45
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012) (format=pdflatex 2012.8.19)  7 APR 2013 21:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -932,25 +932,25 @@ LaTeX Font Info:    Try loading font information for T1+pcr on input line 129.
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 ) [3]
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
-(Font)              Font shape `T1/phv/b/n' tried instead on input line 198.
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 203.
 LaTeX Font Info:    Font shape `T1/ptm/bx/it' in size <10> not available
-(Font)              Font shape `T1/ptm/b/it' tried instead on input line 294.
+(Font)              Font shape `T1/ptm/b/it' tried instead on input line 299.
 
 
 LaTeX Warning: Hyper reference `confounders:lawrence2004' on page 4 undefined o
-n input line 306.
+n input line 312.
 
 
 LaTeX Warning: Hyper reference `confounders:stegle2010' on page 4 undefined on 
-input line 309.
+input line 315.
 
 [4]
 
 LaTeX Warning: Hyper reference `tutorial:install' on page 5 undefined on input 
-line 362.
+line 368.
 
 [5]
-Underfull \hbox (badness 10000) in paragraph at lines 411--415
+Underfull \hbox (badness 10000) in paragraph at lines 421--425
 []\T1/ptm/m/n/10 The script shall be run on the two toy con-di-tion files \T1/p
 cr/m/n/10 ToyCondition{1,2}.csv \T1/ptm/m/n/10 given in
  []
@@ -958,117 +958,117 @@ cr/m/n/10 ToyCondition{1,2}.csv \T1/ptm/m/n/10 given in
 <timeshiftexample.pdf, id=118, 578.16pt x 433.62pt>
 File: timeshiftexample.pdf Graphic file (type pdf)
  <use timeshiftexample.pdf>
-Package pdftex.def Info: timeshiftexample.pdf used on input line 432.
+Package pdftex.def Info: timeshiftexample.pdf used on input line 442.
 (pdftex.def)             Requested size: 455.26811pt x 341.43306pt.
 
-[6 <./timeshiftexample.pdf>] [7] [8
+[6] [7 <./timeshiftexample.pdf>] [8
 
 ]
 Chapter 2.
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 459.
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 469.
 
-Underfull \hbox (badness 10000) in paragraph at lines 459--459
+Underfull \hbox (badness 10000) in paragraph at lines 469--469
 []\T1/ptm/m/it/10 T\T1/ptm/m/n/10 , \T1/ptm/m/it/10 Y\T1/ptm/m/n/10 , \T1/ptm/m
 /it/10 co-var_common=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 459--459
+Underfull \hbox (badness 10000) in paragraph at lines 469--469
 \T1/ptm/m/it/10 var_individual_1=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-
  []
 
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 465.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 475.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 ) [9]
-Overfull \hbox (106.52432pt too wide) in paragraph at lines 540--542
+Overfull \hbox (106.52432pt too wide) in paragraph at lines 550--552
 []\T1/ptm/m/n/10 kwargs for \T1/pcr/m/n/10 gptwosample.twosample.GPTwoSampleBas
 e.predict_model_likelihoods() 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 582--582
+Underfull \hbox (badness 10000) in paragraph at lines 592--592
 []\T1/ptm/m/it/10 T\T1/ptm/m/n/10 , \T1/ptm/m/it/10 Y\T1/ptm/m/n/10 , \T1/ptm/m
 /it/10 q=4\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 582--582
+Underfull \hbox (badness 10000) in paragraph at lines 592--592
 \T1/ptm/m/it/10 lvm_covariance=None\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 582--582
+Underfull \hbox (badness 10000) in paragraph at lines 592--592
 \T1/ptm/m/it/10 init='random'\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-
  []
 
 
-Overfull \hbox (0.99385pt too wide) in paragraph at lines 582--582
+Overfull \hbox (0.99385pt too wide) in paragraph at lines 592--592
 \T1/ptm/m/it/10 var_individual_1=None\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 582--582
+Underfull \hbox (badness 10000) in paragraph at lines 592--592
 \T1/ptm/m/it/10 co-
  []
 
 
-Overfull \hbox (4.49385pt too wide) in paragraph at lines 582--582
+Overfull \hbox (4.49385pt too wide) in paragraph at lines 592--592
 \T1/ptm/m/it/10 var_individual_2=None\T1/pcr/m/n/10 ) 
  []
 
 [10]
-Underfull \hbox (badness 10000) in paragraph at lines 639--639
+Underfull \hbox (badness 10000) in paragraph at lines 649--649
 \T1/ptm/m/it/10 co-var_individual_1=<function <lambda> at
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 639--639
+Underfull \hbox (badness 10000) in paragraph at lines 649--649
 \T1/ptm/m/it/10 0x1149061b8>\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-var_individual_
 2=<function
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 650--650
+Underfull \hbox (badness 10000) in paragraph at lines 660--660
 []\T1/ptm/m/it/10 ard_indices=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 x=None\T1/pt
 m/m/n/10 , \T1/ptm/m/it/10 mes-sages=True\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 650--650
+Underfull \hbox (badness 10000) in paragraph at lines 660--660
 \T1/ptm/m/it/10 gradient_tolerance=1e-12\T1/ptm/m/n/10 , \T1/ptm/m/it/10 lvm_di
 mension_indices=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 grad-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 691--691
+Underfull \hbox (badness 10000) in paragraph at lines 701--701
 []\T1/ptm/m/it/10 covar_individual_1\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 691--691
+Underfull \hbox (badness 10000) in paragraph at lines 701--701
 \T1/ptm/m/it/10 co-var_individual_2\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 691--691
+Underfull \hbox (badness 10000) in paragraph at lines 701--701
 \T1/ptm/m/it/10 co-var_common\T1/ptm/m/n/10 ,
  []
 
 
-Overfull \hbox (5.51352pt too wide) in paragraph at lines 705--705
+Overfull \hbox (5.51352pt too wide) in paragraph at lines 715--715
 []\T1/ptm/m/it/10 learn_hyperparameters=True\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 705--705
+Underfull \hbox (badness 10000) in paragraph at lines 715--715
 \T1/ptm/m/it/10 pri-ors=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ini-
  []
 
 
-Overfull \hbox (0.51349pt too wide) in paragraph at lines 705--705
+Overfull \hbox (0.51349pt too wide) in paragraph at lines 715--715
 \T1/ptm/m/it/10 tial_hyperparameters=None\T1/ptm/m/n/10 ,
  []
 
@@ -1076,7 +1076,7 @@ Overfull \hbox (0.51349pt too wide) in paragraph at lines 705--705
 File: plotGPTwoSampleDifferential.pdf Graphic file (type pdf)
 
 <use plotGPTwoSampleDifferential.pdf>
-Package pdftex.def Info: plotGPTwoSampleDifferential.pdf used on input line 783
+Package pdftex.def Info: plotGPTwoSampleDifferential.pdf used on input line 793
 .
 (pdftex.def)             Requested size: 303.49443pt x 227.62204pt.
 
@@ -1084,46 +1084,46 @@ Package pdftex.def Info: plotGPTwoSampleDifferential.pdf used on input line 783
 File: plotGPTwoSampleSame.pdf Graphic file (type pdf)
 
 <use plotGPTwoSampleSame.pdf>
-Package pdftex.def Info: plotGPTwoSampleSame.pdf used on input line 787.
+Package pdftex.def Info: plotGPTwoSampleSame.pdf used on input line 797.
 (pdftex.def)             Requested size: 303.49443pt x 227.62204pt.
  [12 <./plotGPTwoSampleDifferential.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 826--826
+Underfull \hbox (badness 10000) in paragraph at lines 836--836
 []\T1/ptm/m/it/10 training_data=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-ter-val
 _indices={`common model fit':
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 838--841
+Underfull \hbox (badness 10000) in paragraph at lines 848--851
 []\T1/ptm/m/n/10 interval
  []
 
 [13 <./plotGPTwoSampleSame.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 899--899
+Underfull \hbox (badness 10000) in paragraph at lines 909--909
 []\T1/ptm/m/it/10 twosample_object\T1/ptm/m/n/10 , \T1/ptm/m/it/10 xla-bel='inp
 ut'\T1/ptm/m/n/10 , \T1/ptm/m/it/10 yla-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 899--899
+Underfull \hbox (badness 10000) in paragraph at lines 909--909
 \T1/ptm/m/it/10 al-pha=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 leg-end=True\T1/ptm
 /m/n/10 , \T1/ptm/m/it/10 repli-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 899--899
+Underfull \hbox (badness 10000) in paragraph at lines 909--909
 \T1/ptm/m/it/10 cate_indices=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 shift=None\T1
 /ptm/m/n/10 , \T1/ptm/m/it/10 *args\T1/ptm/m/n/10 ,
  []
 
 File: plotGPTwoSampleDifferential.pdf Graphic file (type pdf)
 <use plotGPTwoSampleDifferential.pdf>
-Package pdftex.def Info: plotGPTwoSampleDifferential.pdf used on input line 913
+Package pdftex.def Info: plotGPTwoSampleDifferential.pdf used on input line 923
 .
 (pdftex.def)             Requested size: 303.49443pt x 227.62204pt.
  [14]
 File: plotGPTwoSampleSame.pdf Graphic file (type pdf)
  <use plotGPTwoSampleSame.pdf>
-Package pdftex.def Info: plotGPTwoSampleSame.pdf used on input line 917.
+Package pdftex.def Info: plotGPTwoSampleSame.pdf used on input line 927.
 (pdftex.def)             Requested size: 303.49443pt x 227.62204pt.
 
 [15] [16] [17] [18
@@ -1137,11 +1137,11 @@ Package pdftex.def Info: plotGPTwoSampleSame.pdf used on input line 917.
 
 ]
 No file GPTwoSample.ind.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1130.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1130.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1140.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1140.
 (./GPTwoSample.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1130.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1130.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1140.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1140.
 
 Package rerunfilecheck Info: File `GPTwoSample.out' has not changed.
 (rerunfilecheck)             Checksum: 0ECEE1D20359715C2C317EBC72ED7486;598.
@@ -1149,7 +1149,7 @@ Package rerunfilecheck Info: File `GPTwoSample.out' has not changed.
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1130.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1140.
  ) 
 Here is how much of TeX's memory you used:
  8963 strings out of 493488
@@ -1174,7 +1174,7 @@ e1/urw/helvetic/uhvbo8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw
 utmb8a.pfb></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/times/utmbi8a.pf
 b></usr/local/texlive/2012/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/lo
 cal/texlive/2012/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on GPTwoSample.pdf (25 pages, 370362 bytes).
+Output written on GPTwoSample.pdf (25 pages, 370862 bytes).
 PDF statistics:
  383 PDF objects out of 1000 (max. 8388607)
  322 compressed objects within 4 object streams

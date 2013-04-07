@@ -59,8 +59,10 @@
 <p>Once the data has been prepared, <tt class="docutils literal"><span class="pre">gptwosample</span></tt> can be executed from
 the unix command line. See the full usage information in <a class="reference internal" href="usage.html#usage"><em>Parameter options</em></a>.</p>
 <p>See format for input data <tt class="docutils literal"><span class="pre">.csv</span></tt> files in <a class="reference internal" href="usage.html#dataformat"><em>Data format</em></a>.</p>
-<p>Make sure you either install gptwosample (<a class="reference internal" href="index.html#install"><em>Installing the package</em></a>) or <tt class="docutils literal"><span class="pre">cd</span></tt>
-into the extracted gptwosample folder before running this tutorial.</p>
+<p>Make sure you either install gptwosample (<a class="reference internal" href="index.html#install"><em>Installing the package</em></a>)
+.. or <tt class="docutils literal"><span class="pre">cd</span></tt></p>
+<blockquote>
+<div>into the extracted gptwosample folder before running this tutorial.</div></blockquote>
 <p>Try printing the full help of the script using:</p>
 <div class="highlight-python"><pre>python gptwosample --help</pre>
 </div>
@@ -72,31 +74,33 @@ First, we want to run gptwosample verbosly, thus the call so far looks like:</p>
 </pre></div>
 </div>
 <p>To enable plotting we provide the switch <tt class="docutils literal"><span class="pre">-p</span></tt> to the script:</p>
-<div class="highlight-python"><pre>python gptwosample -v -p</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">gptwosample</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span>
+</pre></div>
 </div>
 <p>We want to correct for timeshifts (more on <a class="reference internal" href="timeshift.html#timeshift"><em>Timeshift detection between replicates</em></a>), thus we
 enable the timeshift switch <tt class="docutils literal"><span class="pre">-t</span></tt>:</p>
-<div class="highlight-python"><pre>python gptwosample -v -p -t</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">gptwosample</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span> <span class="o">-</span><span class="n">t</span>
+</pre></div>
 </div>
 <p>Next we could additionally learn x confounding factors (see
 <a class="reference internal" href="confounders.html#confounders"><em>Accounting for confounding factors</em></a> for details on confounding factors) and account
 for them while two-sampling:</p>
-<div class="highlight-python"><pre>python gptwosample -v -p -t -c x</pre>
+<div class="highlight-python"><pre>gptwosample -v -p -t -c x</pre>
 </div>
 <p>but we do not want to account for confounders in this tutorial.</p>
 <p>The output of the script shall be in the subfolder <tt class="docutils literal"><span class="pre">./tutorial/</span></tt>, so
 we add the output flag <tt class="docutils literal"><span class="pre">-o</span> <span class="pre">./tutorial/</span></tt>:</p>
 <blockquote>
-<div>python gptwosample -v -p -t -o ./tutorial/</div></blockquote>
+<div>gptwosample -v -p -t -o ./tutorial/</div></blockquote>
 <p>The script shall be run on the two toy condition files <tt class="docutils literal"><span class="pre">ToyCondition{1,2}.csv</span></tt>
 given in <tt class="docutils literal"><span class="pre">examples/ToyCondition{1,2}.csv</span></tt>. These files
 are non optional as this package is only for comparing two timeseries
 experiments to each other:</p>
-<div class="highlight-python"><pre>python gptwosample -v -p -t -o ./tutorial/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
+<div class="highlight-python"><pre>gptwosample -v -p -t -o ./tutorial/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
 </div>
 <p>Note that the optional parameters could be collected together to give
 rise to a more compact call signature:</p>
-<div class="highlight-python"><pre>python gptwosample -vpto tutorial examples/ToyCondition1.csv
+<div class="highlight-python"><pre>gptwosample -vpto tutorial examples/ToyCondition1.csv
 examples/ToyCondition2.csv</pre>
 </div>
 <p>After hitting return the script runs gptwosample on every gene given

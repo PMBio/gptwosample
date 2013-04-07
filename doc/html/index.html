@@ -74,9 +74,13 @@ points. Fur full details please see <a class="reference internal" href="usage.ht
 <div class="highlight-python"><pre>python setup install</pre>
 </div>
 <p>from <tt class="docutils literal"><span class="pre">gptwosample</span></tt> directory.</p>
+<p>This will install a script <tt class="docutils literal"><span class="pre">gptwosample</span></tt> into you python bin. In
+some cases this bin is not in $PATH and must be included extra</p>
 <p>Try printing the full help of the script using:</p>
-<div class="highlight-python"><pre>python gptwosample --help</pre>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">gptwosample</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
 </div>
+<p>restart your unix shell if it is not yet registered.</p>
 <p>To run optional package tests before installing run:</p>
 <div class="highlight-python"><pre>python setup test</pre>
 </div>
@@ -97,7 +101,7 @@ unix command line.</p>
 <p>For example, to run the basic <tt class="docutils literal"><span class="pre">gptwosample</span></tt> model on the tutorial
 datasets provided alongside the package including verbose output and
 plots, run:</p>
-<div class="highlight-python"><pre>python gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
+<div class="highlight-python"><pre>gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
 </div>
 <p>This stores results in <tt class="docutils literal"><span class="pre">./examplerun/</span></tt>. Quantitative readouts
 summarizing the differential expression stores ares provided in

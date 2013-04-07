@@ -147,11 +147,16 @@ python setup install
 
 from \code{gptwosample} directory.
 
+This will install a script \code{gptwosample} into you python bin. In
+some cases this bin is not in \$PATH and must be included extra
+
 Try printing the full help of the script using:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample --help
+\PYG{n}{gptwosample} \PYG{o}{-}\PYG{o}{-}\PYG{n}{help}
 \end{Verbatim}
+
+restart your unix shell if it is not yet registered.
 
 To run optional package tests before installing run:
 
@@ -183,7 +188,7 @@ datasets provided alongside the package including verbose output and
 plots, run:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv
+gptwosample -v -p -t -o ./examplerun/ examples/ToyCondition1.csv examples/ToyCondition2.csv
 \end{Verbatim}
 
 This stores results in \code{./examplerun/}. Quantitative readouts
@@ -295,7 +300,8 @@ yl replicate kn
 
 \end{quote}
 
-where all values, which cannot be translated by \code{float()} will be
+See \code{gptwosample/examples/ToyCondition\{1,2{]}.csv} for example data files.
+All values, which cannot be translated by \code{float()} will be
 treated as missing values in the model.
 
 
@@ -359,8 +365,12 @@ the unix command line. See the full usage information in {\hyperref[usage:usage]
 
 See format for input data \code{.csv} files in {\hyperref[usage:dataformat]{\emph{Data format}}}.
 
-Make sure you either install gptwosample ({\hyperref[tutorial:install]{\emph{Installing the package}}}) or \code{cd}
+Make sure you either install gptwosample ({\hyperref[tutorial:install]{\emph{Installing the package}}})
+.. or \code{cd}
+\begin{quote}
+
 into the extracted gptwosample folder before running this tutorial.
+\end{quote}
 
 Try printing the full help of the script using:
 
@@ -381,14 +391,14 @@ First, we want to run gptwosample verbosly, thus the call so far looks like:
 To enable plotting we provide the switch \code{-p} to the script:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample -v -p
+\PYG{n}{gptwosample} \PYG{o}{-}\PYG{n}{v} \PYG{o}{-}\PYG{n}{p}
 \end{Verbatim}
 
 We want to correct for timeshifts (more on {\hyperref[timeshift:timeshift]{\emph{Timeshift detection between replicates}}}), thus we
 enable the timeshift switch \code{-t}:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample -v -p -t
+\PYG{n}{gptwosample} \PYG{o}{-}\PYG{n}{v} \PYG{o}{-}\PYG{n}{p} \PYG{o}{-}\PYG{n}{t}
 \end{Verbatim}
 
 Next we could additionally learn x confounding factors (see
@@ -396,7 +406,7 @@ Next we could additionally learn x confounding factors (see
 for them while two-sampling:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample -v -p -t -c x
+gptwosample -v -p -t -c x
 \end{Verbatim}
 
 but we do not want to account for confounders in this tutorial.
@@ -405,7 +415,7 @@ The output of the script shall be in the subfolder \code{./tutorial/}, so
 we add the output flag \code{-o ./tutorial/}:
 \begin{quote}
 
-python gptwosample -v -p -t -o ./tutorial/
+gptwosample -v -p -t -o ./tutorial/
 \end{quote}
 
 The script shall be run on the two toy condition files \code{ToyCondition\{1,2\}.csv}
@@ -414,14 +424,14 @@ are non optional as this package is only for comparing two timeseries
 experiments to each other:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample -v -p -t -o ./tutorial/ examples/ToyCondition1.csv examples/ToyCondition2.csv
+gptwosample -v -p -t -o ./tutorial/ examples/ToyCondition1.csv examples/ToyCondition2.csv
 \end{Verbatim}
 
 Note that the optional parameters could be collected together to give
 rise to a more compact call signature:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-python gptwosample -vpto tutorial examples/ToyCondition1.csv
+gptwosample -vpto tutorial examples/ToyCondition1.csv
 examples/ToyCondition2.csv
 \end{Verbatim}
 
