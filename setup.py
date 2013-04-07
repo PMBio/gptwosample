@@ -6,11 +6,7 @@ with open("README",'r') as r:
     README_TEXT = r.read()
     
 __description__ = """
-    gptwosample is a python package for differential expression detection between gene expression time series experiments.
-
-    It allows for confounder correction in data through latent variable detection and timeshift detection between replicates in data.
-
-    See README for more information.
+    Differential expression detection between gene expression time series experiments with confounder correction and timehift detection.
     """
 
 def get_recursive_data_files(path):
