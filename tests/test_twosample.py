@@ -10,46 +10,6 @@ from numpy.core.numeric import nan
 
 class TwoSampleTest(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.Y = Y
-        cls.T = T
-        cls.n, cls.r, cls.t, cls.d = Y.shape
-        cls.twosample = TwoSample(cls.T, cls.Y)
-
-    def setUp(self):
-        pass
-
-
-    def testLikelihoods(self):
-        self.twosample.predict_likelihoods(self.T, self.Y, "Testing likelihoods...", False)
-        pass
-
-    def testPredict(self):
-        interpolation_interval = numpy.linspace(self.T.min(), self.T.max(), 100)
-        indices = numpy.random.randint(self.d, size=(self.d / 2))
-        self.twosample.predict_means_variances(interpolation_interval, indices, "Testing Predictions...")
-        pass
-
-    def testBayesFactors(self):
-        try:
-            self.twosample.bayes_factors()
-        except RuntimeError:
-            self.twosample.predict_likelihoods(self.T, self.Y)
-            self.twosample.bayes_factors()
-
-#    def testPlot(self):
-#        interpolation_interval = numpy.linspace(self.T.min(), self.T.max(), 100)
-#        indices = numpy.random.randint(self.d, size=(self.d))
-#        self.twosample.predict_means_variances(interpolation_interval, indices, "Testing Predictions")
-#        pylab.ion()
-#        pylab.figure()
-#        for p in self.twosample.plot():
-#            pylab.draw()
-#            raw_input("enter continue...")
-
-
-if __name__ == "__main__":
     T = numpy.array([[[  0., 2., 4., 6., 8., 10., 12., 14.],
             [  0., 2., 4., 6., 8., 10., 12., 14.],
             [  0., 2., 4., 6., 8., 10., 12., 14.]],
@@ -351,6 +311,48 @@ if __name__ == "__main__":
                 6.95057788e-01, nan, 5.57781532e-02,
                 2.56002517e-01, 2.90105557e-01, 8.64209525e-01,
                 4.75897616e-01, nan, 1.69169376e+00]]]])
+    
+    @classmethod
+    def setUpClass(cls):
+        #cls.Y = Y
+        #cls.T = T
+        cls.n, cls.r, cls.t, cls.d = cls.Y.shape
+        cls.twosample = TwoSample(cls.T, cls.Y)
+
+    def setUp(self):
+        pass
+
+
+    def testLikelihoods(self):
+        self.twosample.predict_likelihoods(self.T, self.Y, "Testing likelihoods...", False)
+        pass
+
+    def testPredict(self):
+        interpolation_interval = numpy.linspace(self.T.min(), self.T.max(), 100)
+        indices = numpy.random.randint(self.d, size=(self.d / 2))
+        self.twosample.predict_means_variances(interpolation_interval, indices, "Testing Predictions...")
+        pass
+
+    def testBayesFactors(self):
+        try:
+            self.twosample.bayes_factors()
+        except RuntimeError:
+            self.twosample.predict_likelihoods(self.T, self.Y)
+            self.twosample.bayes_factors()
+
+#    def testPlot(self):
+#        interpolation_interval = numpy.linspace(self.T.min(), self.T.max(), 100)
+#        indices = numpy.random.randint(self.d, size=(self.d))
+#        self.twosample.predict_means_variances(interpolation_interval, indices, "Testing Predictions")
+#        pylab.ion()
+#        pylab.figure()
+#        for p in self.twosample.plot():
+#            pylab.draw()
+#            raw_input("enter continue...")
+
+
+if __name__ == "__main__":
+
     import sys;sys.argv = ['',
                            'TwoSampleTest.testLikelihoods',
                            'TwoSampleTest.testPredict',

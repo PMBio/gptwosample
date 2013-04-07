@@ -6,9 +6,6 @@
 Welcome to GPTwoSample
 +++++++++++++++++++++++
 
-Command line tool
-==================
-
 gptwosample.py is a tool to run two-sample tests on time series
 differential gene expression experiments. It can either be called form
 the command line or using the interactive Python Modules. Here, we
