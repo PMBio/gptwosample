@@ -1,0 +1,208 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GPTwoSample step by step Tutorial &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="gptwosample-step-by-step-tutorial">
+<h1>GPTwoSample step by step Tutorial<a class="headerlink" href="#gptwosample-step-by-step-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>gptwosample.py is a tool to run two-sample tests on time series differential gene expression experiments. The calling signature is:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>gptwosample [-h] [-o DIR] [-t] [-c N] [-p] [-v]</dt>
+<dd>[&#8211;version]
+[&#8211;backend [PDF,...]]
+FILE FILE</dd>
+</dl>
+<p>where:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>positional arguments:</dt>
+<dd>FILE                  treatment/control files to compare against each other</dd>
+<dt>optional arguments:</dt>
+<dd><table class="first docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
+<td>show this help message and exit</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-o <var>DIR</var></span>, <span class="option">--out <var>DIR</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>set output dir [default: ./twosample_out/]</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-t</span>, <span class="option">--timeshift</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>account for timeshifts in data [default: False]</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-c <var>N</var></span>, <span class="option">--confounder <var>N</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>account for N confounders in data [default: 0]</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-p</span>, <span class="option">--plot</span></kbd></td>
+<td>plot data into outdir/plots? [default: False]</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></td>
+<td>set verbosity level [default: 0]</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--version</span></kbd></td>
+<td>show program&#8217;s version number and exit</td></tr>
+</tbody>
+</table>
+<p class="last">&#8211;backend [PDF,...]   matplotlib backend - see matplotlib.use(backend)</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<div class="section" id="data-format-of-file">
+<h2>Data format of <tt class="docutils literal"><span class="pre">FILE</span></tt>:<a class="headerlink" href="#data-format-of-file" title="Permalink to this headline">¶</a></h2>
+<p>The format of the two <tt class="docutils literal"><span class="pre">.csv</span></tt> files (<tt class="docutils literal"><span class="pre">FILE</span> <span class="pre">FILE</span></tt> in usage) is as follows:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="33%" />
+<col width="9%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><em>arbitrary</em></th>
+<th class="head">x1</th>
+<th class="head">...</th>
+<th class="head">xl</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Gene Name 1</td>
+<td>y1 replicate 1</td>
+<td>...</td>
+<td>yl replicate 1</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="row-even"><td>Gene Name 1</td>
+<td>y1 replicate k1</td>
+<td>...</td>
+<td>yl replicate k1</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>Gene Name n</td>
+<td>y1 replicate 1</td>
+<td>...</td>
+<td>yl replicate 1</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="row-even"><td>Gene Name n</td>
+<td>y1 replicate kn</td>
+<td>...</td>
+<td>yl replicate kn</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">GPTwoSample step by step Tutorial</a><ul>
+<li><a class="reference internal" href="#data-format-of-file">Data format of <tt class="docutils literal"><span class="pre">FILE</span></tt>:</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

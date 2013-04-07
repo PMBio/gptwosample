@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gptwosample.plot.plot_basic &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gptwosample.plot.plot_basic</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Plot GPTwoSample predictions</span>
+<span class="sd">============================</span>
+
+<span class="sd">Module for easy plotting of GPTwoSample results.</span>
+
+<span class="sd">:py:class:`gptwosample.plot.plot_basic.plot_results` plots</span>
+<span class="sd">training data, as well as sausage_plots for a GPTwoSample</span>
+<span class="sd">experiment. You can give interval indices for plotting, if u chose</span>
+
+
+<span class="sd">Created on Feb 10, 2011</span>
+
+<span class="sd">@author: Max Zwiessele, Oliver Stegle</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">pygp.plot.gpr_plot</span> <span class="kn">as</span> <span class="nn">PLOT</span>
+<span class="kn">import</span> <span class="nn">pylab</span> <span class="kn">as</span> <span class="nn">PL</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">SP</span>
+<span class="kn">from</span> <span class="nn">gptwosample.data.data_base</span> <span class="kn">import</span> <span class="n">get_model_structure</span><span class="p">,</span> <span class="n">common_id</span><span class="p">,</span> \
+    <span class="n">individual_id</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<div class="viewcode-block" id="plot_results"><a class="viewcode-back" href="../../../plot.html#gptwosample.plot.plot_basic.plot_results">[docs]</a><span class="k">def</span> <span class="nf">plot_results</span><span class="p">(</span><span class="n">twosample_object</span><span class="p">,</span>
+                 <span class="n">xlabel</span><span class="o">=</span><span class="s">&quot;input&quot;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s">&quot;ouput&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">interval_indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">replicate_indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the results given by last prediction.</span>
+
+<span class="sd">    Two Instance Plots of comparing two groups to each other:</span>
+
+<span class="sd">    **Parameters:**</span>
+<span class="sd">    </span>
+<span class="sd">    twosample_object : :py:class:`gptwosample.twosample`</span>
+<span class="sd">        GPTwoSample object, on which already &#39;predict&#39; was called.</span>
+<span class="sd">    </span>
+<span class="sd">    **Differential Groups:**</span>
+<span class="sd">    </span>
+<span class="sd">    .. image:: ../images/plotGPTwoSampleDifferential.png</span>
+<span class="sd">        :height: 8cm</span>
+<span class="sd">        </span>
+<span class="sd">    **Non-Differential Groups:**</span>
+<span class="sd">    </span>
+<span class="sd">    .. image:: ../images/plotGPTwoSampleSame.png</span>
+<span class="sd">        :height: 8cm</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Proper rectangles for use in pylab.legend().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">twosample_object</span><span class="o">.</span><span class="n">_predicted_mean_variance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Not yet predicted&quot;</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">interval_indices</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">interval_indices</span> <span class="o">=</span> <span class="n">get_model_structure</span><span class="p">(</span>
+        <span class="n">common</span><span class="o">=</span><span class="n">SP</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">SP</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">twosample_object</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">common_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;bool&#39;</span><span class="p">),</span>
+        <span class="n">individual</span><span class="o">=</span><span class="n">SP</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">SP</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">twosample_object</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">individual_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;bool&#39;</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s">r&#39;Prediction result: $\log(p(\mathcal{H}_I)/p(\mathcal{H}_S)) = </span><span class="si">%.2f</span><span class="s"> $&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">twosample_object</span><span class="o">.</span><span class="n">bayes_factor</span><span class="p">())</span>
+
+<span class="c">#        plparams = {&#39;axes.labelsize&#39;: 20,</span>
+<span class="c">#            &#39;text.fontsize&#39;: 20,</span>
+<span class="c">#            &#39;legend.fontsize&#39;: 18,</span>
+<span class="c">#            &#39;title.fontsize&#39;: 22,</span>
+<span class="c">#            &#39;xtick.labelsize&#39;: 20,</span>
+<span class="c">#            &#39;ytick.labelsize&#39;: 20,</span>
+<span class="c">#            &#39;usetex&#39;: True }</span>
+
+    <span class="n">legend_plots</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">legend_names</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">calc_replicate_indices</span> <span class="o">=</span> <span class="n">replicate_indices</span> <span class="ow">is</span> <span class="bp">None</span>
+
+    <span class="n">alpha_groups</span> <span class="o">=</span> <span class="n">alpha</span>
+    <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">alpha_groups</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span>
+    
+    <span class="kn">from</span> <span class="nn">matplotlib.cm</span> <span class="kn">import</span> <span class="n">jet</span> <span class="c">#@UnresolvedImport</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">twosample_object</span><span class="o">.</span><span class="n">_predicted_mean_variance</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s">&#39;mean&#39;</span><span class="p">]</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">SP</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s">&#39;var&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mean</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">number_of_groups</span> <span class="o">=</span> <span class="n">mean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_groups</span><span class="p">):</span>
+                <span class="n">col_num</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">number_of_groups</span><span class="p">))</span>
+                <span class="n">col</span> <span class="o">=</span> <span class="n">jet</span><span class="p">(</span><span class="n">col_num</span><span class="p">)</span><span class="c">#(i/number_of_groups,i/number_of_groups,.8)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">twosample_object</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">replicate_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">SP</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="n">number_of_replicates</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">replicate_length</span>
+                <span class="k">if</span> <span class="n">calc_replicate_indices</span><span class="p">:</span>
+                    <span class="c"># Assume replicates are appended one after another</span>
+                    <span class="n">replicate_indices</span> <span class="o">=</span> <span class="n">SP</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">SP</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">rep</span><span class="p">,</span> <span class="n">replicate_length</span><span class="p">)</span> <span class="k">for</span> <span class="n">rep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_replicates</span><span class="p">)])</span>
+                <span class="n">shifti</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">shift</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">shifti</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">shifti</span> <span class="o">=</span> <span class="n">shift</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">number_of_replicates</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">number_of_replicates</span><span class="p">]</span>
+                    <span class="c">#import pdb;pdb.set_trace()</span>
+                    <span class="n">PLOT</span><span class="o">.</span><span class="n">plot_sausage</span><span class="p">(</span><span class="n">twosample_object</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">-</span> <span class="n">SP</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">shifti</span><span class="p">),</span> <span class="n">mean</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">format_fill</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">&#39;facecolor&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">},</span> <span class="n">format_line</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;color&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">,</span> <span class="s">&#39;lw&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;ls&#39;</span><span class="p">:</span><span class="s">&#39;--&#39;</span><span class="p">},</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha_groups</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">PLOT</span><span class="o">.</span><span class="n">plot_sausage</span><span class="p">(</span><span class="n">twosample_object</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                                      <span class="n">mean</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">var</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                      <span class="n">format_fill</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">&#39;facecolor&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">},</span>
+                                      <span class="n">format_line</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;color&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">,</span> <span class="s">&#39;lw&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;ls&#39;</span><span class="p">:</span><span class="s">&#39;--&#39;</span><span class="p">},</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha_groups</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">PLOT</span><span class="o">.</span><span class="n">plot_training_data</span><span class="p">(</span>
+                        <span class="n">SP</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">SP</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                        <span class="n">format_data</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span>
+                                     <span class="s">&#39;marker&#39;</span><span class="p">:</span><span class="s">&#39;.&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;linestyle&#39;</span><span class="p">:</span><span class="s">&#39;--&#39;</span><span class="p">,</span>
+                                     <span class="s">&#39;lw&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+                                     <span class="s">&#39;markersize&#39;</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span>
+                                     <span class="s">&#39;color&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">},</span>
+                        <span class="n">replicate_indices</span><span class="o">=</span><span class="n">replicate_indices</span><span class="p">,</span>
+                        <span class="n">shift</span><span class="o">=</span><span class="n">shifti</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">first</span><span class="p">):</span>
+                    <span class="n">legend_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PL</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">col</span><span class="p">))</span>
+                    <span class="n">legend_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="c">#first=False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">jet</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+            <span class="c">#data = twosample_object.get_data(name, interval_indices=interval_indices)   </span>
+            <span class="c">#PLOT.plot_training_data(</span>
+            <span class="c">#        data[0], data[1],</span>
+            <span class="c">#        format_data={&#39;alpha&#39;:.2,</span>
+<span class="c">#                                 &#39;marker&#39;:&#39;.&#39;,</span>
+<span class="c">#                                 &#39;linestyle&#39;:&#39;&#39;,</span>
+<span class="c">#                                 &#39;markersize&#39;:10,</span>
+<span class="c">#                                 &#39;color&#39;:col})</span>
+            <span class="n">legend_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">PLOT</span><span class="o">.</span><span class="n">plot_sausage</span><span class="p">(</span>
+                <span class="n">twosample_object</span><span class="o">.</span><span class="n">_interpolation_interval_cache</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">mean</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span>
+                <span class="n">format_fill</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">&#39;facecolor&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">},</span>
+                <span class="n">format_line</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;color&#39;</span><span class="p">:</span><span class="n">col</span><span class="p">,</span> <span class="s">&#39;lw&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;ls&#39;</span><span class="p">:</span><span class="s">&#39;--&#39;</span><span class="p">},</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">legend_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PL</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">legend</span><span class="p">:</span>
+        <span class="n">PL</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">legend_plots</span><span class="p">,</span> <span class="n">legend_names</span><span class="p">,</span>
+                  <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                  <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                  <span class="n">mode</span><span class="o">=</span><span class="s">&quot;expand&quot;</span><span class="p">,</span>
+                  <span class="n">borderaxespad</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+                  <span class="n">fancybox</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    
+    <span class="n">PL</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+    <span class="n">PL</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+
+    <span class="n">PL</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=.</span><span class="mi">88</span><span class="p">)</span>
+    <span class="n">PL</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">legend_plots</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

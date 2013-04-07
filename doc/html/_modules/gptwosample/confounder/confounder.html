@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gptwosample.confounder.confounder &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gptwosample.confounder.confounder</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Confounder Learning and Correction Module</span>
+<span class="sd">-----------------------------------------</span>
+
+<span class="sd">@author: Max Zwiessele</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.linear</span> <span class="kn">import</span> <span class="n">LinearCFISO</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.combinators</span> <span class="kn">import</span> <span class="n">SumCF</span><span class="p">,</span> <span class="n">ProductCF</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.se</span> <span class="kn">import</span> <span class="n">SqexpCFARD</span>
+<span class="kn">from</span> <span class="nn">pygp.gp.gplvm</span> <span class="kn">import</span> <span class="n">GPLVM</span>
+<span class="kn">from</span> <span class="nn">pygp.optimize.optimize_base</span> <span class="kn">import</span> <span class="n">opt_hyper</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.fixed</span> <span class="kn">import</span> <span class="n">FixedCF</span>
+<span class="kn">from</span> <span class="nn">pygp.likelihood.likelihood_base</span> <span class="kn">import</span> <span class="n">GaussLikISO</span>
+<span class="kn">from</span> <span class="nn">pygp.covar.bias</span> <span class="kn">import</span> <span class="n">BiasCF</span>
+<span class="kn">from</span> <span class="nn">pygp.util.pca</span> <span class="kn">import</span> <span class="n">PCA</span>
+<span class="kn">from</span> <span class="nn">gptwosample.twosample.twosample</span> <span class="kn">import</span> <span class="n">TwoSample</span>
+
+<div class="viewcode-block" id="TwoSampleConfounder"><a class="viewcode-back" href="../../../base.html#gptwosample.confounder.confounder.TwoSampleConfounder">[docs]</a><span class="k">class</span> <span class="nc">TwoSampleConfounder</span><span class="p">(</span><span class="n">TwoSample</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run GPTwoSample on given Data</span>
+
+<span class="sd">    **Parameters**:</span>
+<span class="sd">        - T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]</span>
+<span class="sd">        - Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">        - q : Number of Confounders to use</span>
+<span class="sd">        - lvm_covariance : optional - set covariance to use in confounder learning</span>
+<span class="sd">        - init : [random, pca]</span>
+
+
+<span class="sd">    **Fields**:</span>
+<span class="sd">        * T: Time Points [n x r x t] [Samples x Replicates x Timepoints]</span>
+<span class="sd">        * Y: Expression [n x r x t x d] [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">        * X: Confounders [nrt x 1+q] [SamplesReplicatesTimepoints x T+q]</span>
+<span class="sd">        * lvm_covariance: GPLVM covaraince function used for confounder learning</span>
+<span class="sd">        * n: Samples</span>
+<span class="sd">        * r: Replicates</span>
+<span class="sd">        * t: Timepoints</span>
+<span class="sd">        * d: Genes</span>
+<span class="sd">        * q: Confounder Components</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                 <span class="n">lvm_covariance</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">init</span><span class="o">=</span><span class="s">&quot;random&quot;</span><span class="p">,</span>
+                 <span class="n">covar_common</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">covar_individual_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">covar_individual_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        **Parameters**:</span>
+<span class="sd">            T : TimePoints [n x r x t]    [Samples x Replicates x Timepoints]</span>
+<span class="sd">            Y : ExpressionMatrix [n x r x t x d]      [Samples x Replicates x Timepoints x Genes]</span>
+<span class="sd">            q : Number of Confounders to use</span>
+<span class="sd">            lvm_covariance : optional - set covariance to use in confounder learning</span>
+<span class="sd">            init : [random, pca]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TwoSampleConfounder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">covar_common</span><span class="o">=</span><span class="n">covar_common</span><span class="p">,</span>
+                                                  <span class="n">covar_individual_1</span><span class="o">=</span><span class="n">covar_individual_1</span><span class="p">,</span>
+                                                  <span class="n">covar_individual_2</span><span class="o">=</span><span class="n">covar_individual_2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init</span> <span class="o">=</span> <span class="n">init</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_X</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">init</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">lvm_covariance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lvm_covariance</span> <span class="o">=</span> <span class="n">lvm_covariance</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span>
+            <span class="c"># self.X_r = numpy.zeros((self.n * rt, self.n * self.r))</span>
+            <span class="c"># for i in xrange(self.n * self.r):self.X_r[i * self.t:(i + 1) * self.t, i] = 1</span>
+            <span class="c"># rep = LinearCFISO(dimension_indices=numpy.arange(1 + q, 1 + q + (self.n * self.r)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X_s</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">rt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">):</span><span class="bp">self</span><span class="o">.</span><span class="n">X_s</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">rt</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">rt</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">sam</span> <span class="o">=</span> <span class="n">LinearCFISO</span><span class="p">(</span><span class="n">dimension_indices</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">q</span><span class="p">,</span>
+                                                              <span class="c"># + (self.n * self.r),</span>
+                                                              <span class="mi">1</span> <span class="o">+</span> <span class="n">q</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>  <span class="c"># + (self.n * self.r)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lvm_covariance</span> <span class="o">=</span> <span class="n">SumCF</span><span class="p">([</span><span class="n">LinearCFISO</span><span class="p">(</span><span class="n">dimension_indices</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+                                          <span class="c"># rep,</span>
+                                          <span class="n">sam</span><span class="p">,</span>
+                                          <span class="n">ProductCF</span><span class="p">([</span><span class="n">sam</span><span class="p">,</span> <span class="n">SqexpCFARD</span><span class="p">(</span><span class="n">dimension_indices</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]))]),</span>
+                                          <span class="n">BiasCF</span><span class="p">()])</span>
+
+        <span class="c"># if initial_hyperparameters is None:</span>
+        <span class="c">#    initial_hyperparameters = numpy.zeros(self._lvm_covariance.get_number_of_parameters()))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="TwoSampleConfounder.learn_confounder_matrix"><a class="viewcode-back" href="../../../base.html#gptwosample.confounder.confounder.TwoSampleConfounder.learn_confounder_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">learn_confounder_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">ard_indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">x</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">messages</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">gradient_tolerance</span><span class="o">=</span><span class="mf">1E-12</span><span class="p">,</span>
+                                <span class="n">lvm_dimension_indices</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">gradcheck</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                <span class="n">maxiter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                                <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Learn confounder matrix with this model.</span>
+
+<span class="sd">        **Parameters**:</span>
+
+<span class="sd">            x : array-like</span>
+<span class="sd">                If you provided an own lvm_covariance you have to specify</span>
+<span class="sd">                the X to use within GPLVM</span>
+<span class="sd">    </span>
+<span class="sd">            lvm_dimension_indices : [int]</span>
+<span class="sd">                If you specified an own lvm_covariance you have to specify</span>
+<span class="sd">                the dimension indices for GPLVM</span>
+<span class="sd">    </span>
+<span class="sd">            ard_indices : [indices]</span>
+<span class="sd">                If you provided an own lvm_covariance, give the ard indices of the covariance here,</span>
+<span class="sd">                to be able to use the correct hyperparameters for calculating the confounder covariance matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lvm_dimension_indices</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lvm_dimension_indices</span> <span class="o">=</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ard_indices</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ard_indices</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_X</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">)</span>
+
+        <span class="c"># p = PCA(Y)</span>
+        <span class="c"># try:</span>
+        <span class="c">#    self.X = p.project(Y, self.q)</span>
+        <span class="c"># except IndexError:</span>
+        <span class="c">#    raise IndexError(&quot;More confounder components then genes (q &gt; d)&quot;)</span>
+
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gplvm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gplvm</span><span class="p">(</span><span class="n">lvm_dimension_indices</span><span class="p">)</span>
+
+        <span class="n">hyper</span> <span class="o">=</span> <span class="p">{</span>
+                 <span class="s">&#39;lik&#39;</span><span class="p">:</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">([</span><span class="o">.</span><span class="mi">15</span><span class="p">]),</span>
+                 <span class="s">&#39;x&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span>
+                 <span class="s">&#39;covar&#39;</span><span class="p">:</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lvm_covariance</span><span class="o">.</span><span class="n">get_number_of_parameters</span><span class="p">())</span>
+                 <span class="p">}</span>
+
+        <span class="n">lvm_hyperparams</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">opt_hyper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gplvm</span><span class="p">,</span> <span class="n">hyper</span><span class="p">,</span>
+                                       <span class="n">Ifilter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span>
+                                       <span class="n">gradcheck</span><span class="o">=</span><span class="n">gradcheck</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                       <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
+                                       <span class="n">gradient_tolerance</span><span class="o">=</span><span class="n">gradient_tolerance</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gplvm</span><span class="o">.</span><span class="n">getData</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_conf_matrix</span><span class="p">(</span><span class="n">lvm_hyperparams</span><span class="p">,</span> <span class="n">ard_indices</span><span class="p">,</span> <span class="n">lvm_dimension_indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialize_twosample_covariance</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">predict_lvm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gplvm</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lvm_hyperparams</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TwoSampleConfounder.initialize_twosample_covariance"><a class="viewcode-back" href="../../../base.html#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_twosample_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">covar_common</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">SumCF</span><span class="p">([</span><span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">BiasCF</span><span class="p">()]),</span>
+                                            <span class="n">covar_individual_1</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">SumCF</span><span class="p">([</span><span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">BiasCF</span><span class="p">()]),</span>
+                                            <span class="n">covar_individual_2</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">SumCF</span><span class="p">([</span><span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">BiasCF</span><span class="p">()]),</span>
+                                            <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initialize twosample covariance with function covariance(XX), where XX</span>
+<span class="sd">        is a FixedCF with the learned confounder matrix.</span>
+
+<span class="sd">        default is SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_comm</span> <span class="o">=</span> <span class="n">covar_common</span><span class="p">(</span><span class="n">FixedCF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K_conf</span><span class="o">.</span><span class="n">copy</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind1</span> <span class="o">=</span> <span class="n">covar_individual_1</span><span class="p">(</span><span class="n">FixedCF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K_conf</span><span class="o">.</span><span class="n">copy</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covar_ind2</span> <span class="o">=</span> <span class="n">covar_individual_2</span><span class="p">(</span><span class="n">FixedCF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K_conf</span><span class="o">.</span><span class="n">copy</span><span class="p">()))</span>
+</div>
+    <span class="k">def</span> <span class="nf">init_X</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">init</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">init</span> <span class="o">==</span> <span class="s">&#39;pca&#39;</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">+=</span> <span class="o">.</span><span class="mi">1</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">init</span> <span class="o">==</span> <span class="s">&#39;random&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;init model {0!s} not known&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">init</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_conf_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lvm_hyperparams</span><span class="p">,</span> <span class="n">conf_covar_name</span><span class="p">,</span> <span class="n">lvm_dimension_indices</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">lvm_hyperparams</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lvm_hyperparams</span> <span class="o">=</span> <span class="n">lvm_hyperparams</span>
+        <span class="c"># if ard_indices is None:</span>
+        <span class="c">#    ard_indices = numpy.arange(1)</span>
+        <span class="c"># ard = self._lvm_covariance.get_reparametrized_theta(lvm_hyperparams[&#39;covar&#39;])[ard_indices]</span>
+        <span class="c"># self.K_conf = numpy.dot(self.X*ard, self.X.T)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gplvm</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gplvm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gplvm</span><span class="p">(</span><span class="n">lvm_dimension_indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">K_conf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lvm_covariance</span><span class="o">.</span><span class="n">K</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lvm_hyperparams</span><span class="p">[</span><span class="s">&#39;covar&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;XX&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_gplvm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lvm_dimension_indices</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span><span class="p">[:,</span> <span class="n">lvm_dimension_indices</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">GPLVM</span><span class="p">(</span><span class="n">gplvm_dimensions</span><span class="o">=</span><span class="n">lvm_dimension_indices</span><span class="p">,</span> <span class="n">covar_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_lvm_covariance</span><span class="p">,</span>
+            <span class="n">likelihood</span><span class="o">=</span><span class="n">GaussLikISO</span><span class="p">(),</span>
+            <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_Xlvm</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">Y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span>  <span class="c"># self.X_r,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">X_s</span><span class="p">),</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Tt</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
+    <span class="n">Tr</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">Tt</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">Ts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">Tr</span><span class="p">,</span> <span class="n">Tr</span><span class="p">])</span>
+
+    <span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">nrtd</span> <span class="o">=</span> <span class="n">Ts</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">12</span><span class="p">,)</span>
+
+    <span class="n">covar</span> <span class="o">=</span> <span class="n">SqexpCFARD</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">covar</span><span class="o">.</span><span class="n">K</span><span class="p">(</span><span class="n">covar</span><span class="o">.</span><span class="n">get_de_reparametrized_theta</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span><span class="p">]),</span> <span class="n">Tt</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">scikits.learn.mixture</span> <span class="kn">import</span> <span class="n">sample_gaussian</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="s">&quot;scikits needed for this example&quot;</span>
+        <span class="c"># raise r</span>
+
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">sample_gaussian</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">cvtype</span><span class="o">=</span><span class="s">&#39;full&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">sample_gaussian</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">cvtype</span><span class="o">=</span><span class="s">&#39;full&#39;</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+
+    <span class="n">Y1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">Y2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">Y1</span><span class="p">[:,</span> <span class="p">:</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">y1</span>
+    <span class="n">Y2</span><span class="p">[:,</span> <span class="p">:</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">y2</span>
+
+    <span class="n">sames</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">Y1</span><span class="p">[:,</span> <span class="n">d</span><span class="p">:]</span> <span class="o">=</span> <span class="n">y2</span><span class="p">[:,</span> <span class="n">sames</span><span class="p">]</span>
+    <span class="n">Y2</span><span class="p">[:,</span> <span class="n">d</span><span class="p">:]</span> <span class="o">=</span> <span class="n">y1</span><span class="p">[:,</span> <span class="n">sames</span><span class="p">]</span>
+
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="n">sigma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+    <span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Y1</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">Y</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Y2</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">d</span> <span class="o">+</span> <span class="n">d</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">c</span> <span class="o">=</span> <span class="n">TwoSampleConfounder</span><span class="p">(</span><span class="n">Ts</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<span class="c">#    c.__verbose = True</span>
+
+    <span class="c"># lvm_hyperparams_file_name = &#39;lvm_hyperparams.pickle&#39;</span>
+
+    <span class="n">c</span><span class="o">.</span><span class="n">learn_confounder_matrix</span><span class="p">()</span>
+<span class="c">#    lvm_hyperparams_file = open(lvm_hyperparams_file_name, &#39;w&#39;)</span>
+<span class="c">#    pickle.dump(c._lvm_hyperparams, lvm_hyperparams_file)</span>
+<span class="c">#    lvm_hyperparams_file.close()</span>
+
+<span class="c">#    lvm_hyperparams_file = open(lvm_hyperparams_file_name, &#39;r&#39;)</span>
+<span class="c">#    c._init_conf_matrix(pickle.load(lvm_hyperparams_file), None)</span>
+<span class="c">#    lvm_hyperparams_file.close()</span>
+
+    <span class="n">c</span><span class="o">.</span><span class="n">predict_likelihoods</span><span class="p">(</span><span class="n">Ts</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">predict_means_variances</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+    
+    <span class="kn">import</span> <span class="nn">pylab</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">ion</span><span class="p">()</span>
+    <span class="n">pylab</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">plot</span><span class="p">():</span>
+        <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;enter to continue&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

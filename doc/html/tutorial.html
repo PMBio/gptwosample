@@ -1,0 +1,162 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hands on tutorial for gptwosample &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="Welcome to GPTwoSample" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to GPTwoSample"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hands-on-tutorial-for-gptwosample">
+<h1>Hands on tutorial for <tt class="docutils literal"><span class="pre">gptwosample</span></tt><a class="headerlink" href="#hands-on-tutorial-for-gptwosample" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial we will process a full run example of
+<tt class="docutils literal"><span class="pre">gptwosample</span></tt>. See the full usage information in <a class="reference internal" href="usage.html#usage"><em>Usage</em></a>. See
+format for input data <tt class="docutils literal"><span class="pre">.csv</span></tt> files in <a class="reference internal" href="usage.html#dataformat"><em>Data format</em></a>. Make sure
+you <tt class="docutils literal"><span class="pre">cd</span></tt> into the extracted gptwosample folder before running this tutorial.
+Try printing the full help of the script using:</p>
+<div class="highlight-python"><pre>python gptwosample --help</pre>
+</div>
+<p>If an error occurs, you probably <tt class="docutils literal"><span class="pre">cd</span></tt> one level too deep and you can
+<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">..</span></tt> up one level.</p>
+<p>We will build up the whole running signature step by step in the following.
+We want to run the script verbosly and with that the script so far looks like:</p>
+<div class="highlight-python"><pre>python gptwosample -v</pre>
+</div>
+<p>To enable plotting we provide the switch <tt class="docutils literal"><span class="pre">-p</span></tt> to the script:</p>
+<div class="highlight-python"><pre>python gptwosample -v -p</pre>
+</div>
+<p>We want to correct for timeshifts (more on <a class="reference internal" href="timeshift.html#timeshift"><em>Timeshift detection between replicates</em></a>), thus we
+enable the timeshift switch <tt class="docutils literal"><span class="pre">-t</span></tt>:</p>
+<div class="highlight-python"><pre>python gptwosample -v -p -t</pre>
+</div>
+<p>Next we could additionally learn x confounding factors (see
+<a class="reference internal" href="confounders.html#confounders"><em>Accounting for confounding factors</em></a> for details on confounding factors) and account
+for them while two-sampling:</p>
+<div class="highlight-python"><pre>python gptwosample -v -p -t -c x</pre>
+</div>
+<p>but we do not want to account for confounders in this tutorial,
+leaving the data files to run on.</p>
+<p>The output of the script shall be in the subfolder <tt class="docutils literal"><span class="pre">./tutorial/</span></tt>, so
+we add the output flag <tt class="docutils literal"><span class="pre">-o</span> <span class="pre">./tutorial/</span></tt>:</p>
+<blockquote>
+<div>python gptwosample -v -p -t -o ./tutorial/</div></blockquote>
+<p>The script shall be run on the two toy condition files <tt class="docutils literal"><span class="pre">ToyCondition{1,2}.csv</span></tt>
+given in <tt class="docutils literal"><span class="pre">examples/ToyCondition{1,2}.csv</span></tt>. These files
+are non optional as this package is only for comparing two timeseries
+experiments to each other:</p>
+<div class="highlight-python"><pre>python gptwosample -v -p -t -o ./tutorial/ examples/ToyCondition1.csv examples/ToyCondition2.csv</pre>
+</div>
+<p>Note that the optional parameters could be collected together to give
+rise to a more compact call signature:</p>
+<div class="highlight-python"><pre>python gptwosample -vpto tutorial examples/ToyCondition1.csv
+examples/ToyCondition2.csv</pre>
+</div>
+<p>After hitting return the script runs gptwosample on every gene given
+in the ToyCondition files and plots each gene into
+<tt class="docutils literal"><span class="pre">tutorial/plots/</span></tt>. One example plot will look like:</p>
+<img alt="_images/timeshiftexample.pdf" src="_images/timeshiftexample.pdf" style="height: 12cm;" />
+<p>The results are saved in the <tt class="docutils literal"><span class="pre">results.csv</span></tt>, which contains all
+predicted Bayes Factors and learnt covariance function parameters for
+all genes (<a class="reference internal" href="results.html#results"><em>Result structure</em></a>).</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to GPTwoSample</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="usage.html"
+                        title="next chapter">Usage</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to GPTwoSample"
+             >previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

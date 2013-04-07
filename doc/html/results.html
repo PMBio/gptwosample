@@ -1,0 +1,121 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Result structure &mdash; GPTwoSample 0.1.7a documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.7a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="next" title="Package for using GPTwoSample" href="base.html" />
+    <link rel="prev" title="Timeshift detection between replicates" href="timeshift.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="base.html" title="Package for using GPTwoSample"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="timeshift.html" title="Timeshift detection between replicates"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="result-structure">
+<span id="results"></span><h1>Result structure<a class="headerlink" href="#result-structure" title="Permalink to this headline">¶</a></h1>
+<p>The results are given in form of a <tt class="docutils literal"><span class="pre">results.csv</span></tt>. Each line corresponds to the results for one gene. The results file is structured as follows:</p>
+<div class="line-block">
+<div class="line">Gene ID | Bayes Factor | [Learnt covariance function parameters] |</div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">Gene</span> <span class="pre">ID</span></tt> is the ID given in the input files. The <tt class="docutils literal"><span class="pre">Bayes</span> <span class="pre">Factor</span></tt> is a log-score for model comparison of the individual model against the common model. The individual model assumes both samples (treatment and control) to be modelled individually by one Gaussian process each. In contrast the common model assumes both samples to be modelled by one Gaussian Process. Both likelihoods are computed and the score is created by contrasting the both likelihoods:</p>
+<div class="math">
+<p><img src="_images/math/17c8b807f742be9b271253d1e4be7a148914abbf.png" alt="\mathcal{BF} = \ln \frac{p(\text{Individual model})}{p(\text{Common model})}"/></p>
+</div><p>All plots are saved in a subfolder <tt class="docutils literal"><span class="pre">&lt;outdir&gt;/plots/</span></tt></p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="timeshift.html"
+                        title="previous chapter">Timeshift detection between replicates</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="base.html"
+                        title="next chapter">Package for using GPTwoSample</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="base.html" title="Package for using GPTwoSample"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="timeshift.html" title="Timeshift detection between replicates"
+             >previous</a> |</li>
+        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Oliver Stegle, Max Zwießele.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
