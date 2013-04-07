@@ -22,7 +22,7 @@ standard_params = dict(name='gptwosample',
       long_description = README_TEXT,
       author = 'Max Zwießele, Oliver Stegle',
       author_email='ibinbei@gmail.com',
-      url='https://www.assembla.com/code/gptwosample/git/node/blob/master/doc/html/index.html',
+      url='http://tinyurl.com/gptwosample',
       license='Apache v2.0')
 
 setuptools.setup(
