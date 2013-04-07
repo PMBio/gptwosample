@@ -175,7 +175,7 @@ different ones. This prediction is defined by which covariance function <tt clas
 </dl>
 <dl class="method">
 <dt id="gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance">
-<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x112de7320&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x112de7140&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x112de7050&gt;</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">initialize_twosample_covariance</tt><big>(</big><em>covar_common=&lt;function &lt;lambda&gt; at 0x115584938&gt;</em>, <em>covar_individual_1=&lt;function &lt;lambda&gt; at 0x115584758&gt;</em>, <em>covar_individual_2=&lt;function &lt;lambda&gt; at 0x115584668&gt;</em><big>)</big><a class="headerlink" href="#gptwosample.confounder.confounder.TwoSampleConfounder.initialize_twosample_covariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>initialize twosample covariance with function covariance(XX), where XX
 is a FixedCF with the learned confounder matrix.</p>
 <p>default is SumCF([SqexpCFARD(1), FixedCF(self.K_conf.copy()), BiasCF()])</p>
