@@ -60,7 +60,7 @@
 <p>&#64;author: Max Zwiessele</p>
 <dl class="exception">
 <dt id="gptwosample.data.data_base.DataStructureError">
-<em class="property">exception </em><tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">DataStructureError</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#gptwosample.data.data_base.DataStructureError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">DataStructureError</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#DataStructureError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.DataStructureError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.TypeError</span></tt></p>
 <p>Thrown, if DataStructure given does not fit.
 Training data training_data has following structure:</p>
@@ -71,14 +71,14 @@ Training data training_data has following structure:</p>
 
 <dl class="function">
 <dt id="gptwosample.data.data_base.get_model_structure">
-<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">get_model_structure</tt><big>(</big><em>individual=None</em>, <em>common=None</em><big>)</big><a class="headerlink" href="#gptwosample.data.data_base.get_model_structure" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">get_model_structure</tt><big>(</big><em>individual=None</em>, <em>common=None</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#get_model_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.get_model_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the valid structure for model dictionaries, used in gptwosample.
 Make sure to use this method if you want to use the model structure in this package!</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="gptwosample.data.data_base.get_training_data_structure">
-<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">get_training_data_structure</tt><big>(</big><em>x1</em>, <em>x2</em>, <em>y1</em>, <em>y2</em><big>)</big><a class="headerlink" href="#gptwosample.data.data_base.get_training_data_structure" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">get_training_data_structure</tt><big>(</big><em>x1</em>, <em>x2</em>, <em>y1</em>, <em>y2</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#get_training_data_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.get_training_data_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the structure for training data, given two inputs x1 and x2
 with corresponding outputs y1 and y2. Make sure, that replicates have
 to be tiled one after the other for proper resampling of data!</p>
@@ -86,7 +86,7 @@ to be tiled one after the other for proper resampling of data!</p>
 
 <dl class="function">
 <dt id="gptwosample.data.data_base.has_model_structure">
-<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">has_model_structure</tt><big>(</big><em>structure</em><big>)</big><a class="headerlink" href="#gptwosample.data.data_base.has_model_structure" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.data_base.</tt><tt class="descname">has_model_structure</tt><big>(</big><em>structure</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/data_base.html#has_model_structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.data_base.has_model_structure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the valid structure for model dictionaries, used in gptwosample.
 Make sure to use this method if you want to use the model structure in this package!</p>
 </dd></dl>
@@ -99,7 +99,7 @@ Make sure to use this method if you want to use the model structure in this pack
 <p>&#64;author: Max Zwiessele, Oliver Stegle</p>
 <dl class="function">
 <dt id="gptwosample.data.dataIO.get_data_from_csv">
-<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em>, <em>count=-1</em>, <em>verbose=True</em>, <em>message='Reading File'</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">get_data_from_csv</tt><big>(</big><em>path_to_file</em>, <em>delimiter='</em>, <em>'</em>, <em>count=-1</em>, <em>verbose=True</em>, <em>message='Reading File'</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/dataIO.html#get_data_from_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.dataIO.get_data_from_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return data from csv file with delimiter delimiter in form of a dictionary.
 Missing Values are all values x which cannot be converted float(x)</p>
 <p>The file format has to fullfill following formation:</p>
@@ -160,7 +160,7 @@ Missing Values are all values x which cannot be converted float(x)</p>
 
 <dl class="function">
 <dt id="gptwosample.data.dataIO.write_data_to_csv">
-<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">write_data_to_csv</tt><big>(</big><em>data</em>, <em>path_to_file</em>, <em>header='GPTwoSample'</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="headerlink" href="#gptwosample.data.dataIO.write_data_to_csv" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">gptwosample.data.dataIO.</tt><tt class="descname">write_data_to_csv</tt><big>(</big><em>data</em>, <em>path_to_file</em>, <em>header='GPTwoSample'</em>, <em>delimiter='</em>, <em>'</em><big>)</big><a class="reference internal" href="_modules/gptwosample/data/dataIO.html#write_data_to_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gptwosample.data.dataIO.write_data_to_csv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write given data in training_data_structure (see <a class="reference internal" href="#module-gptwosample.data.data_base" title="gptwosample.data.data_base"><tt class="xref py py-class docutils literal"><span class="pre">gptwosample.data.data_base</span></tt></a> for details)
 into file for path_to_file.</p>
 <p><strong>Parameters:</strong></p>

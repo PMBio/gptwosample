@@ -4,25 +4,32 @@
    contain the root `toctree` directive.
 
 Welcome to GPTwoSample
-===========================
++++++++++++++++++++++++
 
-This package provides Gaussian Process based differential gene
-expression detection. 
+Command line tool
+==================
 
-Contents:
+gptwosample.py is a tool to run two-sample tests on time series
+differential gene expression experiments. 
 
 .. toctree:: 
-   :maxdepth: 4
-   
-   Usage Tutorial <tutorial>
-   GPTwoSample Comparing two timelines to each other <base>
+  tutorial
+  usage
+  confounders
+  timeshift
+  results
+
+Developer
+============
+.. toctree::   
+   GPTwoSample <base>
    Generate beautiful plots with gptwosample.plot <plot>
    Data handling for GPTwoSample taksks <data>
 
-Indices and tables
-==================
+.. Indices and tables
+   ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
 
