@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import setuptools, os
 
-with open(os.path.join("gptwosmaple", "README"), 'r') as r:
+with open(os.path.join("gptwosample", "README"), 'r') as r:
     README_TEXT = r.read()
 
 __description__ = """
