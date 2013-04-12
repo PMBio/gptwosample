@@ -17,7 +17,7 @@ def get_recursive_data_files(path):
     return out
 
 standard_params = dict(name='gptwosample',
-      version = '0.1.7c',
+      version = '0.1.9',
       description = __description__,
       long_description = README_TEXT,
       author = 'Max Zwießele, Oliver Stegle',
@@ -25,11 +25,13 @@ standard_params = dict(name='gptwosample',
       url='https://www.assembla.com/code/gptwosample/git/nodes',
       license='Apache v2.0')
 
+reqs =  ['scipy','pygp >=1.1.05', 'matplotlib >=1.2']
 setuptools.setup(
-    install_requires = ['numpy','scipy','pygp >=1.1.0', 'matplotlib >=1.2'],
+    install_requires = reqs,
+    requires = map(lambda x: x.split(" ")[0], reqs),
     packages = setuptools.find_packages('./'),#['gptwosample','examples'],
     package_data ={'gptwosample.examples':['*.csv','*.sh']},
-    data_files = [('',['README', 'LICENSE'])] + get_recursive_data_files('./doc'),
+    data_files = [('',['README'])] + get_recursive_data_files('./doc'),
         #[('tests/',['*.py'])],
     entry_points={
         'console_scripts': [
