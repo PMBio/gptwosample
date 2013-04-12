@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import setuptools, os
 
-with open("README", 'r') as r:
+with open(os.path.join("gptwosmaple", "README"), 'r') as r:
     README_TEXT = r.read()
 
 __description__ = """
@@ -29,7 +29,7 @@ reqs = ['scipy', 'pygp >=1.1.07', 'matplotlib >=1.2']
 setuptools.setup(
     install_requires=reqs,
     requires=map(lambda x: x.split(" ")[0], reqs),
-    packages=setuptools.find_packages('./'),  # ['gptwosample','examples'],
+    packages=setuptools.find_packages(os.path.curdir),  # ['gptwosample','examples'],
     package_data={'gptwosample.examples':['*.csv', '*.sh']},
     data_files=get_recursive_data_files('doc'),  # [('',['README'])] +
     # [('tests/',['*.py'])],
