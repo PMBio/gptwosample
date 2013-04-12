@@ -17,7 +17,7 @@ def get_recursive_data_files(path):
     return out
 
 standard_params = dict(name='gptwosample',
-      version='0.1.10',
+      version='0.1.11',
       description=__description__,
       long_description=README_TEXT,
       author='Max Zwießele, Oliver Stegle',
@@ -25,7 +25,7 @@ standard_params = dict(name='gptwosample',
       url='https://www.assembla.com/code/gptwosample/git/nodes',
       license='Apache v2.0')
 
-reqs = ['scipy', 'pygp >=1.1.05', 'matplotlib >=1.2']
+reqs = ['scipy', 'pygp >=1.1.07', 'matplotlib >=1.2']
 setuptools.setup(
     install_requires=reqs,
     requires=map(lambda x: x.split(" ")[0], reqs),
