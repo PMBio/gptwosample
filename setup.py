@@ -4,6 +4,7 @@ import setuptools, os
 
 with open(os.path.join("README"), 'r') as r:
     README_TEXT = r.read()
+    
 
 __description__ = """
     Differential expression detection between gene expression time series experiments with confounder correction and timehift detection.
@@ -17,21 +18,23 @@ def get_recursive_data_files(path):
     return out
 
 standard_params = dict(name='gptwosample',
-      version='0.1.11',
+      version='0.1.12',
       description=__description__,
       long_description=README_TEXT,
       author='Max Zwießele, Oliver Stegle',
       author_email='ibinbei@gmail.com',
       url='https://www.assembla.com/code/gptwosample/git/nodes',
-      license='Apache v2.0')
+      license='Apache License v2.0')
 
 reqs = ['scipy', 'pygp >=1.1.07', 'matplotlib >=1.2']
+data_files = get_recursive_data_files('doc') + [('', ["LICENSE"])]
+
 setuptools.setup(
     install_requires=reqs,
     requires=map(lambda x: x.split(" ")[0], reqs),
     packages=setuptools.find_packages(os.path.curdir), # ['gptwosample','examples'],
     package_data={'gptwosample.examples':['*.csv', '*.sh']},
-    data_files=get_recursive_data_files('doc') + ['',['LICENSE']],
+    #data_files=data_files,
     # [('tests/',['*.py'])],
     include_package_data=True,
     entry_points={
@@ -41,7 +44,7 @@ setuptools.setup(
         },
     test_suite='test',
     classifiers=[
-          'Development Status :: 0.1 - Beta',
+          'Development Status :: 1 - Beta',
           'Environment :: Console',
           'Environment :: Python',
           'Intended Audience :: End Users/Desktop',
