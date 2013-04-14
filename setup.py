@@ -44,19 +44,20 @@ setuptools.setup(
         },
     test_suite='test',
     classifiers=[
-          'Development Status :: 1 - Beta',
+          'Development Status :: 4 - Beta',
           'Environment :: Console',
-          'Environment :: Python',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
-          'License :: Apache License v2.0',
+          'License :: OSI Approved :: Apache Software License',
           'Operating System :: MacOS :: MacOS X',
           'Operating System :: Microsoft :: Windows',
           'Operating System :: POSIX',
           'Programming Language :: Python',
-          'Topic :: Two-Sample :: Testing',
-          'Topic :: Gaussian Processes :: Regression',
-          'Topic :: Software Development :: Bug Tracking',
+          'Topic :: Scientific/Engineering',
+          'Topic :: Scientific/Engineering :: Information Analysis',
+          'Topic :: Scientific/Engineering :: Visualization',
+          'Topic :: Software Development :: Libraries',
+        
           ],
     **standard_params
     )
