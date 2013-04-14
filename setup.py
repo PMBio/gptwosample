@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import setuptools, os
 
-with open(os.path.join("gptwosample", "README"), 'r') as r:
+with open(os.path.join("README"), 'r') as r:
     README_TEXT = r.read()
 
 __description__ = """
@@ -29,9 +29,9 @@ reqs = ['scipy', 'pygp >=1.1.07', 'matplotlib >=1.2']
 setuptools.setup(
     install_requires=reqs,
     requires=map(lambda x: x.split(" ")[0], reqs),
-    packages=setuptools.find_packages(os.path.curdir),  # ['gptwosample','examples'],
+    packages=setuptools.find_packages(os.path.curdir), # ['gptwosample','examples'],
     package_data={'gptwosample.examples':['*.csv', '*.sh']},
-    data_files=get_recursive_data_files('doc'),  # [('',['README'])] +
+    data_files=get_recursive_data_files('doc') + ['',['LICENSE']],
     # [('tests/',['*.py'])],
     include_package_data=True,
     entry_points={
@@ -39,6 +39,21 @@ setuptools.setup(
             'gptwosample=gptwosample.__main__:main',
             ]
         },
-    test_suite='gptwosample.tests',
+    test_suite='test',
+    classifiers=[
+          'Development Status :: 0.1 - Beta',
+          'Environment :: Console',
+          'Environment :: Python',
+          'Intended Audience :: End Users/Desktop',
+          'Intended Audience :: Developers',
+          'License :: Apache License v2.0',
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: Microsoft :: Windows',
+          'Operating System :: POSIX',
+          'Programming Language :: Python',
+          'Topic :: Two-Sample :: Testing',
+          'Topic :: Gaussian Processes :: Regression',
+          'Topic :: Software Development :: Bug Tracking',
+          ],
     **standard_params
     )
