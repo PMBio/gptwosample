@@ -18,7 +18,7 @@ def get_recursive_data_files(path):
     return out
 
 standard_params = dict(name='gptwosample',
-      version='0.1.13',
+      version='0.1.18',
       description=__description__,
       long_description=README_TEXT,
       author='Max Zwießele, Oliver Stegle',
@@ -33,7 +33,7 @@ setuptools.setup(
     install_requires=reqs,
     requires=map(lambda x: x.split(" ")[0], reqs),
     packages=setuptools.find_packages(os.path.curdir), # ['gptwosample','examples'],
-    package_data={'gptwosample.examples':['*.csv', '*.sh']},
+    package_data={'gptwosample.examples':['*.csv', '*.sh', '*.txt']},
     #data_files=data_files,
     # [('tests/',['*.py'])],
     include_package_data=True,
