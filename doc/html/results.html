@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Result structure &mdash; GPTwoSample 0.1.7a documentation</title>
+    <title>Result structure &mdash; GPTwoSample 0.1.16 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.7a',
+        VERSION:     '0.1.16',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="top" title="GPTwoSample 0.1.16 documentation" href="index.html" />
     <link rel="next" title="Step by step tutorial &amp; examples" href="tutorial.html" />
     <link rel="prev" title="Timeshift detection between replicates" href="timeshift.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="timeshift.html" title="Timeshift detection between replicates"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.16 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,12 +57,13 @@
   <div class="section" id="result-structure">
 <span id="results"></span><h1>Result structure<a class="headerlink" href="#result-structure" title="Permalink to this headline">¶</a></h1>
 <p>The results are given in form of a <tt class="docutils literal"><span class="pre">results.csv</span></tt>. Each line corresponds to the results for one gene. The results file is structured as follows:</p>
-<div class="highlight-python"><pre>| Gene ID | Bayes Factor | [Learnt covariance function parameters] |</pre>
+<div class="highlight-python"><pre>| Gene ID | Bayes Factor | [Learnt covariance function parameters...] |</pre>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">Gene</span> <span class="pre">ID</span></tt> is the ID given in the input files. The <tt class="docutils literal"><span class="pre">Bayes</span> <span class="pre">Factor</span></tt> is a log-score for model comparison of the individual model against the common model. The individual model assumes both samples (treatment and control) to be modelled individually by one Gaussian process each. In contrast the common model assumes both samples to be modelled by one Gaussian Process. Both likelihoods are computed and the score is created by contrasting the both likelihoods:</p>
+<p><tt class="docutils literal"><span class="pre">Gene</span> <span class="pre">ID</span></tt> is the ID given in the input files. <tt class="docutils literal"><span class="pre">Bayes</span> <span class="pre">Factor</span></tt> is a log-score for model comparison of the individual model against the common model. The individual model assumes both samples (treatment and control) to be modelled individually by one Gaussian process each. In contrast the common model assumes both samples to be modelled by one Gaussian Process. Both likelihoods are computed and the score is created by contrasting both likelihoods:</p>
 <div class="math">
 <p><img src="_images/math/17c8b807f742be9b271253d1e4be7a148914abbf.png" alt="\mathcal{BF} = \ln \frac{p(\text{Individual model})}{p(\text{Common model})}"/></p>
-</div><p>All plots are saved in a subfolder <tt class="docutils literal"><span class="pre">&lt;outdir&gt;/plots/</span></tt></p>
+</div><p>Thus, the higher $mathcal{BF}$, the more likely the two genes are differentially expressed.</p>
+<p>All plots are saved in a subfolder <tt class="docutils literal"><span class="pre">&lt;outdir&gt;/plots/</span></tt></p>
 </div>
 
 
@@ -109,7 +110,7 @@
         <li class="right" >
           <a href="timeshift.html" title="Timeshift detection between replicates"
              >previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.16 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

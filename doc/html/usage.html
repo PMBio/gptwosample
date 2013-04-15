@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Parameter options &mdash; GPTwoSample 0.1.7a documentation</title>
+    <title>Parameter options &mdash; GPTwoSample 0.1.16 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.1.7a',
+        VERSION:     '0.1.16',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GPTwoSample 0.1.7a documentation" href="index.html" />
+    <link rel="top" title="GPTwoSample 0.1.16 documentation" href="index.html" />
     <link rel="next" title="Accounting for confounding factors" href="confounders.html" />
     <link rel="prev" title="Welcome to GPTwoSample" href="index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to GPTwoSample"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.16 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,19 +57,55 @@
   <div class="section" id="parameter-options">
 <span id="usage"></span><h1>Parameter options<a class="headerlink" href="#parameter-options" title="Permalink to this headline">¶</a></h1>
 <p>Calling signature:</p>
-<div class="highlight-python"><pre>gptwosample [-h] [-o DIR] [-t] [-c N] [-p] [-v] [--version] [--backend [PDF,...]]  FILE FILE</pre>
+<div class="highlight-python"><pre>gptwosample [-h] [-o DIR] [-t] [-c N] [-p] [-v]
+            [--filter FILE] [--version] [--backend [PDF,...]]
+            FILE FILE</pre>
 </div>
 <p>where:</p>
-<div class="highlight-python"><pre>FILE                  treatment/control files to compare against each other
--h, --help            show this help message and exit
--o DIR, --out DIR     set output dir [default: ./twosample_out/]
--t, --timeshift       account for timeshifts in data [default: False]
--c N, --confounder N  account for N confounders in data [default: 0]
--p, --plot            plot data into outdir/plots? [default: False]
--v, --verbose         set verbosity level [default: 0]
---version             show program's version number and exit
---backend [PDF,...]   matplotlib backend - see matplotlib.use(backend)</pre>
-</div>
+<p>FILE                  treatment/control files to compare against each other</p>
+<blockquote>
+<div><table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
+<td>show this help message and exit</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-o <var>DIR</var></span>, <span class="option">--out <var>DIR</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>set output dir [default: ./twosample_out/]</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-t</span>, <span class="option">--timeshift</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>account for timeshifts in data [default: False]</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-c <var>N</var></span>, <span class="option">--confounder <var>N</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>account for N confounders in data [default: 0]</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-p</span>, <span class="option">--plot</span></kbd></td>
+<td>plot data into outdir/plots? [default: False]</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-v</span>, <span class="option">--verbose</span></kbd></td>
+<td>set verbosity level [default: 0]</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--filter <var>FILE</var></span></kbd></td>
+<td>only matching genes of each line of FILE will be used for twosampling</td></tr>
+</tbody>
+</table>
+<p>&#8211;backend [PDF,...]   matplotlib backend - see matplotlib.use(backend)</p>
+</div></blockquote>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--version</span></kbd></td>
+<td>show program&#8217;s version number and exit</td></tr>
+</tbody>
+</table>
+<p><cite>&#8211;filter</cite>:</p>
 </div>
 <div class="section" id="data-format">
 <span id="dataformat"></span><h1>Data format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h1>
@@ -183,7 +219,7 @@ treated as missing values in the model.</p>
         <li class="right" >
           <a href="index.html" title="Welcome to GPTwoSample"
              >previous</a> |</li>
-        <li><a href="index.html">GPTwoSample 0.1.7a documentation</a> &raquo;</li> 
+        <li><a href="index.html">GPTwoSample 0.1.16 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

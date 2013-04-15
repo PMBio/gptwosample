@@ -5,19 +5,25 @@ Parameter options
 
 Calling signature::
 
- gptwosample [-h] [-o DIR] [-t] [-c N] [-p] [-v] [--version] [--backend [PDF,...]]  FILE FILE
+ gptwosample [-h] [-o DIR] [-t] [-c N] [-p] [-v] 
+             [--filter FILE] [--version] [--backend [PDF,...]]
+             FILE FILE
 
-where::
+where:
 
-  FILE                  treatment/control files to compare against each other
-  -h, --help            show this help message and exit
-  -o DIR, --out DIR     set output dir [default: ./twosample_out/]
-  -t, --timeshift       account for timeshifts in data [default: False]
-  -c N, --confounder N  account for N confounders in data [default: 0]
-  -p, --plot            plot data into outdir/plots? [default: False]
-  -v, --verbose         set verbosity level [default: 0]
-  --version             show program's version number and exit
-  --backend [PDF,...]   matplotlib backend - see matplotlib.use(backend)
+FILE                  treatment/control files to compare against each other
+
+ -h, --help            show this help message and exit
+ -o DIR, --out DIR     set output dir [default: ./twosample_out/]
+ -t, --timeshift       account for timeshifts in data [default: False]
+ -c N, --confounder N  account for N confounders in data [default: 0]
+ -p, --plot            plot data into outdir/plots? [default: False]
+ -v, --verbose         set verbosity level [default: 0]
+ --filter FILE         only matching genes of each line of FILE will be used for twosampling
+ --backend [PDF,...]   matplotlib backend - see matplotlib.use(backend)
+--version             show program's version number and exit
+ 
+`--filter`: 
 
 
 .. _dataformat:
