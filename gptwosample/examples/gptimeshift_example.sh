@@ -16,4 +16,4 @@ export PYTHONPATH=$PYTHONPATH:../../:
 # -t   : with timeshift detection
 # -o D : write results in directory D
 # on ToyConditions{1,2}.csv
-python ../../gptwosample.py -v -t -p -o ./gptimeshift_example/ ToyCondition1.csv ToyCondition2.csv $*
+python ../../gptwosample -v -t -p -o ./gptimeshift_example/ ToyCondition1.csv ToyCondition2.csv $*

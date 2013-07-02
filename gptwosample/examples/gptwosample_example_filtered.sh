@@ -16,4 +16,4 @@ export PYTHONPATH=$PYTHONPATH:../../:
 # --filtered : filter only genes matching regexp in filter.txt
 # -o D : write results in directory D
 # on ToyConditions{1,2}.csv
-python ../../gptwosample.py -v -p -c4 --filtered filter.txt -o ./gptwosample_confounder_example/ ToyCondition1.csv ToyCondition2.csv $*
+python ../../gptwosample -v -p -c4 --filter filter.txt -o ./gptwosample_confounder_example/ ToyCondition1.csv ToyCondition2.csv $*

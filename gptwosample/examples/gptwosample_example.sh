@@ -15,4 +15,4 @@ export PYTHONPATH=$PYTHONPATH:../../:
 # -p   : and plot
 # -o D : write results in directory D
 # on ToyConditions{1,2}.csv
-python ../../gptwosample.py -v -p -o ./gptwosample_example/ ToyCondition1.csv ToyCondition2.csv $*
+python ../../gptwosample -v -p -o ./gptwosample_example/ ToyCondition1.csv ToyCondition2.csv $*

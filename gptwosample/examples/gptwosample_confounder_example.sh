@@ -16,4 +16,4 @@ export PYTHONPATH=$PYTHONPATH:../../:
 # -c 4 : with 4 confounders
 # -o D : write results in directory D
 # on ToyConditions{1,2}.csv
-python ../../gptwosample.py -v -p -c4 -o ./gptwosample_confounder_example/ ToyCondition1.csv ToyCondition2.csv $*
+python ../../gptwosample -v -p -c4 -o ./gptwosample_confounder_example/ ToyCondition1.csv ToyCondition2.csv $*
